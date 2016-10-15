@@ -13,7 +13,7 @@ body {
 
 p {
   line-height: 1.5;
-  margin: 30px 0;
+/*  margin: 30px 0;*/
 }
 p a {
   text-decoration: underline;
@@ -39,7 +39,7 @@ a img:focus {
   cursor: zoom-in;
 }
 blockquote {
-  color: #808080;
+  color: #606060;
   font-style: italic;
 }
 pre {

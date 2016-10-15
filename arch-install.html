@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="zh">
+
+<head>
+            <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="description" content="">
+        <meta name="author" content="">
+
+        <title>JenI's Blog</title>
+
+        <link rel="icon" href="theme/images/favicon.ico" type="image/x-icon">  
+        <link rel="shortcut icon" href="theme/images/favicon.ico" type="image/x-icon">  
+
+
+        <link href="/theme/css/iconfont.css" rel="stylesheet">
+
+        <!-- Bootstrap Core CSS -->
+        <link href="/theme/css/bootstrap.min.css" rel="stylesheet">
+
+        <!-- Custom CSS -->
+        <link href="/theme/css/clean-blog.min.css" rel="stylesheet">
+
+        <!-- Code highlight color scheme -->
+            <link href="/theme/css/code_blocks/monokai.css" rel="stylesheet">
+
+        <!-- Custom Fonts -->
+        <link href="http://maxcdn.bootstrapcdn.com/font-awesome/4.1.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+        <link href='http://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+        <link href='http://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/css'>
+
+        <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+        <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+        <!--[if lt IE 9]>
+            <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+            <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+        <![endif]-->
+
+
+
+
+        <meta name="tags" contents="系统" />
+        <meta name="tags" contents="安装" />
+
+
+			<meta property="og:locale" content="zh">
+		<meta property="og:site_name" content="JenI's Blog">
+
+	<meta property="og:type" content="article">
+	<meta property="article:author" content="">
+	<meta property="og:url" content="/arch-install.html">
+	<meta property="og:title" content="Archlinux+KDE安装">
+	<meta property="og:description" content="How to install archlinux in your computer">
+	<meta property="og:image" content="/theme/images/posts/arch-install/kde-desktop.png">
+	<meta property="article:published_time" content="2016-10-14 10:20:00+08:00">
+</head>
+
+<body>
+
+    <!-- Navigation -->
+    <nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+        <div class="container-fluid">
+            <!-- Brand and toggle get grouped for better mobile display -->
+            <div class="navbar-header page-scroll">
+                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <a class="navbar-brand" href="/">JenI's Blog</a>
+            </div>
+
+            <!-- Collect the nav links, forms, and other content for toggling -->
+            <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+                <ul class="nav navbar-nav navbar-right">
+
+                </ul>
+            </div>
+            <!-- /.navbar-collapse -->
+        </div>
+        <!-- /.container -->
+    </nav>
+
+    <!-- Page Header -->
+        <header class="intro-header" style="background-image: url('theme/images/posts/arch-install/kde-desktop.png')">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                    <div class="post-heading">
+                        <h1>Archlinux+KDE安装</h1>
+                            <h3 class="subheading">How to install archlinux in your computer</h3>
+                        <span class="meta">Posted by
+                                <a href="/author/jeni.html">JenI</a>
+                             on 五 14 十月 2016
+                        </span>
+                        
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+    <!-- Post Content -->
+    <article>
+        <p><strong><em>前言</em></strong></p>
+<p>Archlinux作为最受用户欢迎的十大发行版之一，其最大的特点就是高度定制和滚动更新，并且拥有简单易用的包管理软件和十分活跃的社区。但由于其使用可定制化的二进制命令式安装方法，使得安装步骤相对于Ubuntu、Rethat等发行版要复杂一些，尽管官方的wiki写的十分详细，但许多刚接触Linux的人面对一条一条命令还是一头雾水。</p>
+<p>有些人认为Archlinux并不适合新手使用，但其实这个因人而异，如果真的想深入了解linux系统，我更建议起步高一点，哪怕最开始大部分命令都看不懂，对照着wiki或网上的教程完整安装完一个系统，使用一段时间后就会发现，自己已经逐渐可以接受用键盘代替鼠标操作了，而且大部分命令也都熟悉了，此时便对linux系统有了一个基本认识。</p>
+<p>当然，我也只是个新手，对于玩转linux系统还差的远，大部分的操作也要阅读帮助文档或谷歌，之所以写这篇文章，主要是想对安装过程做一个完整的记录，方便以后查阅，如果能对后来人起到帮助作用，那更好。</p>
+<p>过程中出现错误或疏漏的步骤，欢迎指正。</p>
+<p>建议先在虚拟机安装，成功后再在物理机上安装。</p>
+<p><strong><em>准备</em></strong></p>
+<p>到archlinux的官网下载镜像，下载完成后烧到一个空白U盘内，windows下推荐使用rufus或者UltraISO，linux下在镜像所在目录执行如下命令（假设电脑只有一块硬盘，u盘挂载后为/dev/sdb）</p>
+<blockquote>
+<p>dd if=xxx.iso of=/dev/sdb</p>
+</blockquote>
+<p>重启电脑进入bios，在启动项中调整u盘到首位，保存后重启。</p>
+<p><strong><em>安装</em></strong></p>
+<p>进入Archlinux的livecd后，首先进行分区（刚接触的用户建议cfdisk工具，具有互动式操作界面而非传统fdisk的问答式界面，可以轻易地利用方向键来操控分区操作。）</p>
+<blockquote>
+<p>cfdisk /dev/sda</p>
+</blockquote>
+<p>以下为我的硬盘分区方式，livecd中是英文界面，可对照下图操作。因为是双系统，所以分区较多，请忽略window系统所在分区，只看linux分区。
+<pre>
+磁盘：/dev/sda
+尺寸：931.5 GiB，1000204886016 字节，1953525168 个扇区
+标签：gpt，标识符：A6C43A92-A959-4027-81C1-B2A46457A764
+设备                   起点         末尾        扇区     大小 类型
+/dev/sda1              2048       204799      202752      99M EFI 系统           <br />
+/dev/sda2            204800       466943      262144     128M Microsoft 保留
+剩余空间             466944       468991        2048       1M
+/dev/sda3            468992    346903025   346434034   165.2G Microsoft 基本数据
+/dev/sda4         346904576    348596223     1691648     826M Windows 恢复环境
+剩余空间          348596224    348598271        2048       1M
+/dev/sda5         348598272    977745919   629147648     300G Microsoft 基本数据
+/dev/sda6         977745920   1607491583   629745664   300.3G Microsoft 基本数据
+/dev/sda7        1607491584   1674600447    67108864      32G Linux root (x86-64)
+/dev/sda8        1674600448   1682989055     8388608       4G Linux swap
+/dev/sda9        1682989056   1953525134   270536079     129G Linux home
+┌───────────────────────────────────────────────────────────────────────────────────┐
+│ Partition name: EFI system partition                                              │
+│ Partition UUID: CF298F48-DD73-426C-B828-11B8285B0996                              │
+│ Partition type: EFI 系统 (C12A7328-F81F-11D2-BA4B-00A0C93EC93B)                   │
+│     Filesystem: vfat                                                              │
+│Filesystem UUID: 0004-32A3                                                         │
+│     Mountpoint: /boot (mounted)                                                   │
+└───────────────────────────────────────────────────────────────────────────────────┘
+[ 删除 ]  [ 退出 ]  [ 类型 ]  [ 帮助 ]  [ 写入 ]  [ 转储 ]
+</pre></p>
+<p>一般分区方式为boot分区+root分区+home分区+swqp分区，home分区也可不创建。强烈不建议使用root作为日常用户，因为root用户拥有系统的完全控制权，容易误操作导致对系统或文件造成不可恢复的错误。</p>
+<p>boot：用于存放系统的启动引导文件，100M-200M足够,存在EFI分区无需创建此分区</p>
+<p>root:根目录，文件系统的起点。如果有普通用户的话不同分太多，无普通用户时大小为剩余空间</p>
+<p>home:家目录，普通用户的数据存放地，建议创建，重装系统时可避免数据丢失。其他分区创建完成时的剩余空间</p>
+<p>swap：内存交换空间。尽管现在计算机的内存大多足够使用，但仍然建议创建swap分区，除了作为物理内存不足以支撑应用程序（进程）运作时的备用内存，还可以避免有发生内存泄漏几率的应用程序（进程）占满物理内存导致系统崩溃。</p>
+<p>分区成功后写入退出，此时分区结构如下</p>
+<blockquote>
+<p>/dev/sda  </p>
+<blockquote>
+<p>/dev/sda1 --&gt;boot分区<br />
+/dev/sda2 --&gt;root分区<br />
+/dev/sda3 --&gt;home分区<br />
+/dev/sda4 --&gt;swap分区</p>
+</blockquote>
+</blockquote>
+<p>格式化分区并挂载</p>
+<p>boot分区、root分区、home分区：</p>
+<blockquote>
+<p>mkfs.ext4 /dev/sda1<br />
+mkfs.ext4 /dev/sda2<br />
+mkfs.ext4 /dev/sda3<br />
+mkswap /dev/sda4<br />
+swqpon /dev/sda4<br />
+mount /dev/sda2 /mnt<br />
+cd /mnt<br />
+mkdir boot home<br />
+mount /dev/sda1 /mnt/boot（当存在efi分区时将boot目录挂载到efi分区）<br />
+mount /dev/sda3 /mnt/home</p>
+</blockquote>
+<p>linux不同与windows，windows是把硬盘上的分区映射到盘符上，但linux没有盘符的概念，它只有树状结构的目录，简单的理解，挂载就是将目录指向不同的分区，之后你对这个目录下的文件进行操作都相当于对该目录所指向的分区内的文件进行操作</p>
+<p><strong><em>安装基本系统</em></strong></p>
+<p>先联网，如果是有线网(需要路由器自动分配IP，路由器默认开启了dhcp服务)，执行</p>
+<blockquote>
+<p>systemctl start dhcpcd</p>
+</blockquote>
+<p>无线网用户执行</p>
+<blockquote>
+<p>wifi-menu</p>
+</blockquote>
+<p>方向键选择自己的无线网络，回车两次，输入密码。连接网络成功后执行以下命令安装系统。安装之前可以将源改为国内源，这样安装速度会快一点，更换国内源方法下文有写</p>
+<blockquote>
+<p>pacstrap -i /mnt base base-devel vim</p>
+</blockquote>
+<p>安装需要一点时间，base是基础软件包组，base-devel是基础开发包组，vim是世界上最好的编辑器。(刚接触linux的朋友可以先使用nano代替vim，等到熟悉vim操作时再使用vim)</p>
+<p><strong><em>配置基础系统</em></strong></p>
+<p>生成fstab</p>
+<blockquote>
+<p>genfstab -U -p /mnt &gt;&gt; /mnt/etc/fstab</p>
+</blockquote>
+<p>如果创建了交换分区，执行</p>
+<blockquote>
+<p>echo "$(blkid -o export /dev/sda3|grep '^UUID') swap swap defaults 0 0" &gt;&gt; /mnt/etc/fstab</p>
+</blockquote>
+<p>change root 到新安装的基本系统，简单理解就是从U盘里的系统进入刚刚安装的新系统里，之后的操作都是针对硬盘内系统的</p>
+<blockquote>
+<p>arch-chroot /mnt /bin/bash</p>
+</blockquote>
+<p>配置更新源</p>
+<blockquote>
+<p>nano /etc/pacman.d/mirrorlist</p>
+</blockquote>
+<p>在文件头部加入以下两行,中科大维护的镜像源，速度比较快，</p>
+<pre>
+Server=http://mirrors.ustc.edu.cn/archlinux/$repo/os/$arch
+Server=https://mirrors.ustc.edu.cn/archlinux/$repo/os/$arch
+</pre>
+
+<blockquote>
+<p>pacman -Syy</p>
+</blockquote>
+<p>设置主机名</p>
+<blockquote>
+<p>echo 这里填你的主机名字，只能是字母、横线和数字 &gt; /etc/hostname</p>
+</blockquote>
+<p>修改时区</p>
+<blockquote>
+<p>ln -s /usr/share/zoneinfo/Asia/Shanghai /etc/localtime</p>
+</blockquote>
+<p>更改语言环境</p>
+<blockquote>
+<p>nano /etc/locale.gen<br />
+找到以下四行，去掉行首的#</p>
+</blockquote>
+<pre>
+en_US.UTF-8
+zh_CN.UTF-8
+zh_CN.GBK
+zh_CN.GB2312
+</pre>
+
+<blockquote>
+<p>ctrl+x 摁y，再回车退出，之后执行<br />
+locale-gen<br />
+echo LANG=en_US.UTF-8 &gt; /etc/locale.conf</p>
+</blockquote>
+<p>更改root用户的密码</p>
+<blockquote>
+<p>passwd</p>
+</blockquote>
+<p>密码要敲两次，而且屏幕上不会有显示，没关系，尽管设置就是了</p>
+<p>生成启动要用的ramdisk</p>
+<blockquote>
+<p>mkinitcpio -p linux</p>
+</blockquote>
+<p>执行以下命令确保新系统可以联网</p>
+<blockquote>
+<p>pacman -S iw wpa_supplicant dialog<br />
+pacman -S net-tools dnsutils inetutils iproute2</p>
+</blockquote>
+<p>安装启动引导器，有很多引导器可以选择，如grub，syslinux，systemd-boot等</p>
+<p>UEFI用户可以systemd-boot,首先确认启动方式是UEFI模式，并可以正确访问EFI变量</p>
+<blockquote>
+<p>bootctl --path=$esp install<br />
+nano /boot/loader/entries/arch.conf</p>
+</blockquote>
+<p>加入如下内容
+<pre>
+title          Arch Linux
+linux          /vmlinuz-linux
+initrd         /initramfs-linux.img
+options        root=/dev/sda2 rw
+</pre>
+ctrl+x 摁y，再回车退出</p>
+<p>传统启动方式的电脑可以使用grub</p>
+<blockquote>
+<p>pacman -S grub<br />
+grub-install --target=i386-pc --recheck --debug /dev/sda<br />
+grub-mkconfig -o /boot/grub/grub.cfg</p>
+</blockquote>
+<p>或者使用syslinux</p>
+<blockquote>
+<p>pacman -S syslinux gptfdisk xf86-video-vesa<br />
+syslinux-install_update -i -a -m<br />
+nano /boot/syslinux/syslinux.cfg</p>
+</blockquote>
+<pre>
+#找到下面两行，第一行加#，第二行去#
+#UI menu.c32
+UI vesamenu.c32
+#找到所有标有root字符的行，将后面sdax中的x改为自己根目录对应分区
+root=/dev/sda2
+</pre>
+
+<p>退出chroot环境，重启电脑,重启时进入bios将应该改为第一启动项</p>
+<blockquote>
+<p>exit<br />
+reboot  </p>
+</blockquote>
+<p>重新启动后以root用户登录，联网</p>
+<p>创建一个普通用户并使用zsh作为默认shell。以普通用户执行没有权限的操作时，可以使用sudo命令进行临时提权</p>
+<blockquote>
+<p>pacman -S zsh grml-zsh-config<br />
+useradd -m -g users -G wheel -s /bin/zsh zhangsan（假设创建一个名为zhangsan的普通用户）<br />
+passwd zhangsan（为zhangsan用户设置密码）<br />
+ln -sf /etc/shel/.zshrc /home/zhangsan/.zshrc<br />
+nano /etc/sudoers</p>
+</blockquote>
+<p>找到root ALL=(ALL) ALL下面加一行，如下，注意格式一定不要错
+<pre>
+root ALL=(ALL) ALL
+zhangsan ALL=(ALL) ALL
+</pre>
+<strong><em>安装X服务</em></strong></p>
+<p>首先安装，Archlinux默认提供了vesa，它兼容大多数的显卡，如果对图形化有高要求的人可以根据自己系统的显卡品牌安装不同厂商各自的开源或闭源显卡驱动，详见：
+<a href="https://wiki.archlinux.org/index.php/Xorg_(%E7%AE%80%E4%BD%93%E4%B8%AD%E6%96%87)">https://wiki.archlinux.org/index.php/Xorg_(%E7%AE%80%E4%BD%93%E4%B8%AD%E6%96%87)</a></p>
+<p>安装xorg</p>
+<blockquote>
+<p>pacman -S xorg-xinit xorg-twm xorg-xclock xterm<br />
+cp /etc/X11/xinit/xinitrc /home/zhangsan/.xinitrc</p>
+</blockquote>
+<p><strong><em>安装桌面环境</em></strong></p>
+<p>常见桌面环境有Gnome、KDE、LXDE、Xfce等，前两个属于较重量级的，后两个属于轻量桌面环境。对于接触时间较短的用户更推荐前两个桌面环境，虽然他们比较大，并不是十分符合Archlinux K.I.S.S（Keep It Simple，Stupid）的原则，但也正因为功能比较丰富，所以更适合刚从windows转来的用户。这里选择安装KDE</p>
+<p>KDE在4代时bug比较多，桌面经常崩溃，但是发展至今已经是个十分完善且稳定的桌面环境了，而且近期更新的KDE Plasma 5.8为一个LTS版本，十分适合长期使用。下面开始安装</p>
+<blockquote>
+<p>pacman -S plasma kdebase qt4 phonon-qt4-gstreamer phonon-qt4-vlc</p>
+</blockquote>
+<p>这里说明一下，为什么要把这几个qt4的包和plasma同时安装，其实我也并不清楚原理，只是如果不在这里安装qt4的话，今后的使用中部分应用可能会导致桌面环境卡死或崩溃。</p>
+<blockquote>
+<p>pacman -S kde-l10n-zh_cn ttf-dejavu wqy-zenhei wqy-microhei wqy-microhei-lite   adobe-source-han-sans-cn-fonts konsole dolphin kate</p>
+</blockquote>
+<p>后端选择vlc版本，其它默认，安装时间较长</p>
+<p><strong><em>添加环境变量</em></strong></p>
+<p>如果想开机后通过startx命令进入桌面环境，编辑.xinitrc文件</p>
+<blockquote>
+<p>nano /home/zhangsan/.xinitrc</p>
+</blockquote>
+<p>注释掉下面内容
+<pre>
+#twm &amp;
+#xclock -geometry 50x50-1+1 &amp;
+#xterm -geometry 80x50+494+51 &amp;
+#xterm -geometry 80x20+494-0 &amp;
+#exec xterm -geometry 80x66+0+0 -name login
+</pre>
+在文件最后加入以下内容
+<pre>
+export LANG=zh_CN.UTF-8
+export LANGUAGE=zh_CN:en_US
+export LC_CTYPE=en_US.UTF-8
+export GTK_IM_MODULE=fcitx
+export QT_IM_MODULE=fcitx
+export XMODIFIERS="@im=fcitx"
+exec startkde
+</pre>
+如果想开机直接进入桌面环境</p>
+<blockquote>
+<p>pacman -S sddm sddm-kcm<br />
+systemctl enable sddm<br />
+sddm --example-config &gt; /etc/sddm.conf<br />
+nano /etc/sddm.conf</p>
+</blockquote>
+<p>对应行修改如下
+<pre>
+[Theme]
+Current=breeze
+CursorTheme=breeze_cursors
+</pre></p>
+<p>编辑.xprofile</p>
+<blockquote>
+<p>nano /home/zhangsan/.xprofile  </p>
+</blockquote>
+<p>即使文件不存在也要加入以下几行
+<pre>
+export GTK_IM_MODULE=fcitx
+export QT_IM_MODULE=fcitx
+export XMODIFIERS="@im=fcitx"
+</pre>
+<strong><em>增加社区源</em></strong></p>
+<blockquote>
+<p>nano /etc/pacman.conf</p>
+</blockquote>
+<p>在文件末尾加入以下几行,依然是中科大维护的镜像源
+<pre>
+[archlinuxcn]
+SigLevel=Optional TrustedOnly
+Server=https://mirrors.ustc.edu.cn/archlinuxcn/$arch
+</pre></p>
+<blockquote>
+<p>pacman -Syy<br />
+sudo pacman -S yaourt archlinuxcn-keyring</p>
+</blockquote>
+<p><strong><em>安装输入法</em></strong></p>
+<blockquote>
+<p>pacman -S fcitx-im kcm-fcitx</p>
+</blockquote>
+<p>上面命令安装输入法支持和输入法图形化管理区，具体输入法看自己喜好下载</p>
+<blockquote>
+<p>pacman -S fcitx-googlepinyin (谷歌拼音)</p>
+</blockquote>
+<p>其他还有fcitx-sunpinyin、fcitx-libpinyin、fcitx-rime等,自行替换上面命令安装</p>
+<blockquote>
+<p>yaourt -S fcitx-sogoupinyin (搜狗拼音)</p>
+</blockquote>
+<p><strong><em>安装结束</em></strong></p>
+<blockquote>
+<p>pacman -Syu<br />
+reboot</p>
+</blockquote>
+<p>如果使用sddm显示管理器的用户此时开机后应该已经进入桌面了，直接输入普通用户用户名和密码即可登录</p>
+<p>如果没有使用sddm的用户重启后应该在命令行下登录，登录成功后执行一下命令即可进入桌面</p>
+<blockquote>
+<p>startx</p>
+</blockquote>
+<p><strong><em>其他设置</em></strong></p>
+<p>如果不习惯命令行联网，可以执行</p>
+<p>systemctl enable NetworkManager</p>
+<p>更新系统(普通用户加sudo)</p>
+<blockquote>
+<p>pacman -Syu</p>
+</blockquote>
+<p>安装软件</p>
+<blockquote>
+<p>pacman -S 软件名(要善于使用tab补全)</p>
+</blockquote>
+<p>卸载软件</p>
+<blockquote>
+<p>pacman -R 软件名</p>
+</blockquote>
+<p>pacman仓库没有的软件可以尝试在社区找一下，基本都会有。命令语法与pacman相同。</p>
+<blockquote>
+<p>yaourt -S 软件名</p>
+</blockquote>
+<p><strong><em>最后</em></strong></p>
+<p>安装过程就这些了，第一次写博客，啰里啰嗦的写了一大堆，其实没什么干货，以后会逐渐改进。另外博客只能查看，其他如分类、评论等功能会陆续添加。</p>
+<p>参考:<br />
+&#160; &#160; &#160; &#160;<a href="https://wiki.archlinux.org/index.php/Main_page_(%E7%AE%80%E4%BD%93%E4%B8%AD%E6%96%87)">https://wiki.archlinux.org/index.php/Main_page_(%E7%AE%80%E4%BD%93%E4%B8%AD%E6%96%87)</a>  </p>
+<hr />
+<p>作者:JenI&#160; &#160; &#160; &#160;转载请注明出处，谢谢</p>
+    </article>
+
+    <hr>
+
+            </div>
+        </div>
+    </div>
+
+    <hr>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                    <ul class="list-inline text-center">
+                        <li>
+                            <a href="http://weibo.com/1992014191/profile?rightmod=1&wvr=6&mod=personinfo&is_all=1">
+                                <span class="fa-stack fa-lg">
+                                    <i class="icon iconfont">&#xe657;</i>
+                                </span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="http://github.com/jenihk">
+                                <span class="fa-stack fa-lg">
+                                    <i class="icon iconfont">&#xe618;</i>
+                                </span>
+                            </a>
+                        </li>
+                    </ul>
+                    <p class="copyright text-muted">Blog powered by <a href="http://getpelican.com">Pelican</a>,
+                which takes great advantage of <a href="http://python.org">Python</a>.</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- jQuery -->
+    <script src="/theme/js/jquery.js"></script>
+
+    <!-- Bootstrap Core JavaScript -->
+    <script src="/theme/js/bootstrap.min.js"></script>
+
+    <!-- Custom Theme JavaScript -->
+    <script src="/theme/js/clean-blog.min.js"></script>
+
+</body>
+
+</html>
