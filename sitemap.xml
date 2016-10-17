@@ -4,63 +4,63 @@ xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitem
 xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 
 <url>
-<loc>/</loc>
-<lastmod>2016-10-17T16:22:47-00:00</lastmod>
+<loc>https://jenihk.github.io/</loc>
+<lastmod>2016-10-17T16:55:54-00:00</lastmod>
 <changefreq>daily</changefreq>
 <priority>0.5</priority>
 </url>
 
 <url>
-<loc>/archives.html</loc>
-<lastmod>2016-10-17T16:22:47-00:00</lastmod>
+<loc>https://jenihk.github.io/archives.html</loc>
+<lastmod>2016-10-17T16:55:54-00:00</lastmod>
 <changefreq>daily</changefreq>
 <priority>0.5</priority>
 </url>
 
 <url>
-<loc>/tags.html</loc>
-<lastmod>2016-10-17T16:22:47-00:00</lastmod>
+<loc>https://jenihk.github.io/tags.html</loc>
+<lastmod>2016-10-17T16:55:54-00:00</lastmod>
 <changefreq>daily</changefreq>
 <priority>0.5</priority>
 </url>
 
 <url>
-<loc>/categories.html</loc>
-<lastmod>2016-10-17T16:22:47-00:00</lastmod>
+<loc>https://jenihk.github.io/categories.html</loc>
+<lastmod>2016-10-17T16:55:54-00:00</lastmod>
 <changefreq>daily</changefreq>
 <priority>0.5</priority>
 </url>
 
 <url>
-<loc>/arch-install.html</loc>
+<loc>https://jenihk.github.io/arch-install.html</loc>
 <lastmod>2016-10-14T10:20:00+08:00</lastmod>
 <changefreq>monthly</changefreq>
 <priority>0.7</priority>
 </url>
 
 <url>
-<loc>/category/xi-tong.html</loc>
+<loc>https://jenihk.github.io/category/xi-tong.html</loc>
 <lastmod>2016-10-14T10:20:00+08:06</lastmod>
 <changefreq>daily</changefreq>
 <priority>0.5</priority>
 </url>
 
 <url>
-<loc>/tag/an-zhuang.html</loc>
+<loc>https://jenihk.github.io/tag/an-zhuang.html</loc>
 <lastmod>2016-10-14T10:20:00+08:06</lastmod>
 <changefreq>daily</changefreq>
 <priority>0.5</priority>
 </url>
 
 <url>
-<loc>/tag/xi-tong.html</loc>
+<loc>https://jenihk.github.io/tag/xi-tong.html</loc>
 <lastmod>2016-10-14T10:20:00+08:06</lastmod>
 <changefreq>daily</changefreq>
 <priority>0.5</priority>
 </url>
 
 <url>
-<loc>/author/jeni.html</loc>
+<loc>https://jenihk.github.io/author/jeni.html</loc>
 <lastmod>2016-10-14T10:20:00+08:06</lastmod>
 <changefreq>daily</changefreq>
 <priority>0.5</priority>
