@@ -12,6 +12,8 @@ body {
   background-color: #f8f8ff;
 }
 
+img{height: 100%;width: 100%}
+
 p {
   line-height: 1.5;
 /*  margin: 30px 0;*/

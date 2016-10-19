@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="zh">
+
+<head>
+            <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="description" content="">
+        <meta name="author" content="">
+
+        <title>JenI's Blog</title>
+
+        <link rel="icon" href="https://jenihk.github.io/theme/images/favicon.ico" type="image/x-icon">  
+        <link rel="shortcut icon" href="https://jenihk.github.io/theme/images/favicon.ico" type="image/x-icon">  
+
+
+        <link href="https://jenihk.github.io/theme/css/iconfont.css" rel="stylesheet">
+
+        <!-- Bootstrap Core CSS -->
+        <link href="https://jenihk.github.io/theme/css/bootstrap.min.css" rel="stylesheet">
+
+        <!-- Custom CSS -->
+        <link href="https://jenihk.github.io/theme/css/clean-blog.min.css" rel="stylesheet">
+
+        <!-- Code highlight color scheme -->
+            <link href="https://jenihk.github.io/theme/css/code_blocks/monokai.css" rel="stylesheet">
+
+        <!-- Custom Fonts -->
+        <link href="http://maxcdn.bootstrapcdn.com/font-awesome/4.1.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+        <link href='http://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+        <link href='http://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/css'>
+
+        <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+        <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+        <!--[if lt IE 9]>
+            <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+            <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+        <![endif]-->
+
+
+
+
+        <meta name="tags" contents="伪基站" />
+        <meta name="tags" contents="嗅探" />
+
+
+			<meta property="og:locale" content="zh">
+		<meta property="og:site_name" content="JenI's Blog">
+
+	<meta property="og:type" content="article">
+	<meta property="article:author" content="">
+	<meta property="og:url" content="https://jenihk.github.io/gsmsniffer-1.html">
+	<meta property="og:title" content="短信嗅探平台搭建（一）">
+	<meta property="og:description" content="使用Motorola c118嗅探短信（上篇）">
+	<meta property="og:image" content="https://jenihk.github.io/theme/images/posts/gsmsniffer/gsm_cover1.png">
+	<meta property="article:published_time" content="2016-10-16 14:20:00+08:00">
+</head>
+
+<body>
+
+    <!-- Navigation -->
+    <nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+        <div class="container-fluid">
+            <!-- Brand and toggle get grouped for better mobile display -->
+            <div class="navbar-header page-scroll">
+                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <a class="navbar-brand" href="https://jenihk.github.io/">JenI's Blog</a>
+            </div>
+
+            <!-- Collect the nav links, forms, and other content for toggling -->
+            <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+                <ul class="nav navbar-nav navbar-right">
+                        <li><a href="https://jenihk.github.io/category/an-quan.html">安全</a></li>
+                        <li><a href="https://jenihk.github.io/category/xi-tong.html">系统</a></li>
+                        <li><a href="https://jenihk.github.io/category/ri-chang.html">日常</a></li>
+
+                </ul>
+            </div>
+            <!-- /.navbar-collapse -->
+        </div>
+        <!-- /.container -->
+    </nav>
+
+    <!-- Page Header -->
+        <header class="intro-header" style="background-image: url('theme/images/posts/gsmsniffer/gsm_cover1.png')">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                    <div class="post-heading">
+                        <h1>短信嗅探平台搭建（一）</h1>
+                            <h3 class="subheading">使用Motorola c118嗅探短信（上篇）</h3>
+                        <span class="meta">Posted by
+                                <a href="https://jenihk.github.io/author/jeni.html">JenI</a>
+                             on 日 16 十月 2016
+                        </span>
+                        
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1" style="background-color: #fff;position: relative;">
+    <!-- Post Content -->
+    <article style="background-color: #fff;position: relative;">
+        <p><strong><em>前言</em></strong></p>
+<p>Osmocom-BB平台实现了对2G网络短信的嗅探抓取，利用这个平台再加上简单的设备就可以对附近的某一频点进行监听，当该频点有短信通过2G网络发送给基站时，其明文内容便会被我们嗅探到．这已经是2011年的技术了，网上可以找到大量资料．我自己做了一遍实验，在实验过程在遇到了许多问题，在此记录一下实验过程．文章分为上下篇，上篇主要介绍如何编译Osmocom-BB平台并将固件刷入手机内存，之后使用wireshark嗅探短信．下篇介绍如何将嗅探到的短信存入数据库，再通过浏览器从本地搭建的服务器内读取短信内容．</p>
+<p><strong><em>实验环境</em></strong></p>
+<ul>
+<li>C118手机一部,淘宝售价35元左右(手机＋电池＋充电器)  </li>
+<li>USB转串口模块，这里我使用的是FT232R，淘宝售价35元  </li>
+<li>C118　2.5mm耳机头转杜邦数据线，淘宝售价25元  </li>
+<li>MiniUSB连接线，这个应该到处都有，淘宝售价10元  </li>
+<li>可以连接网络的Linux操作系统，建议使用虚拟机，我使用的是64位Blackarch</li>
+</ul>
+<p><img class="img-responsive" src="theme/images/posts/gsmsniffer/hardware.png" alt="hardware" /></p>
+<p><strong><em>实验步骤</em></strong></p>
+<p>为了避免出现使用sudo时相对位置发生变化的问题，我使用绝对路径作例子，自己实验时可根据个人习惯更改命令．同时需要注意，只有当权限不足时才应该使用sudo，普通用户有权限时不要加</p>
+<p>首先在自己用户的家目录创建文件夹GsmSniffer，以我的电脑为例
+<pre>
+cd /home/jeni/<br />
+mkdir GsmSniffer
+</pre></p>
+<p>由于现在系统及软件版本相比之前高了好多，所以再去编译安装官方当时推荐的软件版本会出现各种各样的问题导致编译无法通过，所以直接使用编译好的交叉编译环境．</p>
+<ul>
+<li>百度网盘：<a href="http://pan.baidu.com/s/1nvlkJzF">传送门</a>&#160; &#160; &#160; &#160;提取密码：uavw</li>
+</ul>
+<p>自己系统是多少位的就下哪个版本，下载完成后解压到刚刚创建的GsmSniffer文件夹内,解压命令为：
+<pre>
+tar xf bu-2.16.1_gcc-4.0.2-c-c++_nl-1.14.0_gi-6.4_x86-64.tar.bz2<br />
+mv gnuarm-* ~/GsmSniffer/gnuarm
+</pre></p>
+<p>这样就完成了关于Osmocom-BB交叉编译环境的搭建，接下来添加环境环境变量并使其立即生效,zsh用户添加到.zshrc文件内
+<pre>
+echo "export PATH=/home/jeni/GsmSniffer/gnuarm/bin:$PATH" &gt;&gt; /home/jeni/.bashrc<br />
+source /home/jeni/.bashrc
+</pre></p>
+<p>编译libosmocore,没有权限时加命令前sudo
+<pre>
+cd /home/jeni/GsmSniffer<br />
+git clone git://git.osmocom.org/libosmocore.git<br />
+cd libosmocore<br />
+autoreconf -i<br />
+sudo pacman -S pcsclite<br />
+./configure<br />
+make<br />
+sudo make install<br />
+cd ..<br />
+sudo ldconfig
+</pre></p>
+<p>ldconfig命令一定不要忘记执行，否则osmocomBB编译后运行时会出现找不到libosmocore.so.4的错误</p>
+<p>编译Osmocom-BB:
+<pre>
+cd /home/jeni/GsmSniffer<br />
+git clone git://git.osmocom.org/osmocom-bb.git<br />
+cd osmocom-bb<br />
+git checkout --track origin/luca/gsmmap<br />
+cd src<br />
+make
+</pre></p>
+<p>到这里osmocom-bb的编译就完成了</p>
+<div style="color:red">可能出现的问题</div>
+
+<p>问题一：
+<pre>
+/home/jeni/GsmSniffer/osmocom-bb/src/target/firmware/include/asm/swab.h: Assembler messages:
+/home/jeni/GsmSniffer/src/target/firmware/include/asm/swab.h:32: Error: no such instruction: <code>eor %edx,%ecx,%ecx,ror’
+make[4]: *** [gsmtap_util.lo] 错误 1
+make[4]: Leaving directory</code>/home/jeni/GsmSniffer/src/shared/libosmocore/build-target/src’
+make[3]: <strong><em> [all] 错误 2
+make[3]: Leaving directory <code>/home/jeni/GsmSniffer/src/shared/libosmocore/build-target/src’
+make[2]: *** [all-recursive] 错误 1
+make[2]: Leaving directory</code>/home/jeni/GsmSniffer/src/shared/libosmocore/build-target’
+make[1]: </em></strong> [all] 错误 2
+make[1]: Leaving directory `/home/jeni/GsmSniffer/src/shared/libosmocore/build-target’
+make: *** [shared/libosmocore/build-target/src/.libs/libosmocore.a] 错误 2
+</pre></p>
+<p>问题二：
+<pre>
+configure: error: C compiler cannot create executables
+See `config.log’ for more details
+make: *** [shared/libosmocore/build-target/Makefile] 错误 77
+</pre></p>
+<p>问题三：
+<pre>
+error while loading shared libraries: libosmocore.so.4: cannot open shared object file: No such file or directory
+</pre></p>
+<p>问题四：
+<pre>
+LD board/compal_e88/hello_world.compalram.elf
+arm-elf-ld: ../../shared/libosmocore/build-target/src/.libs/libosmocore.a(msgb.o): Relocations in generic ELF (EM: 3)
+arm-elf-ld: ../../shared/libosmocore/build-target/src/.libs/libosmocore.a(msgb.o): Relocations in generic ELF (EM: 3)
+arm-elf-ld: ../../shared/libosmocore/build-target/src/.libs/libosmocore.a(msgb.o): Relocations in generic ELF (EM: 3)
+arm-elf-ld: ../../shared/libosmocore/build-target/src/.libs/libosmocore.a(msgb.o): Relocations in generic ELF (EM: 3)
+../../shared/libosmocore/build-target/src/.libs/libosmocore.a: could not read symbols: File in wrong format
+make[1]: <strong><em> [board/compal_e88/hello_world.compalram.elf] 错误 1
+make[1]:正在离开目录 `/home/jeni/GsmSniffer/osmocom-bb/src/target/firmware’
+make: </em></strong> [firmware] 错误 2
+</pre></p>
+<ul>
+<li>
+<p>问题一和问题二：系统环境与源码不匹配造成的Gnuarm Toolchain无法使用，另一种可能是环境变量没有配置好，当配置好时在任意目录终端中输入arm,摁tab键补全时会出现如下内容：
+<pre>
+[jeni@JenI ~]$ arm-elf-
+arm-elf-addr2line  arm-elf-g++        arm-elf-gdbtui     arm-elf-ranlib
+arm-elf-ar         arm-elf-gcc        arm-elf-insight    arm-elf-readelf
+arm-elf-as         arm-elf-gcc-4.0.2  arm-elf-ld         arm-elf-run
+arm-elf-c++        arm-elf-gccbug     arm-elf-nm         arm-elf-size
+arm-elf-c++filt    arm-elf-gcov       arm-elf-objcopy    arm-elf-strings
+arm-elf-cpp        arm-elf-gdb        arm-elf-objdump    arm-elf-strip
+[jeni@JenI ~]$ arm-elf-
+</pre></p>
+</li>
+<li>
+<p>问题三：在出错目录执行
+<pre>
+echo /usr/local/lib &gt;&gt; /etc/ld.so.conf
+ldconfig -v
+</pre></p>
+</li>
+<li>
+<p>问题四：在出错目录执行
+<pre>
+git clean -dfx
+make
+</pre></p>
+</li>
+</ul>
+<p>更改GsmSniffer文件夹及其子文件的所有者,至此前期环境搭建完成
+<pre>
+sudo chown jeni:users /home/jeni/GsmSniffer -R
+</pre></p>
+<p>接下来进行物理设备的连接，需要注意的是数据线与FT232R模块连接时的顺序问题
+<pre>
+黑/黄线   =====&gt;   GND
+红线      =====&gt;   TX
+白线　　　 =====&gt;   RX
+</pre></p>
+<p><img class="img-responsive" src="theme/images/posts/gsmsniffer/ft232r.png" alt="ft232r" /></p>
+<p>其他设备按照线的接口插好即可，此时C118手机应置于关机状态．当设备连接电脑时，FT232R模块红色和绿色灯同时亮起，此时可将固件刷入手机．固件只是以RAM TO ROM的形式临时刷写，当手机关机后固件则消失，开机依然可以进入摩托罗拉系统</p>
+<p>输入lsusb,会若出现usb-serial，则说明连接成功
+<pre>
+jeni@JenI ~ % lsusb
+Bus 002 Device 003: ID 1d57:fa60 Xenta
+Bus 002 Device 004: ID 0781:5583 SanDisk Corp.
+Bus 002 Device 006: ID 0403:6001 Future Technology Devices International, Ltd FT232 Serial (UART) IC
+Bus 002 Device 002: ID 8087:8000 Intel Corp.
+Bus 002 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub
+Bus 001 Device 004: ID 04f2:b52b Chicony Electronics Co., Ltd
+Bus 001 Device 002: ID 8087:8008 Intel Corp.
+Bus 001 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub
+jeni@JenI ~ %</p>
+</pre>
+
+<p>进入osmocom-bb程序所在路径，启动osmocon刷入所需固件
+<pre>
+cd /home/jeni/GsmSniffer/osmocom-bb/src/host/osmocon/
+./osmocon -m c123xor -p /dev/ttyUSB0 ../../target/firmware/board/compal_e88/layer1.compalram.bin
+</pre></p>
+<p>其中c123跟c123xor的区别就是是否检测数据总和</p>
+<p>此时短按（摁一下）C118的开机键，固件会自动刷入，若刷入成功，终端会显示starting up字样
+<pre>
+Received PROMPT2 from phone, starting download
+handle_write(): 4096 bytes (4096/57651)
+handle_write(): 4096 bytes (8192/57651)
+handle_write(): 4096 bytes (12288/57651)
+handle_write(): 4096 bytes (16384/57651)
+handle_write(): 4096 bytes (20480/57651)
+handle_write(): 4096 bytes (24576/57651)
+handle_write(): 4096 bytes (28672/57651)
+handle_write(): 4096 bytes (32768/57651)
+handle_write(): 4096 bytes (36864/57651)
+handle_write(): 4096 bytes (40960/57651)
+handle_write(): 4096 bytes (45056/57651)
+handle_write(): 4096 bytes (49152/57651)
+handle_write(): 4096 bytes (53248/57651)
+handle_write(): 4096 bytes (57344/57651)
+handle_write(): 307 bytes (57651/57651)
+handle_write(): finished
+got 1 bytes from modem, data looks like: 1b  .
+got 1 bytes from modem, data looks like: f6  .
+got 1 bytes from modem, data looks like: 02  .
+got 1 bytes from modem, data looks like: 00  .
+got 1 bytes from modem, data looks like: 41  A
+got 1 bytes from modem, data looks like: 03  .
+got 1 bytes from modem, data looks like: 42  B
+Received DOWNLOAD ACK from phone, your code is running now!
+battery_compal_e88_init: starting up
+</pre></p>
+<p>同时手机屏幕显示
+<pre>
+Layer 1
+osmocom-bb
+</pre></p>
+<p>这样就表示成功了．若刷入失败，原因可能是因为耳机口处的连接线没有插紧，用力插紧或将手机外壳卸下即可成功刷入</p>
+<p>刷入成功后扫描基站,再开一个新的终端
+<pre>
+cd /home/jeni/GsmSniffer/osmocom-bb/src/host/layer23/src/misc/
+./cell_log -O
+</pre></p>
+<p>扫描到的基站会以下列方式显示
+<pre>
+Copyright (C) 2010 Andreas Eversberg</p>
+<p>License GPLv2+: GNU GPL version 2 or later <a href="http://gnu.org/licenses/gpl.html">http://gnu.org/licenses/gpl.html</a>
+This is free software: you are free to change and redistribute it.
+There is NO WARRANTY, to the extent permitted by law.</p>
+<p>Failed to connect to '/tmp/osmocom_sap'.
+Failed during sap_open(), no SIM reader
+&lt;000e&gt; cell_log.c:864 Scanner initialized
+Mobile initialized, please start phone now!
+&lt;000e&gt; cell_log.c:443 Measure from 0 to 124
+&lt;000e&gt; cell_log.c:443 Measure from 512 to 885
+&lt;000e&gt; cell_log.c:443 Measure from 955 to 1023
+&lt;000e&gt; cell_log.c:434 Measurement done
+Cell ID: 460_0_372C_A66A
+&lt;000e&gt; cell_log.c:248 Cell: ARFCN=92 PWR=-61dB MCC=460 MNC=00 (China, China Mobile)
+Cell ID: 460_0_372C_A66B
+&lt;000e&gt; cell_log.c:248 Cell: ARFCN=83 PWR=-75dB MCC=460 MNC=00 (China, China Mobile)
+Dropping frame with 52 bit errors
+Dropping frame with 82 bit errors
+Dropping frame with 88 bit errors
+Dropping frame with 64 bit errors
+Dropping frame with 78 bit errors
+Dropping frame with 77 bit errors
+Dropping frame with 69 bit errors
+Cell ID: 460_0_372C_A669
+&lt;000e&gt; cell_log.c:248 Cell: ARFCN=88 PWR=-78dB MCC=460 MNC=00 (China, China Mobile)
+Dropping frame with 87 bit errors
+Dropping frame with 79 bit errors
+Dropping frame with 79 bit errors
+Dropping frame with 80 bit errors
+Dropping frame with 84 bit errors
+Dropping frame with 86 bit errors
+Dropping frame with 77 bit errors
+Dropping frame with 80 bit errors
+Dropping frame with 79 bit errors
+Cell ID: 460_1_378E_2DE2
+&lt;000e&gt; cell_log.c:248 Cell: ARFCN=645 PWR=-87dB MCC=460 MNC=01 (China, China Unicom)
+Cell ID: 460_1_378E_2DE6
+&lt;000e&gt; cell_log.c:248 Cell: ARFCN=643 PWR=-69dB MCC=460 MNC=01 (China, China Unicom)
+Cell ID: 460_0_372C_C7D1
+&lt;000e&gt; cell_log.c:248 Cell: ARFCN=77 PWR=-89dB MCC=460 MNC=00 (China, China Mobile)
+Cell ID: 460_0_3926_0759
+&lt;000e&gt; cell_log.c:248 Cell: ARFCN=85 PWR=-84dB MCC=460 MNC=00 (China, China Mobile)
+Cell ID: 460_1_378E_2F78
+&lt;000e&gt; cell_log.c:248 Cell: ARFCN=640 PWR=-92dB MCC=460 MNC=01 (China, China Unicom)
+Cell ID: 460_1_378E_2DE4
+&lt;000e&gt; cell_log.c:248 Cell: ARFCN=641 PWR=-88dB MCC=460 MNC=01 (China, China Unicom)
+&lt;000e&gt; cell_log.c:871 Scanner exit
+</pre></p>
+<p>其中PWR为信号强度，绝对值越小说明信号越好，ARFCN为基站信道号，由于我们的设备比较low，所以一次只能嗅探一个信道，而且只能抓取Downlink的数据包，想要嗅探到Uplink的数据包，需要修改硬件，将C118主板上的RX filters换成HHM1625&amp;&amp;HHM1623C1滤波器组件．</p>
+<p>从扫描到的基站选择一个信号较好的，记下它的ARFCN号</p>
+<p>开始嗅探(替换92为自己想要嗅探的基站信道号)
+<pre>
+cd /home/jeni/GsmSniffer/osmocom-bb/src/host/layer23/src/misc
+./ccch_scan -i 127.0.0.1 -a 92
+</pre></p>
+<p>开启一个终端，使用wireshark进行抓包
+<pre>
+sudo wireshark -k -i lo -f 'port 4729'
+</pre></p>
+<p>wireshark会报一个错误，不影响使用，若有强迫症者可通过下面的方法去掉该报错,首先打开一个终端，输入
+</pre>
+sudo nano /usr/share/wireshark/init.lua
+</pre></p>
+<p>注释掉倒数第二行
+<pre>
+--dofile(DATA_DIR.."console.lua")
+</pre></p>
+<p>保存退出，再次打开wireshark则不会出现该错误</p>
+<p>此时已可以嗅探到数据包了</p>
+<p>在filter中输入gsm_sms，然后就可以静静的等待了，不出意外很快就能嗅探到明文短信了，内容在TP-User-Data栏目下</p>
+<p><img class="img-responsive" src="theme/images/posts/gsmsniffer/wireshark.png" alt="wireshark" /></p>
+<div style="color:red">本文只用作技术交流，请勿用于非法用途</div>
+
+<p><strong><em>上篇完</em></strong></p>
+        <hr />
+        <p>作者:JenI&#160; &#160; &#160; &#160;转载请注明出处，谢谢</p>
+    </article>
+
+    <hr>
+
+<!--                        -->
+    <div id="disqus_thread"></div>
+    <script>
+
+/**
+*  RECOMMENDED CONFIGURATION VARIABLES: EDIT AND UNCOMMENT THE SECTION BELOW TO INSERT DYNAMIC VALUES FROM YOUR PLATFORM OR CMS.
+*  LEARN WHY DEFINING THESE VARIABLES IS IMPORTANT: https://disqus.com/admin/universalcode/#configuration-variables*/
+/*
+var disqus_config = function () {
+this.page.url = PAGE_URL;  // Replace PAGE_URL with your page's canonical URL variable
+this.page.identifier = PAGE_IDENTIFIER; // Replace PAGE_IDENTIFIER with your page's unique identifier variable
+};
+*/
+        (function() { // DON'T EDIT BELOW THIS LINE
+            var d = document, s = d.createElement('script');
+            s.src = '//jenihk.disqus.com/embed.js';
+            s.setAttribute('data-timestamp', +new Date());
+            (d.head || d.body).appendChild(s);
+        })();
+    </script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+
+            </div>
+        </div>
+    </div>
+
+    <hr>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                    <ul class="list-inline text-center">
+                        <li>
+                            <a href="http://weibo.com/1992014191/profile?rightmod=1&wvr=6&mod=personinfo&is_all=1">
+                                <span class="fa-stack fa-lg">
+                                    <i class="icon iconfont">&#xe657;</i>
+                                </span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="http://github.com/jenihk">
+                                <span class="fa-stack fa-lg">
+                                    <i class="icon iconfont">&#xe618;</i>
+                                </span>
+                            </a>
+                        </li>
+                    </ul>
+                    <p class="copyright text-muted">Blog powered by <a href="http://getpelican.com">Pelican</a>,
+                which takes great advantage of <a href="http://python.org">Python</a>.</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- jQuery -->
+    <script src="https://jenihk.github.io/theme/js/jquery.js"></script>
+
+    <!-- Bootstrap Core JavaScript -->
+    <script src="https://jenihk.github.io/theme/js/bootstrap.min.js"></script>
+
+    <!-- Custom Theme JavaScript -->
+    <script src="https://jenihk.github.io/theme/js/clean-blog.min.js"></script>
+    
+    <!-- CanvasParticles -->
+    <script src="https://jenihk.github.io/theme/js/canvas-particle.js"></script>
+
+    <script type="text/javascript">
+        CanvasParticle();
+    </script>
+
+    <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-85780345-1']);
+    _gaq.push(['_trackPageview']);
+    (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+    </script>
+</body>
+
+</html>
