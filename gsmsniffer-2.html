@@ -268,19 +268,19 @@ try:
             pass
 </pre></p>
 </blockquote>
-<p>更改scan.sh文件，更改为
+<p>更改scan.sh文件为
 <pre>
 #!/bin/bash
 cd /home/jeni/GsmSniffer/osmocom-bb/src/host/layer23/src/misc/
 ./cell_log -O
 </pre></p>
-<p>更改sniff.sh文件，更改为
+<p>更改sniff.sh文件为
 <pre>
 #!/bin/bash
 cd /home/jeni/GsmSniffer/osmocom-bb/src/host/layer23/src/misc/
 ./ccch_scan -i 127.0.0.1 -a $1
 </pre></p>
-<p>更改start_osmbb.sh文件，更改为
+<p>更改start_osmbb.sh文件为
 <pre>
 #!/bin/bash
 cd /home/jeni/GsmSniffer/osmocom-bb/src/host/osmocon/
@@ -364,7 +364,7 @@ python2 smshack.py
 [*]Plugin C118,Click the Button Please
 [!]Osmocom-BB Load Done?(Y/N)
 </pre></p>
-<p>摁 Y 继续，然后等待基站扫描，扫描完成时会有信息返回，从中选择一个信号好的，输入后开始嗅探．这时打开浏览器访问127.0.0.1/index.php就可以看到嗅探的内容了，当然，如果也可以自己改写html和css，把界面打造成自己喜欢的样子．</p>
+<p>摁 Y 继续，然后等待基站扫描，扫描完成时会有信息返回，从中选择一个信号好的，输入后开始嗅探．这时打开浏览器访问127.0.0.1/index.php就可以看到嗅探的内容了，当然，也可以自己改写html和css，把界面打造成自己喜欢的样子．</p>
 <p>Now,enjoy GSM Sniffing!</p>
         <hr />
         <p>作者:JenI&#160; &#160; &#160; &#160;转载请注明出处，谢谢</p>
