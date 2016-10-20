@@ -5,28 +5,28 @@ xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 
 <url>
 <loc>https://jenihk.github.io/</loc>
-<lastmod>2016-10-20T17:24:27-00:00</lastmod>
+<lastmod>2016-10-20T21:33:53-00:00</lastmod>
 <changefreq>daily</changefreq>
 <priority>0.5</priority>
 </url>
 
 <url>
 <loc>https://jenihk.github.io/archives.html</loc>
-<lastmod>2016-10-20T17:24:27-00:00</lastmod>
+<lastmod>2016-10-20T21:33:53-00:00</lastmod>
 <changefreq>daily</changefreq>
 <priority>0.5</priority>
 </url>
 
 <url>
 <loc>https://jenihk.github.io/tags.html</loc>
-<lastmod>2016-10-20T17:24:27-00:00</lastmod>
+<lastmod>2016-10-20T21:33:53-00:00</lastmod>
 <changefreq>daily</changefreq>
 <priority>0.5</priority>
 </url>
 
 <url>
 <loc>https://jenihk.github.io/categories.html</loc>
-<lastmod>2016-10-20T17:24:27-00:00</lastmod>
+<lastmod>2016-10-20T21:33:53-00:00</lastmod>
 <changefreq>daily</changefreq>
 <priority>0.5</priority>
 </url>
@@ -67,7 +67,7 @@ xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 </url>
 
 <url>
-<loc>https://jenihk.github.io/tag/an-zhuang.html</loc>
+<loc>https://jenihk.github.io/tag/xi-tong.html</loc>
 <lastmod>2016-10-14T00:00:00+08:06</lastmod>
 <changefreq>daily</changefreq>
 <priority>0.5</priority>
@@ -81,7 +81,7 @@ xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 </url>
 
 <url>
-<loc>https://jenihk.github.io/tag/xi-tong.html</loc>
+<loc>https://jenihk.github.io/tag/an-zhuang.html</loc>
 <lastmod>2016-10-14T00:00:00+08:06</lastmod>
 <changefreq>daily</changefreq>
 <priority>0.5</priority>
