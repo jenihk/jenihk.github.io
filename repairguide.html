@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="zh">
+
+<head>
+            <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="description" content="">
+        <meta name="author" content="">
+
+        <title>JenI's Blog</title>
+
+        <link rel="icon" href="https://jenihk.github.io/theme/images/favicon.ico" type="image/x-icon">  
+        <link rel="shortcut icon" href="https://jenihk.github.io/theme/images/favicon.ico" type="image/x-icon">  
+
+
+        <link href="https://jenihk.github.io/theme/css/iconfont.css" rel="stylesheet">
+
+        <!-- Bootstrap Core CSS -->
+        <link href="https://jenihk.github.io/theme/css/bootstrap.min.css" rel="stylesheet">
+
+        <!-- Custom CSS -->
+        <link href="https://jenihk.github.io/theme/css/clean-blog.min.css" rel="stylesheet">
+
+        <!-- Code highlight color scheme -->
+            <link href="https://jenihk.github.io/theme/css/code_blocks/monokai.css" rel="stylesheet">
+
+        <!-- Custom Fonts -->
+        <link href="http://maxcdn.bootstrapcdn.com/font-awesome/4.1.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+        <link href='http://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+        <link href='http://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/css'>
+
+        <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+        <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+        <!--[if lt IE 9]>
+            <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+            <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+        <![endif]-->
+
+
+
+
+        <meta name="tags" contents="系统，引导" />
+
+
+			<meta property="og:locale" content="zh">
+		<meta property="og:site_name" content="JenI's Blog">
+
+	<meta property="og:type" content="article">
+	<meta property="article:author" content="">
+	<meta property="og:url" content="https://jenihk.github.io/repairguide.html">
+	<meta property="og:title" content="grub rescue> 终端模式修复方法">
+	<meta property="og:description" content="解决分区发生变化时grub引导问题">
+	<meta property="og:image" content="https://jenihk.github.io/theme/images/posts/repairguide/cover.png">
+	<meta property="article:published_time" content="2016-10-21 00:00:00+08:00">
+</head>
+
+<body>
+
+    <!-- Navigation -->
+    <nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+        <div class="container-fluid">
+            <!-- Brand and toggle get grouped for better mobile display -->
+            <div class="navbar-header page-scroll">
+                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <a class="navbar-brand" href="https://jenihk.github.io/">JenI's Blog</a>
+            </div>
+
+            <!-- Collect the nav links, forms, and other content for toggling -->
+            <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+                <ul class="nav navbar-nav navbar-right">
+                        <li><a href="https://jenihk.github.io/category/an-quan.html">安全</a></li>
+                        <li><a href="https://jenihk.github.io/category/xi-tong.html">系统</a></li>
+                        <li><a href="https://jenihk.github.io/category/ri-chang.html">日常</a></li>
+
+                </ul>
+            </div>
+            <!-- /.navbar-collapse -->
+        </div>
+        <!-- /.container -->
+    </nav>
+
+    <!-- Page Header -->
+        <header class="intro-header" style="background-image: url('theme/images/posts/repairguide/cover.png')">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                    <div class="post-heading">
+                        <h1>grub rescue> 终端模式修复方法</h1>
+                            <h3 class="subheading">解决分区发生变化时grub引导问题</h3>
+                        <span class="meta">Posted by
+                                <a href="https://jenihk.github.io/author/jeni.html">JenI</a>
+                             on 2016-10-21 00:00:00+08:00
+                        </span>
+                        
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1" style="background-color: #fff;position: relative;">
+    <!-- Post Content -->
+    <article style="background-color: #fff;position: relative;">
+        <p><strong><em>前言</em></strong></p>
+<p>由于之前电脑系统都是自己分区自己装的，所以并没有单独给windows系统预留出winRE分区，毕竟这个实在不太常用，系统出了问题还不如进PE来的实在．结果这次微软推送windows 10一周年更新，果然毫不犹豫的从最后一个ntfs分区内强行分了一个winRE分区出来，这对windows倒是没什么影响，但这多出来的一个分区改变了我原本硬盘的分区方式，原来的分区号都向后推了一位，第8个分区变成了第9个分区，导致我的另一个系统引导出现错误，引导软件找不到linux的根目录．
+<pre>
+/dev/sda4         346904576    348596223     1691648     826M Windows 恢复环境
+/dev/sda7        1607491584   1674600447    67108864      32G Linux root (x86-64)
+/dev/sda8        1674600448   1682989055     8388608       4G Linux swap
+/dev/sda9        1682989056   1953525134   270536079     129G Linux home
+</pre></p>
+<p>对于这种情况，不同的引导软件有不同的修复方式</p>
+<p><strong><em>systemd-boot(针对arch)</em></strong></p>
+<p>开机调u盘启动，进入livecd，挂载分区，并chroot到硬盘系统
+<pre>
+mount /dev/sda7 /mnt
+mount /dev/sda1 /mnt/boot
+arch-chroot /mnt /bin/bash
+</pre></p>
+<p>修改/boot/loader/entries/arch.conf为
+<pre>
+title      Arch Linux
+linux      /vmlinuz-linux
+initrd     /initramfs-linux.img
+options      root=/dev/sda7 rw    #原来是sda6，现在改为sda7
+</pre></p>
+<p>其中/dev/sda7也可以改为第7快硬盘的UUID,reboot重启即可进入</p>
+<p><strong><em>syslinux</em></strong></p>
+<p>依然是u启进livecd，挂分区，chroot,然后修改/boot/syslinux/syslinux.cfg
+<pre>
+LABEL arch
+    MENU LABEL Arch Linux
+    LINUX ../vmlinuz-linux
+    APPEND root=/dev/sdb7 rw
+    INITRD ../initramfs-linux.img</p>
+<p>LABEL archfallback
+    MENU LABEL Arch Linux Fallback
+    LINUX ../vmlinuz-linux
+    APPEND root=/dev/sdb7 rw
+    INITRD ../initramfs-linux-fallback.img
+</pre></p>
+<p>修改完重启</p>
+<p><strong><em>grub</em></strong></p>
+<p>接下来就是本篇博文的关键内容了，因为现在大部分Linux发行版本默认以grub作为引导软件，所以着重记录一下grub下引导问题的修复问题</p>
+<p>当开机系统找不到grub路径或grub的配置文件出现问题时，会自动进入grub救援模式，也就是屏幕会出现下列信息
+<pre>
+error: file '/boot/grub/i386-pc/normal.mod' not found.
+Entering rescue mode...
+grub rescue&gt;
+</pre></p>
+<p>此时的救援模式并非平时使用的shell终端,在这里可以执行的命令很有限，仅有
+<pre>
+set,ls,insmod,root,prefix等
+</pre></p>
+<p>首先使用ls命令，该命令会列出所有的磁盘信息
+<pre>
+grub rescue&gt;ls
+ (hd0),(hd0,msdos4),(hd0,msdos2),(hd0,msdos9),(hd0,msdos7),(hd0,msdos5),(hd0,msdos3),(hd0,msdos1),(hd0,msdos8),(hd0,msdos6)
+</pre></p>
+<p>依次替换msdos1位置的数字以查看每个磁盘下的文件，当显示文件则说明linux安装在这个分区
+<pre>
+grub rescue&gt;ls(hd0,msdos1)/boot/grub
+</pre></p>
+<p>假设linux系统被装在了(hd0,msdos7)上，使用下列命令找回丢失的grub菜单
+<pre>
+grub rescue&gt;set root=(hd0,msdos7)
+grub rescue&gt;set prefix=(hd0,msdos7)/boot/grub
+grub rescue&gt;insmod /boot/grub/normal.mod
+</pre></p>
+<p>使用以下命令显示grub菜单
+<pre>
+grub rescue&gt;normal
+</pre></p>
+<p>这时应该就进入grub菜单项了，选中linux系统，摁e键临时编辑grub配置文件，我以kali为例</p>
+<p><img class="img-responsive" src="theme/images/posts/repairguide/grub.png" style="text-align:center" alt="grub" /></p>
+<p>将上图中(hd0,msdos1)替换为自己的linux所在分区(hd0,msdos7),然后ctrl+x就可以进入系统了，但这只是临时的，当电脑重启，问题依然存在，所以要重新安装grub并修改配置文件
+<pre>
+sudo update-grub
+grub-install --target=i386-pc /dev/sda
+grub-mkconfig -o /boot/grub/grub.cfg
+</pre></p>
+<p>这样问题就解决了，当然，具体到不同的环境修复方法或多或少会有些不同，但基本命令熟悉了之后再遇到这种问题随机应变就可以了</p>
+        <hr />
+        <p>作者:JenI&#160; &#160; &#160; &#160;转载请注明出处，谢谢</p>
+    </article>
+
+    <hr>
+
+<!--                        -->
+    <div id="disqus_thread"></div>
+    <script>
+
+/**
+*  RECOMMENDED CONFIGURATION VARIABLES: EDIT AND UNCOMMENT THE SECTION BELOW TO INSERT DYNAMIC VALUES FROM YOUR PLATFORM OR CMS.
+*  LEARN WHY DEFINING THESE VARIABLES IS IMPORTANT: https://disqus.com/admin/universalcode/#configuration-variables*/
+/*
+var disqus_config = function () {
+this.page.url = PAGE_URL;  // Replace PAGE_URL with your page's canonical URL variable
+this.page.identifier = PAGE_IDENTIFIER; // Replace PAGE_IDENTIFIER with your page's unique identifier variable
+};
+*/
+        (function() { // DON'T EDIT BELOW THIS LINE
+            var d = document, s = d.createElement('script');
+            s.src = '//jenihk.disqus.com/embed.js';
+            s.setAttribute('data-timestamp', +new Date());
+            (d.head || d.body).appendChild(s);
+        })();
+    </script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+
+            </div>
+        </div>
+    </div>
+
+    <hr>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                    <ul class="list-inline text-center">
+                        <li>
+                            <a href="http://weibo.com/1992014191/profile?rightmod=1&wvr=6&mod=personinfo&is_all=1">
+                                <span class="fa-stack fa-lg">
+                                    <i class="icon iconfont">&#xe657;</i>
+                                </span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="http://github.com/jenihk">
+                                <span class="fa-stack fa-lg">
+                                    <i class="icon iconfont">&#xe618;</i>
+                                </span>
+                            </a>
+                        </li>
+                    </ul>
+                    <p class="copyright text-muted">Blog powered by <a href="http://getpelican.com">Pelican</a>,
+                which takes great advantage of <a href="http://python.org">Python</a>.</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- jQuery -->
+    <script src="https://jenihk.github.io/theme/js/jquery.js"></script>
+
+    <!-- Bootstrap Core JavaScript -->
+    <script src="https://jenihk.github.io/theme/js/bootstrap.min.js"></script>
+
+    <!-- Custom Theme JavaScript -->
+    <script src="https://jenihk.github.io/theme/js/clean-blog.min.js"></script>
+    
+    <!-- CanvasParticles -->
+    <script src="https://jenihk.github.io/theme/js/canvas-particle.js"></script>
+
+    <script type="text/javascript">
+        CanvasParticle();
+    </script>
+
+    <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-85780345-1']);
+    _gaq.push(['_trackPageview']);
+    (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+    </script>
+</body>
+
+</html>
