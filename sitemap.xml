@@ -5,30 +5,37 @@ xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 
 <url>
 <loc>https://jenihk.github.io/</loc>
-<lastmod>2016-10-21T16:26:11-00:00</lastmod>
+<lastmod>2016-10-23T14:52:25-00:00</lastmod>
 <changefreq>daily</changefreq>
 <priority>0.5</priority>
 </url>
 
 <url>
 <loc>https://jenihk.github.io/archives.html</loc>
-<lastmod>2016-10-21T16:26:11-00:00</lastmod>
+<lastmod>2016-10-23T14:52:25-00:00</lastmod>
 <changefreq>daily</changefreq>
 <priority>0.5</priority>
 </url>
 
 <url>
 <loc>https://jenihk.github.io/tags.html</loc>
-<lastmod>2016-10-21T16:26:11-00:00</lastmod>
+<lastmod>2016-10-23T14:52:25-00:00</lastmod>
 <changefreq>daily</changefreq>
 <priority>0.5</priority>
 </url>
 
 <url>
 <loc>https://jenihk.github.io/categories.html</loc>
-<lastmod>2016-10-21T16:26:11-00:00</lastmod>
+<lastmod>2016-10-23T14:52:25-00:00</lastmod>
 <changefreq>daily</changefreq>
 <priority>0.5</priority>
+</url>
+
+<url>
+<loc>https://jenihk.github.io/iptables.html</loc>
+<lastmod>2016-10-22T14:20:00+08:00</lastmod>
+<changefreq>monthly</changefreq>
+<priority>0.7</priority>
 </url>
 
 <url>
@@ -61,7 +68,7 @@ xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 
 <url>
 <loc>https://jenihk.github.io/category/an-quan.html</loc>
-<lastmod>2016-10-18T00:00:00+08:06</lastmod>
+<lastmod>2016-10-22T14:20:00+08:06</lastmod>
 <changefreq>daily</changefreq>
 <priority>0.5</priority>
 </url>
@@ -74,21 +81,7 @@ xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 </url>
 
 <url>
-<loc>https://jenihk.github.io/tag/xi-tong-yin-dao.html</loc>
-<lastmod>2016-10-21T00:00:00+08:06</lastmod>
-<changefreq>daily</changefreq>
-<priority>0.5</priority>
-</url>
-
-<url>
-<loc>https://jenihk.github.io/tag/xi-tong.html</loc>
-<lastmod>2016-10-14T00:00:00+08:06</lastmod>
-<changefreq>daily</changefreq>
-<priority>0.5</priority>
-</url>
-
-<url>
-<loc>https://jenihk.github.io/tag/wei-ji-zhan.html</loc>
+<loc>https://jenihk.github.io/tag/xiu-tan.html</loc>
 <lastmod>2016-10-18T00:00:00+08:06</lastmod>
 <changefreq>daily</changefreq>
 <priority>0.5</priority>
@@ -102,15 +95,29 @@ xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 </url>
 
 <url>
-<loc>https://jenihk.github.io/tag/xiu-tan.html</loc>
+<loc>https://jenihk.github.io/tag/xi-tong-yin-dao.html</loc>
+<lastmod>2016-10-21T00:00:00+08:06</lastmod>
+<changefreq>daily</changefreq>
+<priority>0.5</priority>
+</url>
+
+<url>
+<loc>https://jenihk.github.io/tag/wei-ji-zhan.html</loc>
 <lastmod>2016-10-18T00:00:00+08:06</lastmod>
 <changefreq>daily</changefreq>
 <priority>0.5</priority>
 </url>
 
 <url>
+<loc>https://jenihk.github.io/tag/xi-tong.html</loc>
+<lastmod>2016-10-22T14:20:00+08:06</lastmod>
+<changefreq>daily</changefreq>
+<priority>0.5</priority>
+</url>
+
+<url>
 <loc>https://jenihk.github.io/author/jeni.html</loc>
-<lastmod>2016-10-21T00:00:00+08:06</lastmod>
+<lastmod>2016-10-22T14:20:00+08:06</lastmod>
 <changefreq>daily</changefreq>
 <priority>0.5</priority>
 </url>

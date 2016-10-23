@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="zh">
+
+<head>
+            <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="description" content="">
+        <meta name="author" content="">
+
+        <title>JenI's Blog</title>
+
+        <link rel="icon" href="https://jenihk.github.io/theme/images/favicon.ico" type="image/x-icon">  
+        <link rel="shortcut icon" href="https://jenihk.github.io/theme/images/favicon.ico" type="image/x-icon">  
+
+
+        <link href="https://jenihk.github.io/theme/css/iconfont.css" rel="stylesheet">
+
+        <!-- Bootstrap Core CSS -->
+        <link href="https://jenihk.github.io/theme/css/bootstrap.min.css" rel="stylesheet">
+
+        <!-- Custom CSS -->
+        <link href="https://jenihk.github.io/theme/css/clean-blog.min.css" rel="stylesheet">
+
+        <!-- Code highlight color scheme -->
+            <link href="https://jenihk.github.io/theme/css/code_blocks/monokai.css" rel="stylesheet">
+
+        <!-- Custom Fonts -->
+        <link href="http://maxcdn.bootstrapcdn.com/font-awesome/4.1.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+        <link href='http://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+        <link href='http://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/css'>
+
+        <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+        <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+        <!--[if lt IE 9]>
+            <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+            <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+        <![endif]-->
+
+
+
+
+        <meta name="tags" contents="系统" />
+
+
+			<meta property="og:locale" content="zh">
+		<meta property="og:site_name" content="JenI's Blog">
+
+	<meta property="og:type" content="article">
+	<meta property="article:author" content="">
+	<meta property="og:url" content="https://jenihk.github.io/iptables.html">
+	<meta property="og:title" content="iptables学习笔记">
+	<meta property="og:description" content="">
+	<meta property="og:image" content="https://jenihk.github.io/theme/images/posts/iptables/cover.png">
+	<meta property="article:published_time" content="2016-10-22 14:20:00+08:00">
+</head>
+
+<body>
+
+    <!-- Navigation -->
+    <nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+        <div class="container-fluid">
+            <!-- Brand and toggle get grouped for better mobile display -->
+            <div class="navbar-header page-scroll">
+                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <a class="navbar-brand" href="https://jenihk.github.io/">JenI's Blog</a>
+            </div>
+
+            <!-- Collect the nav links, forms, and other content for toggling -->
+            <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+                <ul class="nav navbar-nav navbar-right">
+                        <li><a href="https://jenihk.github.io/category/an-quan.html">安全</a></li>
+                        <li><a href="https://jenihk.github.io/category/xi-tong.html">系统</a></li>
+                        <li><a href="https://jenihk.github.io/category/ri-chang.html">日常</a></li>
+
+                </ul>
+            </div>
+            <!-- /.navbar-collapse -->
+        </div>
+        <!-- /.container -->
+    </nav>
+
+    <!-- Page Header -->
+        <header class="intro-header" style="background-image: url('theme/images/posts/iptables/cover.png')">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                    <div class="post-heading">
+                        <h1>iptables学习笔记</h1>
+                        <span class="meta">Posted by
+                                <a href="https://jenihk.github.io/author/jeni.html">JenI</a>
+                             on 2016-10-22 14:20:00+08:00
+                        </span>
+                        
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1" style="background-color: #fff;position: relative;">
+    <!-- Post Content -->
+    <article style="background-color: #fff;position: relative;">
+        <p><strong><em>前言</em></strong></p>
+<p>iptables是Linux内核级防火墙的命令行工具，它的功能非常强大，但配置过程相对复杂。在它之前的内核版本中，使用了其他的软件实现防火墙功能，2.0内核中，防火墙工具叫ipfwadm;2.2内核中防火墙工具叫ipchains。linux内核3.13版本中引入了nftables,它被设计的目的就是替换现有的iptables,逐步取代iptables成为主要的Linux防火墙工具。然而国内应用的并不广泛，相关资料也不多，大部分使用linux系统防火墙的人还在使用iptables。尽管这方面的知识更偏向于运维人员，但既然涉及系统安全，学习一下还是十分有必要的。</p>
+<p><strong><em>简介</em></strong></p>
+<p>iptables采用表 =&gt; 链 =&gt; 规则（即iptables =&gt; Tables =&gt; Chains =&gt; Rules）的结构，有点类似关系型数据库的样子，iptables由表构成，表由一个个链构成，每个链内又包含一条条规则.</p>
+<p>iptables默认包含5张表（tables）:<br />
+- raw 用于配置数据包，raw 中的数据包不会被系统跟踪。不常用<br />
+- filter 是用于存放所有与防火墙相关操作的默认表。常用<br />
+- nat 用于网络地址转换（例如：端口转发）。常用<br />
+- mangle 用于对特定数据包的修改。不常用<br />
+- security 用于强制访问控制网络规则。不常用  </p>
+<p>其中filter表对我们来说是最常用的，filter表中默认包含INPUT,OUTPUT,FORWORD三个链，INPUT链处理来自外部的数据，OUTPUT处理向外发送的数据，FORWORD将数据转发到本机的其他网卡设备上。</p>
+<p>链（chains）<br />
+链是由一条条规则串起来的有顺序的列表，默认的链内是没有规则的。</p>
+<p>规则（rules）<br />
+规则用来对数据包进行过滤，需要注意的是，规则是有顺序的，当一个数据包通过网络到达服务器时，首先匹配第一条规则，如果满足rule1,则会执行rule1对应的操作(如ACCEPT,DROP,QUEUE,RETURN)，而并不会继续匹配之后的规则，第一条规则不满足时，匹配第二条，当所有规则都不匹配时，会执行默认操作。</p>
+<p><strong><em>使用</em></strong></p>
+<p>开启iptables服务并设置开机启动</p>
+<p>systemctl执行
+<pre>
+touch /etc/iptables/iptables.rules  #arch默认没有这个文件
+systemctl start iptables
+systemctl enable iptables
+</pre></p>
+<p>service和chkconfig执行
+<pre>
+service iptables start
+chkconfig iptables on
+</pre></p>
+<p>基本参数
+<pre>
+Usage: iptables -[ACD] chain rule-specification [options]
+       iptables -I chain [rulenum] rule-specification [options]
+       iptables -R chain rulenum rule-specification [options]
+       iptables -D chain rulenum [options]
+       iptables -[LS] [chain [rulenum]] [options]
+       iptables -[FZ] [chain] [options]
+       iptables -[NX] chain
+       iptables -E old-chain-name new-chain-name
+       iptables -P chain target [options]
+       iptables -h (print this help information)</p>
+<p>Commands:
+Either long or short options are allowed.
+  --append  -A chain            Append to chain
+  --check   -C chain            Check for the existence of a rule
+  --delete  -D chain            Delete matching rule from chain
+  --delete  -D chain rulenum
+                                Delete rule rulenum (1 = first) from chain
+  --insert  -I chain [rulenum]
+                                Insert in chain as rulenum (default 1=first)
+  --replace -R chain rulenum
+                                Replace rule rulenum (1 = first) in chain
+  --list    -L [chain [rulenum]]
+                                List the rules in a chain or all chains
+  --list-rules -S [chain [rulenum]]
+                                Print the rules in a chain or all chains
+  --flush   -F [chain]          Delete all rules in  chain or all chains
+  --zero    -Z [chain [rulenum]]
+                                Zero counters in chain or all chains
+  --new     -N chain            Create a new user-defined chain
+  --delete-chain
+            -X [chain]          Delete a user-defined chain
+  --policy  -P chain target
+                                Change policy on chain to target
+  --rename-chain
+            -E old-chain new-chain
+                                Change chain name, (moving any references)
+Options:
+    --ipv4      -4              Nothing (line is ignored by ip6tables-restore)
+    --ipv6      -6              Error (line is ignored by iptables-restore)
+[!] --protocol  -p proto        protocol: by number or name, eg. `tcp'
+[!] --source    -s address[/mask][...]
+                                source specification
+[!] --destination -d address[/mask][...]
+                                destination specification
+[!] --in-interface -i input name[+]
+                                network interface name ([+] for wildcard)
+ --jump -j target
+                                target for rule (may load target extension)
+  --goto      -g chain
+                              jump to chain with no return
+  --match       -m match
+                                extended match (may load extension)
+  --numeric     -n              numeric output of addresses and ports
+[!] --out-interface -o output name[+]
+                                network interface name ([+] for wildcard)
+  --table       -t table        table to manipulate (default: `filter')
+  --verbose     -v              verbose mode
+  --wait        -w [seconds]    wait for the xtables lock
+  --line-numbers                print line numbers when listing
+  --exact       -x              expand numbers (display exact values)
+[!] --fragment  -f              match second or further fragments only
+  --modprobe=<command>          try to insert modules using this command
+  --set-counters PKTS BYTES     set the counter during insert/append
+[!] --version   -V              print package version.
+</pre></p>
+<p><strong><em>常用参数</em></strong></p>
+<ul>
+<li>
+<p>-A  ：append，在末尾追加一条规则，下面的命令表示允许所有访问本机IP的数据包通过
+<pre>
+iptables -A INPUT -j ACCEPT
+</pre></p>
+</li>
+<li>
+<p>-I  ：insert，在指定的位置插入一条规则，下面的命令表示在filter表第一的位置插入一条规则
+<pre>
+iptables -I INPUT -j DROP
+</pre></p>
+</li>
+<li>
+<p>-D  ：delete，删除一条规则，下面的命令表示删除filter表INPUT链中的第2条规则
+<pre>
+iptables -D INPUT 2
+</pre></p>
+</li>
+<li>
+<p>-R  ：replace，替换一条规则，下面的命令表示替换第二条规则内容为"-j ACCEPT"
+<pre>
+iptables -R INPUT -j ACCEPT
+</pre></p>
+</li>
+<li>
+<p>-L  ：list,显示所选链的规则列表
+<pre>
+iptables -L
+</pre></p>
+</li>
+<li>
+<p>-P  ：policy，设置某个链的默认规则,下面的命令表示fileter表INPUT链的默认规则是DROP
+<pre>
+iptables -P INPUT DROP
+</pre></p>
+</li>
+<li>
+<p>-F  ：flush，清空规则，下面的命令表示清空filter表中的所有规则
+<pre>
+iptables -F
+</pre></p>
+</li>
+<li>
+<p>-p  ：protocol，匹配通讯协议类型，下面的命令表示当前规则作用于tcp协议包
+<pre>
+iptables -A INPUT -p tcp
+</pre></p>
+</li>
+<li>
+<p>-E  ：rename-chain,对指定链进行重命名,只有非用户自定义链可以使用规则，而且内建链和用户自定义链都不能是规则的目标。
+<pre>
+iptables -E old-chain-name new-chain-name
+</pre></p>
+</li>
+<li>
+<p>-s  ：source，比对数据包的来源ip,下面的命令表示来自192.168.1.1的数据包都将被丢弃（即屏蔽该ip）
+<pre>
+iptables -I INPUT -s 192.168.1.1 -j DROP
+</pre></p>
+</li>
+<li>
+<p>--z  ：zero,把所有链的包及字节的计数器清空。它可以和 -L配合使用，在清空前察看计数器，这时链会被自动列出和归零
+<pre>
+iptables -L --z
+</pre></p>
+</li>
+<li>
+<p>-X  ：delete-chain，删除指定的用户自定义链。这个链必须没有被引用，如果被引用，在删除之前你必须删除或者替换与之有关的规则。如果没有给出参数，这条命令将试着删除每个非内建的链。
+<pre>
+iptables -X
+</pre></p>
+</li>
+</ul>
+<p><strong><em>基本语法</em></strong></p>
+<p>以下内容参考<a href="http://wenku.baidu.com/link?url=1pZJsTrl2hSp9mqZp5tAgkxGuO5nQs-wAZKKAvr0pepvUs-wfWEn5N8MvR-xQXWY5hE9ENdzmBTuv_PAgIy1sh9w0G_bwY1_HchPL1ZBOsG">iptables防火墙详细配置</a>
+<pre>
+iptables [-t 表名]　-命令 -匹配 -j　动作/目标
+</pre></p>
+<p>设定INPUT,OUTPUT默认策略为DROP，FORWORD为ACCEPT
+<pre>
+iptables -P INPUT DROP
+iptables -P OUTPUT DROP
+iptables -P FORWARD ACCEPT
+</pre></p>
+<p>先把“回环”打开，以免有不必要的麻烦。
+<pre>
+iptables -A INPUT -i lo -j ACCEPT
+iptables -A OUTPUT -o lo -j ACCEPT
+</pre></p>
+<p>在所有网卡上打开ping功能，便于维护和检测。
+<pre>
+iptables -A INPUT -i eth+ -p icmp --icmp-type 8 -j ACCEPT
+iptables -A OUTPUT -o eth+ -p icmp --icmp-type 0 -j ACCEPT
+</pre></p>
+<p>打开22端口，允许远程管理。（设定了很多的附加条件：管理机器IP必须是250，并且必须从eth0网卡进入）
+<pre>
+iptables -A INPUT -i eth0 -s 192.168.100.250 -d 192.168.100.1 -p tcp --dport 22 -j ACCEPT
+iptables -A OUTPUT -o eth0 -d 192.168.100.250 -s 192.168.100.1 -p tcp --sport 22 -j ACCEPT
+</pre></p>
+<p>允许192.168.100.0/24网段的机器发送数据包从eth0网卡进入。如果数据包是tcp协议，而且目的端口是3128（因为REDIRECT已经把80改为3128了。nat表的PREROUTING是在filter表的INPUT前面的。）的，再而且，数据包的状态必须是NEW或者ESTABLISHED的（NEW代表tcp三段式握手的“第一握”，换句话说就是，允许客户端机器向服务器发出链接申请。ESTABLISHED表示通过握手已经建立起链接），通过。
+<pre>
+iptables -A INPUT -i eth0 -s 192.168.100.0/24 -p tcp --dport 3128 -m state --state NEW,ESTABLISHED -j ACCEPT
+</pre></p>
+<p>现在你的数据包已经进入到linux服务器防火墙上来了。squid需要代替你去访问，所以这时，服务器就成了客户端的角色，所以它要使用32768到61000的私有端口进行访问。（大家会奇怪应该是1024到65535吧。其实CentOS版的linux所定义的私有端口是32768到61000的，你可以通过cat /proc/sys/net/ipv4/ip_local_port_range，查看一下。）再次声明：这里是squid以客户端的身份去访问其他的服务器，所以这里的源端口是32768:61000，而不是3128！
+<pre>
+iptables -A OUTPUT -o eth2 -p tcp --sport 32768:61000 -m state --state NEW,ESTABLISHED -j ACCEPT
+</pre></p>
+<p>当然了，数据有去就有回。
+<pre>
+iptables -A INPUT -i eth2 -p tcp --dport 32768:61000 -m state --state ESTABLISHED -j ACCEPT
+</pre></p>
+<p>数据包还得通过服务器，转到内网网卡上。请注意，这里，是squid帮你去访问了你想要访问的网站。所以在内网中，你的机器是客户端角色，而squid是服务器角色。这与刚才对外访问的过程是不同的。所以在这里，源端口是3128，而不是32768:61000。
+<pre>
+iptables -A OUTPUT -o eth0 -d 192.168.100.0/24 -p tcp --sport 3128 -m state --state ESTABLISHED -j ACCEPT
+</pre></p>
+<p>当然，DNS是不可缺少的。
+<pre>
+iptables -A OUTPUT -o eth2 -p udp --dport 53 -j ACCEPT
+iptables -A INPUT -i eth2 -p udp --sport 53 -j ACCEPT
+</pre></p>
+<p>来点日志记录会对网管员有所帮助。
+<pre>
+iptables -A INPUT -i eth+ -p tcp --dport 80 -j LOG --log-prefix "iptables_80_alert" --log-level info
+iptables -A INPUT -i eth+ -p tcp --dport 21 -j LOG --log-prefix "iptables_21_alert" --log-level info
+iptables -A INPUT -i eth+ -p tcp --dport 22 -j LOG --log-prefix "iptables_22_alert" --log-level info
+iptables -A INPUT -i eth+ -p tcp --dport 25 -j LOG --log-prefix "iptables_25_alert" --log-level info
+iptables -A INPUT -i eth+ -p icmp --icmp-type 8 -j LOG --log-prefix "iptables_icmp8_alert" --log-level info
+</pre></p>
+<p>iptables的命令在不同的环境中配置方法也有一定差异，以上内容只是作为一个参考和记录，等到哪天用到时方便查找．</p>
+        <hr />
+        <p>作者:JenI&#160; &#160; &#160; &#160;转载请注明出处，谢谢</p>
+    </article>
+
+    <hr>
+
+<!--                        -->
+    <div id="disqus_thread"></div>
+    <script>
+
+/**
+*  RECOMMENDED CONFIGURATION VARIABLES: EDIT AND UNCOMMENT THE SECTION BELOW TO INSERT DYNAMIC VALUES FROM YOUR PLATFORM OR CMS.
+*  LEARN WHY DEFINING THESE VARIABLES IS IMPORTANT: https://disqus.com/admin/universalcode/#configuration-variables*/
+/*
+var disqus_config = function () {
+this.page.url = PAGE_URL;  // Replace PAGE_URL with your page's canonical URL variable
+this.page.identifier = PAGE_IDENTIFIER; // Replace PAGE_IDENTIFIER with your page's unique identifier variable
+};
+*/
+        (function() { // DON'T EDIT BELOW THIS LINE
+            var d = document, s = d.createElement('script');
+            s.src = '//jenihk.disqus.com/embed.js';
+            s.setAttribute('data-timestamp', +new Date());
+            (d.head || d.body).appendChild(s);
+        })();
+    </script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+
+            </div>
+        </div>
+    </div>
+
+    <hr>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                    <ul class="list-inline text-center">
+                        <li>
+                            <a href="http://weibo.com/1992014191/profile?rightmod=1&wvr=6&mod=personinfo&is_all=1">
+                                <span class="fa-stack fa-lg">
+                                    <i class="icon iconfont">&#xe657;</i>
+                                </span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="http://github.com/jenihk">
+                                <span class="fa-stack fa-lg">
+                                    <i class="icon iconfont">&#xe618;</i>
+                                </span>
+                            </a>
+                        </li>
+                    </ul>
+                    <p class="copyright text-muted">Blog powered by <a href="http://getpelican.com">Pelican</a>,
+                which takes great advantage of <a href="http://python.org">Python</a>.</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- jQuery -->
+    <script src="https://jenihk.github.io/theme/js/jquery.js"></script>
+
+    <!-- Bootstrap Core JavaScript -->
+    <script src="https://jenihk.github.io/theme/js/bootstrap.min.js"></script>
+
+    <!-- Custom Theme JavaScript -->
+    <script src="https://jenihk.github.io/theme/js/clean-blog.min.js"></script>
+    
+    <!-- CanvasParticles -->
+    <script src="https://jenihk.github.io/theme/js/canvas-particle.js"></script>
+
+    <script type="text/javascript">
+        CanvasParticle();
+    </script>
+
+    <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-85780345-1']);
+    _gaq.push(['_trackPageview']);
+    (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+    </script>
+</body>
+
+</html>
