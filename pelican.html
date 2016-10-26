@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="zh">
+
+<head>
+            <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="description" content="">
+        <meta name="author" content="">
+
+        <title>JenI's Blog</title>
+
+        <link rel="icon" href="https://jenihk.github.io/theme/images/favicon.ico" type="image/x-icon">  
+        <link rel="shortcut icon" href="https://jenihk.github.io/theme/images/favicon.ico" type="image/x-icon">  
+
+
+        <link href="https://jenihk.github.io/theme/css/iconfont.css" rel="stylesheet">
+
+        <!-- Bootstrap Core CSS -->
+        <link href="https://jenihk.github.io/theme/css/bootstrap.min.css" rel="stylesheet">
+
+        <!-- Custom CSS -->
+        <link href="https://jenihk.github.io/theme/css/clean-blog.min.css" rel="stylesheet">
+
+        <!-- Code highlight color scheme -->
+            <link href="https://jenihk.github.io/theme/css/code_blocks/monokai.css" rel="stylesheet">
+
+        <!-- Custom Fonts -->
+        <link href="http://maxcdn.bootstrapcdn.com/font-awesome/4.1.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+        <link href='http://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+        <link href='http://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/css'>
+
+        <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+        <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+        <!--[if lt IE 9]>
+            <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+            <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+        <![endif]-->
+
+
+
+
+
+
+			<meta property="og:locale" content="zh">
+		<meta property="og:site_name" content="JenI's Blog">
+
+	<meta property="og:type" content="article">
+	<meta property="article:author" content="">
+	<meta property="og:url" content="https://jenihk.github.io/pelican.html">
+	<meta property="og:title" content="Github Pages 个人博客搭建">
+	<meta property="og:description" content="pelican + Github Pages 静态博客搭建">
+	<meta property="og:image" content="https://jenihk.github.io/theme/images/posts/githubpages/cover.png">
+	<meta property="article:published_time" content="2016-10-25 00:00:00+08:00">
+</head>
+
+<body style="background-color: #f8f8f8">
+
+    <!-- Navigation -->
+    <nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+        <div class="container-fluid">
+            <!-- Brand and toggle get grouped for better mobile display -->
+            <div class="navbar-header page-scroll">
+                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <a class="navbar-brand" href="https://jenihk.github.io/">JenI's Blog</a>
+            </div>
+
+            <!-- Collect the nav links, forms, and other content for toggling -->
+            <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+                <ul class="nav navbar-nav navbar-right">
+                        <li><a href="https://jenihk.github.io/category/an-quan.html">安全</a></li>
+                        <li><a href="https://jenihk.github.io/category/xi-tong.html">系统</a></li>
+                        <li><a href="https://jenihk.github.io/category/ri-chang.html">日常</a></li>
+
+                </ul>
+            </div>
+            <!-- /.navbar-collapse -->
+        </div>
+        <!-- /.container -->
+    </nav>
+
+    <!-- Page Header -->
+        <header class="intro-header" style="background-image: url('theme/images/posts/githubpages/cover.png')">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                    <div class="post-heading">
+                        <h1>Github Pages 个人博客搭建</h1>
+                            <h3 class="subheading">pelican + Github Pages 静态博客搭建</h3>
+                        <span class="meta">Posted by
+                                <a href="https://jenihk.github.io/author/jeni.html">JenI</a>
+                             on 2016-10-25 00:00:00+08:00
+                        </span>
+                        
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1" style="background-color: #f8f8f8;position: relative;">
+    <!-- Post Content -->
+    <article style="background-color: #f8f8f8;position: relative;">
+        <p><strong><em>前言</em></strong></p>
+<p>之前一直挺羡慕大牛们都有自己的博客，发表自己的生活感悟，技术文章，把自己的懂的东西分享给别人，帮助我们这些小白成长。所以一直以来都想自己也搭个博客，记录一下自己的学习过程，最好再对比我还要白的小白起到一点帮助作用。正巧最近有时间，于是乎便着手把这个博客搭建了起来。二话不多说，上搭建过程</p>
+<p><strong><em>前言二</em></strong>  (o_O)???</p>
+<p>首先，博客是什么？博客，是自己自由表达的一个平台，也是对自己所学知识的记录，它更是人与人之间深度交流沟通的一种方式，同时，它还促进了科学发展、社会进步、人类繁荣。。。。额，吹的好像有点过分了。其实简单的说，博客就是公开的日记，随性的发点信息，写点技术感想。所以别犹豫了，赶紧搭建一个玩耍吧</p>
+<p><strong><em>正文</em></strong></p>
+<p>博客的搭建方式有很多种，其中最方便的就是使用像 wordpress 这种博客平台，源码上传服务器，创建数据库，稍作设置，浏览器访问，改主题，装插件，博客就搭好了，但是说起来容易，真正搭建时也会遇到各种各样的问题。不过不要紧，因为 wordpress 的用户很多，基本上遇到问题网上都能找到解决办法。</p>
+<p>所以还是老规矩，哪里不会点哪里，既然 wordpress 搭建博客比较简单，那我们就采用另一种相对较复杂的方式搭建，也就是使用 Pelican + Github Pages 方式搭建,首先解释名词。</p>
+<p>Github Pages<br />
+你可能没听过 Github Pages,但你一定或多或少的听说过 Github,Github 是一个面向开源及私有软件项目的托管平台，它就像是程序员的 Facebook,你可以把自己写的程序、脚本开源，然后放到 Github 上，其他人可以自由使用，也可以参与你的开源项目。Github Pages 可以理解成是用户编写的，托管在 Github 上的静态网页。</p>
+<p>Pelican<br />
+Pelican是一个用Python语言编写的静态网页生成器，支持使用restructuredText和Markdown写文章，配置灵活，扩展性强，有许多优秀的主题和插件可供使用。类似的静态网页生成器还有很多，比如基于 Ruby 的 jekyll,基于 node-js 的 hexo 等，它们各有各的优点，如果熟悉 ruby 和 node-js 的朋友也可以选择这两个生成器。</p>
+<p><strong><em>创建 Github Pages</em></strong></p>
+<p>先去github注册一个账号，<a href="https://github.com/">注册Github</a>,登录后点击右上角的 “+” ，创建一个新的仓库(New repository)，仓库名为 username.github.io ,其中 username 为自己的 Github 用户名，仓库名就是之后你博客的地址．<br />
+Github Pages 的官网有相关介绍　<a href="https://pages.github.com/">Github Pages</a><br />
+创建成功后使用浏览器访问 https://username.github.io 就可以访问到你的 Github Pages 首页了，但是因为仓库还是空的，你应该看到的是404页面。接下来转回本地</p>
+<p><strong><em>搭建Pelican环境</em></strong></p>
+<p>安装 git 和 virtualenv。pip 在安装 python 时应该已经被安装了
+<pre>
+sudo pacman -S git # apt-get 用户使用 apt-get install git 安装
+pip install virtualenv
+</pre></p>
+<p>使用 virtualenv 工具创建虚拟环境
+<pre>
+virtualenv ~/virtualenv/pelican
+cd ~/virtualenv/pelican
+source bin/activate
+</pre></p>
+<p>安装 pelican 及可选安装包
+<pre>
+pip install pelican
+pip install Markdown  # 使用Markdown写博客就需要安装
+pip install typogrify # 这个好像是排版用的，可以装一下，目前我还没用到
+</pre></p>
+<p>创建博客
+<pre>
+mkdir myblog # 名字随意
+cd myblog
+pelican-quickstart
+</pre></p>
+<p>执行上面的命令后会有一系列提示，根据提示对博客进行配置，配置流程大致如下：
+<pre>
+> Where do you want to create your new web site? [.]
+> What will be the title of this web site? kamidox
+> Who will be the author of this web site? Joey Huang
+> What will be the default language of this web site? [en]
+> Do you want to specify a URL prefix? e.g., http://example.com   (Y/n)
+> What is your URL prefix? (see above example; no trailing slash)
+> Do you want to enable article pagination? (Y/n)
+> How many articles per page do you want? [10]
+> Do you want to generate a Fabfile/Makefile to automate generation and publishing? (Y/n)
+> Do you want an auto-reload &amp; simpleHTTP script to assist with theme and site development? (Y/n)
+> Do you want to upload your website using FTP? (y/N) N
+> Do you want to upload your website using SSH? (y/N) y
+> What is the hostname of your SSH server? [localhost]
+> What is the port of your SSH server? [22]
+> What is your username on that server? [root]
+> Where do you want to put your web site on that server? [/var/www]
+> Do you want to upload your website using Dropbox? (y/N) N
+> Do you want to upload your website using S3? (y/N) N
+> Do you want to upload your website using Rackspace Cloud Files? (y/N) N
+> Do you want to upload your website using GitHub Pages? (y/N) N
+Done.
+</pre></p>
+<p>其中大部分的内容默认就好，如果不知道如何填写也可以不填写，直接回车，因为这些内容之后都是可以在配置文件中修改的。创建完成后，你的博客目录看起来应该是这样的：
+<pre>
+myblog/
+├── content     # 自己想要发表的文章写完后放在这个目录下，这个目录及子目录下的所有md和rst文件将会被转成html文件
+├── develop_server.sh   #这个是用来在本地运行一个服务器来实时查看生成的html文档的脚本
+├── fabfile.py  # 这个是使用Python的fabric来实现文件上传的工具，即Deploy工具
+├── Makefile    # 这个是使用是用来生成网站内容并上传的工具。
+├── output      # 这个是从content目录生成的html目标文件的存放目录，之后上传到github上的就是这个文件夹下的内容
+├── pelicanconf.py      # 这个是本地开发时的配置文件
+└── publishconf.py      # 这个是发布时的配置文件
+</pre></p>
+<p><strong><em>配置博客</em></strong></p>
+<p>回到 myblog 目录，选择博客主题，部分主题在 <a href="http://pelicanthemes.com/">主题预览</a>处可以看到效果图。所有博客主题可以到 <a href="https://github.com/getpelican/pelican-themes">pelican主题开源库</a> 下载，下载后放在 myblog 文件夹内就好，当然，你也可以将所有主题克隆到本地，逐一查看效果：
+<pre>
+git clone https://github.com/getpelican/pelican-themes.git
+</pre></p>
+<p>选择好主题后需要修改配置文件，在配置文件中修改或添加自己的主题，比如我的博客选择的是 clean-blog 主题，则需要在我的 pelicanconf.py 文件中添加如下内容：
+<pre>
+THEME = 'clean-blog'
+</pre></p>
+<p>不同的主题会有稍微不同的设置方法，主题中独有的特性会在主题文件夹内的 README.md 内标出，但大部分配置方式都遵循 <a href="http://pelican-docs-zh-cn.readthedocs.io/en/latest/">pelican的官方文档</a> （这份文档是 pelican 3.3.0 版本的中文翻译版），使用 pelican 过程中遇到的问题可以到这里查阅文档，一般都可以解决</p>
+<p>书写自己的第一篇文章，在 myblog/content 文件夹内创建一个 hello.md 文件，里面写入下列内容：
+<pre>
+Title: Hello World !   <br />
+Date: 2016-10-25 10:20
+Category: test
+Tags: test
+Slug: hello
+Authors: me</p>
+<p>世界，你好 ！
+</pre></p>
+<p>添加博客评论系统，由于我们的博客是静态页面，没有数据库，所以需要使用第三方社会化评论系统，国内知名的如多说、友言等，友言不支持https，多说的话配置起来相对麻烦。我使用的是国外disqus，因为基本上pelican所有主题都默认支持disqus，所以设置起来相对简单，唯一的缺点就是被我国拦在了墙外，需要访问者翻墙才能看到评论模块。设置过程：去 disqus 的官网注册账号，按照流程申请自己的shortname，然后在pelicanconf.py 内添加：
+<pre>
+DISQUS_SITENAME = shortname # 这里的shortname填写自己的shortname
+</pre></p>
+<p>其他如分组、标签、站点地图，流量分析也都是类似的设置方法，详情请阅读 pelican 官方文档.</p>
+<p><strong><em>生成静态博客</em></strong></p>
+<p>这时可以先预览一下效果了，在 myblog 目录下执行：
+<pre>
+pelican content -s pelicanconf.py
+cd output
+</pre></p>
+<p>Python 2 执行
+<pre>
+python -m SimpleHTTPServer
+</pre></p>
+<p>Python 3 执行
+<pre>
+python -m http.server
+</pre></p>
+<p>浏览器浏览 http://127.0.0.1:8000 就可以看到主题样式和自己的第一篇博客了。如果对博客样式细节方面有些不满意，可以自行修改主题文件夹内的html模板、css样式和js脚本，定制一个属于自己的博客。</p>
+<p><strong><em>部署博客站点</em></strong></p>
+<p>在 pelicanconf.py 中配置博客地址
+<pre>
+SITEURL = 'https://username.github.io'
+</pre></p>
+<p>重新生成静态页面
+<pre>
+cd ~/virtualenv/pelican/myblog/
+pelican content -s pelicanconf.py
+</pre></p>
+<p>如果不放心，依然可以进入到 output 目录下开启服务本地预览．确定没问题了，推送自己的博客到Github Pages
+<pre>
+cd output
+git init
+git add .
+git commit -m "test"
+git remote add origin git@github.com:username/username.github.io.git # 注意修改为自己的
+git push origin master
+</pre></p>
+<p>输入用户名和密码后即可完成提交，之后访问 httpts://username.github.io 即可看到自己的博客。如果对git命令不熟悉，推荐阅读 <a href="http://www.liaoxuefeng.com/wiki/0013739516305929606dd18361248578c67b8067c8c017b000">廖雪峰的Git教程</a></p>
+<p>以后发布博客就只需要用 Markdown 写一篇文章，然后放到 content 目录下，在 myblog 目录下执行
+<pre>
+pelican content -s pelicanconf.py
+cd output
+git add .
+git commit -m "更新博客"
+git push origin master
+</pre></p>
+<p>如果你觉得每次输入用户密码很麻烦，也可以使用ssh方式，还可以自己修改 Makefile 文件简化发布流程．</p>
+<p>这里只是介绍了博客搭建的流程，其他如插件和美化等自己根据自己需求和爱好自己设置就好。</p>
+        <hr />
+        <p>作者:JenI&#160; &#160; &#160; &#160;转载请注明出处，谢谢</p>
+    </article>
+
+    <hr>
+
+        <div class="comments">
+            <h2>Comments !</h2>
+            <div id="disqus_thread"></div>
+            <script type="text/javascript">
+                var disqus_shortname = 'jenihk';
+                var disqus_identifier = 'pelican.html';
+                var disqus_url = 'https://jenihk.github.io/pelican.html';
+                (function() {
+                    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+                    dsq.src = '//jenihk.disqus.com/embed.js';
+                    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+                })();
+            </script>
+            <noscript>Please enable JavaScript to view the comments.</noscript>
+        </div>
+ <!--                   
+    <div id="disqus_thread"></div>
+    <script>
+
+/**
+*  RECOMMENDED CONFIGURATION VARIABLES: EDIT AND UNCOMMENT THE SECTION BELOW TO INSERT DYNAMIC VALUES FROM YOUR PLATFORM OR CMS.
+*  LEARN WHY DEFINING THESE VARIABLES IS IMPORTANT: https://disqus.com/admin/universalcode/#configuration-variables*/
+/*
+var disqus_config = function () {
+this.page.url = PAGE_URL;  // Replace PAGE_URL with your page's canonical URL variable
+this.page.identifier = PAGE_IDENTIFIER; // Replace PAGE_IDENTIFIER with your page's unique identifier variable
+};
+*/
+        (function() { // DON'T EDIT BELOW THIS LINE
+            var d = document, s = d.createElement('script');
+            s.src = '//jenihk.disqus.com/embed.js';
+            s.setAttribute('data-timestamp', +new Date());
+            (d.head || d.body).appendChild(s);
+        })();
+    </script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+-->
+            </div>
+        </div>
+    </div>
+
+    <hr>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                    <ul class="list-inline text-center">
+                        <li>
+                            <a href="http://weibo.com/1992014191/profile?rightmod=1&wvr=6&mod=personinfo&is_all=1">
+                                <span class="fa-stack fa-lg">
+                                    <i class="icon iconfont">&#xe657;</i>
+                                </span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="http://github.com/jenihk">
+                                <span class="fa-stack fa-lg">
+                                    <i class="icon iconfont">&#xe618;</i>
+                                </span>
+                            </a>
+                        </li>
+                    </ul>
+                    <p class="copyright text-muted">Blog powered by <a href="http://getpelican.com">Pelican</a>,
+                which takes great advantage of <a href="http://python.org">Python</a>.</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- jQuery -->
+    <script src="https://jenihk.github.io/theme/js/jquery.js"></script>
+
+    <!-- Bootstrap Core JavaScript -->
+    <script src="https://jenihk.github.io/theme/js/bootstrap.min.js"></script>
+
+    <!-- Custom Theme JavaScript -->
+    <script src="https://jenihk.github.io/theme/js/clean-blog.min.js"></script>
+    
+    <!-- CanvasParticles -->
+    <script src="https://jenihk.github.io/theme/js/canvas-particle.js"></script>
+
+    
+
+    <script type="text/javascript">
+        CanvasParticle();
+    </script>
+
+    <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-85780345-1']);
+    _gaq.push(['_trackPageview']);
+    (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+    </script>
+<script type="text/javascript">
+    var disqus_shortname = 'jenihk';
+    (function () {
+        var s = document.createElement('script'); s.async = true;
+        s.type = 'text/javascript';
+        s.src = '//' + disqus_shortname + '.disqus.com/count.js';
+        (document.getElementsByTagName('HEAD')[0] || document.getElementsByTagName('BODY')[0]).appendChild(s);
+    }());
+</script>
+</body>
+
+</html>
