@@ -134,8 +134,8 @@ def ScanUrl(url):
         else:
             pass
     #捕获其他错误
-    except:
-         print('Unkown the host : %s' % url[:url.index('/')])
+    except Exception,e:
+         print str(e)
          exit(0)</p>
 <p>#测试一下函数是否正常使用,以我的博客为例。
 ScanUrl('http://blog.jenisec.org/index.html')
