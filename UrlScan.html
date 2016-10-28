@@ -125,7 +125,7 @@ import argparse
 def ScanUrl(url):
     req = urllib2.Request(url)
     try:
-        result = urllib2.urlopen(req)
+        result = urllib2.urlopen(req,timeout=2)
         print '[+]200 found the Url : %s' % url
     #捕获urlopen无法解决的错误
     except urllib2.HTTPError,e:
@@ -230,7 +230,7 @@ def ScanUrl(url):
     req = urllib2.Request(url)
     opener = urllib2.build_opener(RedirctHandler)
     try:
-        result = opener.open(req)
+        result = opener.open(req,timeout=2)
         print '[+]200 found the Url : %s' % url
     except urllib2.HTTPError,e:
         if e.code in [401,403,500,503]:
@@ -245,12 +245,33 @@ def ScanUrl(url):
 <p>这时在遇到重定向的网页时就会直接跳过，而不会再把所有页面都视作存在了。</p>
 <p>脚本效果如下：</p>
 <p><img class="img-responsive" src="theme/images/posts/urlscan/scan.png" style="text-align:center" alt="scan" /></p>
+<p>现在效果已经出来了，但是还有一个问题，现在的脚本在执行时是单线程，速度太慢了，如果可以改成多线程肯定可以节省很多时间。多线程的话要再引入一个 threading 模块
+<pre>
+import threading
+</pre></p>
+<p>修改 Geturl() 函数的迭代，引入多线程，把每一个 ScanUrl()　函数当做一个线程
+<pre>
+def Geturl(host,dicfile):
+    try:
+        f = open(dicfile,'r')
+        for line in f.readlines():
+            url = host + line.strip('\r\n')
+            t = threading.Thread(target=ScanUrl,args=(url,))
+            t.start()
+        f.close()
+    except Exception,e:
+        print('[-]Error : ' + str(e))
+        exit(0)
+</pre></p>
+<p>这里需要注意一下，threading.Thread() 内的　args 参数为一个元组，只传了一个值时要加一个逗号</p>
+<p>现在再执行脚本就是以多线程方式运行了，执行速度大大的提升了</p>
 <p>最后附上完整的代码
 <pre>
 #!/usr/bin/env python2
-# -*- coding=UTF-8 -*-</p>
+# -<em>- coding=UTF-8 -</em>-</p>
 <p>import urllib2
-import argparse</p>
+import argparse
+import threading</p>
 <p>class RedirctHandler(urllib2.HTTPRedirectHandler):
   def http_error_301(self, req, fp, code, msg, headers):
     pass
@@ -260,7 +281,7 @@ import argparse</p>
     req = urllib2.Request(url)
     opener = urllib2.build_opener(RedirctHandler)
     try:
-        result = opener.open(req)
+        result = opener.open(req,timeout=2)
         print '[+]200 found the Url : %s' % url
     except urllib2.HTTPError,e:
         if e.code in [401,403,500,503]:
@@ -276,7 +297,8 @@ import argparse</p>
         f = open(dicfile,'r')
         for line in f.readlines():
             url = host + line.strip('\r\n')
-            ScanUrl(url)
+            t = threading.Thread(target=ScanUrl,args=(url,))
+            t.start()
         f.close()
     except Exception,e:
         print('[-]Error : ' + str(e))
