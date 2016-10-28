@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="zh">
+
+<head>
+            <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="description" content="">
+        <meta name="author" content="">
+
+        <title>JenI's Blog</title>
+
+        <link rel="icon" href="https://jenihk.github.io/theme/images/favicon.ico" type="image/x-icon">  
+        <link rel="shortcut icon" href="https://jenihk.github.io/theme/images/favicon.ico" type="image/x-icon">  
+
+
+        <link href="https://jenihk.github.io/theme/css/iconfont.css" rel="stylesheet">
+
+        <!-- Bootstrap Core CSS -->
+        <link href="https://jenihk.github.io/theme/css/bootstrap.min.css" rel="stylesheet">
+
+        <!-- Custom CSS -->
+        <link href="https://jenihk.github.io/theme/css/clean-blog.min.css" rel="stylesheet">
+
+        <!-- Code highlight color scheme -->
+            <link href="https://jenihk.github.io/theme/css/code_blocks/monokai.css" rel="stylesheet">
+
+        <!-- Custom Fonts -->
+        <link href="http://maxcdn.bootstrapcdn.com/font-awesome/4.1.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+        <link href='http://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+        <link href='http://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/css'>
+
+        <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+        <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+        <!--[if lt IE 9]>
+            <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+            <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+        <![endif]-->
+
+
+
+
+
+
+			<meta property="og:locale" content="zh">
+		<meta property="og:site_name" content="JenI's Blog">
+
+	<meta property="og:type" content="article">
+	<meta property="article:author" content="">
+	<meta property="og:url" content="https://jenihk.github.io/UrlScan.html">
+	<meta property="og:title" content="Python 学习之 Url爆破">
+	<meta property="og:description" content="使用Python实现一个简单的网站敏感目录扫描工具">
+	<meta property="og:image" content="https://jenihk.github.io/theme/images/posts/urlscan/cover.png">
+	<meta property="article:published_time" content="2016-10-28 00:00:00+08:00">
+</head>
+
+<body style="background-color: #f8f8f8">
+
+    <!-- Navigation -->
+    <nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+        <div class="container-fluid">
+            <!-- Brand and toggle get grouped for better mobile display -->
+            <div class="navbar-header page-scroll">
+                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <a class="navbar-brand" href="https://jenihk.github.io/">JenI's Blog</a>
+            </div>
+
+            <!-- Collect the nav links, forms, and other content for toggling -->
+            <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+                <ul class="nav navbar-nav navbar-right">
+                        <li><a href="https://jenihk.github.io/category/an-quan.html">安全</a></li>
+                        <li><a href="https://jenihk.github.io/category/xi-tong.html">系统</a></li>
+                        <li><a href="https://jenihk.github.io/category/ri-chang.html">日常</a></li>
+
+                </ul>
+            </div>
+            <!-- /.navbar-collapse -->
+        </div>
+        <!-- /.container -->
+    </nav>
+
+    <!-- Page Header -->
+        <header class="intro-header" style="background-image: url('theme/images/posts/urlscan/cover.png')">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                    <div class="post-heading">
+                        <h1>Python 学习之 Url爆破</h1>
+                            <h3 class="subheading">使用Python实现一个简单的网站敏感目录扫描工具</h3>
+                        <span class="meta">Posted by
+                                <a href="https://jenihk.github.io/author/jeni.html">JenI</a>
+                             on 2016-10-28 00:00:00+08:00
+                        </span>
+                        
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1" style="background-color: #f8f8f8;position: relative;">
+    <!-- Post Content -->
+    <article style="background-color: #f8f8f8;position: relative;">
+        <p><strong><em>前言</em></strong></p>
+<p>御剑这个工具想必大家都听说并使用过，C段、旁注、批量注入、后台扫描、MD5解密、编码转换等等，功能很强大。特别是在寻找网站敏感文件目录方面，用个大一点的字典跑啊跑，一会就跑出了很多东西。今天试着用 Python 写了一个有类似扫描功能的小脚本，在这里记录一下过程。代码写的比较烂，实用性也不大，目的仅在于锻炼自己的编程能力，同时也给想学习 Python 的童鞋做个参考。我会写出自己的思考过程，方便大家理解。</p>
+<p><strong><em>过程</em></strong></p>
+<p>首先思考要实现的功能。我们想写一个判断 URL 是否存在的小工具，所以就要不断的穷举网站的 URL ，通过返回的状态码来判断页面是否存在，状态码为 200 则说明页面存在，如果是 404 则说明页面不存在，其他如 403、500 等说明存在但无权限或服务器出现错误。所以这里要使用写爬虫时会用到的 urllib2 模块，但是我们不用抓取页面内容，只需要尝试打开页面就好。为了方便，还需要将爆破的域名和要使用的字典以参数的形式传入到程序，所以还要用到 argparse 模块。</p>
+<p>有个大概的思路就可以了，下面开始码代码。</p>
+<p>导入要使用的模块,urllib2和argparse<br />
+urllib2 模块是 Python 的一个获取 URLs 的组件。它以 urlopen 函数的形式提供了一个非常简单的接口，具有利用不同协议获取 URLs 的能力。而 argparse ，它是 Python 编写命令行程序的工具，由于 optparse 在 Python2.7 版本之后就停止开发了，所以 Python 标准库中推荐使用 argparse。
+<pre>
+import urllib2
+import argparse
+</pre></p>
+<p>首先定义一个 ScanUrl 函数，用来处理传入的 URL 。
+<pre>
+def ScanUrl(url):
+    req = urllib2.Request(url)
+    try:
+        result = urllib2.urlopen(req)
+        print '[+]200 found the Url : %s' % url
+    #捕获urlopen无法解决的错误
+    except urllib2.HTTPError,e:
+        if e.code in [401,403,500,503]:
+            print ('[*] Notice : ' + str(e) + ' : ' + url)
+        else:
+            pass
+    #捕获其他错误
+    except:
+         print('Unkown the host : %s' % url[:url.index('/')])
+         exit(0)</p>
+<p>#测试一下函数是否正常使用,以我的博客为例。
+ScanUrl('http://blog.jenisec.org/index.html')
+</pre>
+<pre>
+[+]200 found the Url : http://blog.jenisec.org/index.html
+</pre></p>
+<p>我们使用 urlopen 方法打开传入的 URL ，如果正常打开，就打印一条消息指明这个 URL 是存在的，如果捕获到的状态码为401、403、500、503，也同样打印一条信息，提示存在，但有错误。如果捕获到其他错误，将错误打印出来。</p>
+<p>再定义一个 Geturl 函数，用来处理传入的域名和字典文件。
+<pre>
+def Geturl(host,dicfile):
+    try:
+        f = open(dicfile,'r')
+        for line in f.readlines():
+            url = host + line.strip('\r\n')
+            ScanUrl(url)
+        f.close()
+    except Exception,e:
+        print('[-]Error : ' + str(e))
+        exit(0)
+</pre></p>
+<p>Geturl 接受两个参数，其中 host 为用户输入的域名，dicfile 为字典文件，我们用读的方式打开字典文件，循环取出每一行的内容，将它拼接在域名后面，组成一个完整的 URL ,然后调用 ScanUrl() 函数去处理得到的 URL 。字典文件内容格式如下：
+<pre>
+/phpmyadmin/db_create.php
+/intraAdmin/admin.php
+/do/reg.php
+/tag.php
+/wp-admin/install.php
+/wp-admin/admin-ajax.php
+/Html/fckeditor/fckeditor.php
+/admin/admin.php
+/admin.php
+/SEM_User/admin_php/login.php
+/admin/index.php
+/admin/login.php
+/manager.php
+/login.php
+/guestbook/admin.php
+/blog/admin.php
+/ask/admin.php
+/add.php
+    .
+    .
+    .
+</pre></p>
+<p>接下来定义一个 main 函数，用来接受命令行传入的参数。
+<pre>
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-H","--host",type=str,help="specify target host")
+    parser.add_argument("-d","--dic",type=str,help="specify target dicfile")
+    args = parser.parse_args()
+    host = args.host
+    dicfile = args.dic
+    if host == None or dicfile == None:
+        print ('usage : urlscan.py -H <target host> -d <dicfile>')
+        exit(0)
+    Geturl(host,dicfile)</p>
+<p>if <strong>name</strong> == '<strong>main</strong>':
+    main()
+</pre></p>
+<p>上面的代码创建了一个 parser ，使用 add_argument() 方法设置程序可接受的命令行参数，最后调用 parse_args() 方法进行解析。</p>
+<p>将文件保存为 urlscan.py ，以百度为例，然后在终端执行
+<pre>
+python2 urlscan.py -H https://www.baidu.com -d php.txt
+</pre></p>
+<p>不出意外，应该会得到以下信息
+<pre>
+[+]200 found the Url : https://www.baidu.com/phpmyadmin/db_create.php
+[+]200 found the Url : https://www.baidu.com/intraAdmin/admin.php
+[+]200 found the Url : https://www.baidu.com/do/reg.php
+[+]200 found the Url : https://www.baidu.com/tag.php
+[+]200 found the Url : https://www.baidu.com/wp-admin/install.php
+[+]200 found the Url : https://www.baidu.com/wp-admin/admin-ajax.php
+          .
+          .
+          .
+</pre></p>
+<p>你会发现所有的地址全部都是200，但是以我的博客作为目标时又是正常的，这是为什么呢？</p>
+<p>我们随便打开一个上面提示存在的页面，看看有什么效果。结果是当我们访问一个不存在的页面时，网页被重定向到了其他页面，由于 urllib2 会自动处理 301、302 等状态码，所以我们的脚本得到的状态码始终是重定向之后的 200。</p>
+<p>找到原因了，那就改写脚本,我们不使用 urlopen 方式打开网页，而是使用我们自己创建的 opener 打开。首先定义 HTTPRedirectHandler 类：
+<pre>
+lass RedirctHandler(urllib2.HTTPRedirectHandler):
+  def http_error_301(self, req, fp, code, msg, headers):
+    pass
+  def http_error_302(self, req, fp, code, msg, headers):
+    pass
+</pre></p>
+<p>改写 ScanUrl() 函数,创建 opener ，并使用它打开 URL
+<pre>
+def ScanUrl(url):
+    req = urllib2.Request(url)
+    opener = urllib2.build_opener(RedirctHandler)
+    try:
+        result = opener.open(req)
+        print '[+]200 found the Url : %s' % url
+    except urllib2.HTTPError,e:
+        if e.code in [401,403,500,503]:
+            print ('[*] Notice : ' + str(e) + ' : ' + url)
+        else:
+            pass
+    except Exception,e:
+         print str(e)
+         exit(0)
+    opener.close()
+</pre></p>
+<p>这时在遇到重定向的网页时就会直接跳过，而不会再把所有页面都视作存在了。</p>
+<p>脚本效果如下：</p>
+<p><img class="img-responsive" src="theme/images/posts/urlscan/scan.png" style="text-align:center" alt="scan" /></p>
+<p>最后附上完整的代码
+<pre>
+#!/usr/bin/env python2
+# -*- coding=UTF-8 -*-</p>
+<p>import urllib2
+import argparse</p>
+<p>class RedirctHandler(urllib2.HTTPRedirectHandler):
+  def http_error_301(self, req, fp, code, msg, headers):
+    pass
+  def http_error_302(self, req, fp, code, msg, headers):
+    pass</p>
+<p>def ScanUrl(url):
+    req = urllib2.Request(url)
+    opener = urllib2.build_opener(RedirctHandler)
+    try:
+        result = opener.open(req)
+        print '[+]200 found the Url : %s' % url
+    except urllib2.HTTPError,e:
+        if e.code in [401,403,500,503]:
+            print ('[*] Notice : ' + str(e) + ' : ' + url)
+        else:
+            pass
+    except Exception,e:
+         print str(e)
+         exit(0)
+    opener.close()</p>
+<p>def Geturl(host,dicfile):
+    try:
+        f = open(dicfile,'r')
+        for line in f.readlines():
+            url = host + line.strip('\r\n')
+            ScanUrl(url)
+        f.close()
+    except Exception,e:
+        print('[-]Error : ' + str(e))
+        exit(0)</p>
+<p>def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-H","--host",type=str,help="specify target host")
+    parser.add_argument("-d","--dic",type=str,help="specify target dicfile")
+    args = parser.parse_args()
+    host = args.host
+    dicfile = args.dic
+    if host == None or dicfile == None:
+        print ('usage : urlscan.py -H <target host> -d <dicfile>')
+        exit(0)
+    Geturl(host,dicfile)</p>
+<p>if <strong>name</strong> == '<strong>main</strong>':
+    main()
+</pre></p>
+        <hr />
+        <p>作者:JenI&#160; &#160; &#160; &#160;转载请注明出处，谢谢</p>
+    </article>
+
+    <hr>
+
+        <div class="comments">
+            <h2>Comments !</h2>
+            <div id="disqus_thread"></div>
+            <script type="text/javascript">
+                var disqus_shortname = 'jenihk';
+                var disqus_identifier = 'UrlScan.html';
+                var disqus_url = 'https://jenihk.github.io/UrlScan.html';
+                (function() {
+                    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+                    dsq.src = '//jenihk.disqus.com/embed.js';
+                    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+                })();
+            </script>
+            <noscript>Please enable JavaScript to view the comments.</noscript>
+        </div>
+ <!--                   
+    <div id="disqus_thread"></div>
+    <script>
+
+/**
+*  RECOMMENDED CONFIGURATION VARIABLES: EDIT AND UNCOMMENT THE SECTION BELOW TO INSERT DYNAMIC VALUES FROM YOUR PLATFORM OR CMS.
+*  LEARN WHY DEFINING THESE VARIABLES IS IMPORTANT: https://disqus.com/admin/universalcode/#configuration-variables*/
+/*
+var disqus_config = function () {
+this.page.url = PAGE_URL;  // Replace PAGE_URL with your page's canonical URL variable
+this.page.identifier = PAGE_IDENTIFIER; // Replace PAGE_IDENTIFIER with your page's unique identifier variable
+};
+*/
+        (function() { // DON'T EDIT BELOW THIS LINE
+            var d = document, s = d.createElement('script');
+            s.src = '//jenihk.disqus.com/embed.js';
+            s.setAttribute('data-timestamp', +new Date());
+            (d.head || d.body).appendChild(s);
+        })();
+    </script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+-->
+            </div>
+        </div>
+    </div>
+
+    <hr>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                    <ul class="list-inline text-center">
+                        <li>
+                            <a href="http://weibo.com/1992014191/profile?rightmod=1&wvr=6&mod=personinfo&is_all=1">
+                                <span class="fa-stack fa-lg">
+                                    <i class="icon iconfont">&#xe657;</i>
+                                </span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="http://github.com/jenihk">
+                                <span class="fa-stack fa-lg">
+                                    <i class="icon iconfont">&#xe618;</i>
+                                </span>
+                            </a>
+                        </li>
+                    </ul>
+                    <p class="copyright text-muted">Blog powered by <a href="http://getpelican.com">Pelican</a>,
+                which takes great advantage of <a href="http://python.org">Python</a>.</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- jQuery -->
+    <script src="https://jenihk.github.io/theme/js/jquery.js"></script>
+
+    <!-- Bootstrap Core JavaScript -->
+    <script src="https://jenihk.github.io/theme/js/bootstrap.min.js"></script>
+
+    <!-- Custom Theme JavaScript -->
+    <script src="https://jenihk.github.io/theme/js/clean-blog.min.js"></script>
+    
+    <!-- CanvasParticles -->
+    <script src="https://jenihk.github.io/theme/js/canvas-particle.js"></script>
+
+    
+
+    <script type="text/javascript">
+        CanvasParticle();
+    </script>
+
+    <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-85780345-1']);
+    _gaq.push(['_trackPageview']);
+    (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+    </script>
+<script type="text/javascript">
+    var disqus_shortname = 'jenihk';
+    (function () {
+        var s = document.createElement('script'); s.async = true;
+        s.type = 'text/javascript';
+        s.src = '//' + disqus_shortname + '.disqus.com/count.js';
+        (document.getElementsByTagName('HEAD')[0] || document.getElementsByTagName('BODY')[0]).appendChild(s);
+    }());
+</script>
+</body>
+
+</html>
