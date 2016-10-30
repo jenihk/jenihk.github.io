@@ -191,10 +191,10 @@ def main():
     host = args.host
     dicfile = args.dic
     if host == None or dicfile == None:
-        print ('usage : urlscan.py -H <target host> -d <dicfile>')
+        print ('usage : urlscan.py -H \&lt;target host> -d \&lt;dicfile>')
         exit(0)
     Geturl(host,dicfile)</p>
-<p>if <strong>name</strong> == '<strong>main</strong>':
+<p>if __name__ == '__main__':
     main()
 </pre></p>
 <p>上面的代码创建了一个 parser ，使用 add_argument() 方法设置程序可接受的命令行参数，最后调用 parse_args() 方法进行解析。</p>
@@ -311,10 +311,10 @@ import threading</p>
     host = args.host
     dicfile = args.dic
     if host == None or dicfile == None:
-        print ('usage : urlscan.py -H <target host> -d <dicfile>')
+        print ('usage : urlscan.py -H \&lt;target host> -d \&lt;dicfile>')
         exit(0)
     Geturl(host,dicfile)</p>
-<p>if <strong>name</strong> == '<strong>main</strong>':
+<p>if _<em>name_</em> == '_<em>main_</em>':
     main()
 </pre></p>
         <hr />
