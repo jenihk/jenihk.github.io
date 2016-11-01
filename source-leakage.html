@@ -2,13 +2,13 @@
 <html lang="zh">
 
 <head>
-        <meta charset="utf-8">
+            <meta charset="utf-8">
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="description" content="">
         <meta name="author" content="">
 
-        <title>JenI's Blog - Archives</title>
+        <title>JenI's Blog</title>
 
         <link rel="icon" href="https://jenihk.github.io/theme/images/favicon.ico" type="image/x-icon">  
         <link rel="shortcut icon" href="https://jenihk.github.io/theme/images/favicon.ico" type="image/x-icon">  
@@ -37,8 +37,21 @@
             <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
         <![endif]-->
 
-		<meta property="og:locale" content="zh">
+
+
+
+
+
+			<meta property="og:locale" content="zh">
 		<meta property="og:site_name" content="JenI's Blog">
+
+	<meta property="og:type" content="article">
+	<meta property="article:author" content="">
+	<meta property="og:url" content="https://jenihk.github.io/source-leakage.html">
+	<meta property="og:title" content="SVN、Git 源码泄露">
+	<meta property="og:description" content="">
+	<meta property="og:image" content="https://jenihk.github.io/theme/images/posts/source-leakage/cover.png">
+	<meta property="article:published_time" content="2016-11-01 00:00:00+08:00">
 </head>
 
 <body style="background-color: #f8f8f8">
@@ -72,12 +85,17 @@
     </nav>
 
     <!-- Page Header -->
-        <header class="intro-header" style="background-image: url('https://jenihk.github.io/theme/images/my_image.png')">
+        <header class="intro-header" style="background-image: url('theme/images/posts/source-leakage/cover.png')">
         <div class="container">
             <div class="row">
                 <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
                     <div class="post-heading">
-                        <h1>Archives for JenI's Blog</h1>
+                        <h1>SVN、Git 源码泄露</h1>
+                        <span class="meta">Posted by
+                                <a href="https://jenihk.github.io/author/jeni.html">JenI</a>
+                             on 2016-11-01 00:00:00+08:00
+                        </span>
+                        
                     </div>
                 </div>
             </div>
@@ -88,27 +106,67 @@
     <div class="container">
         <div class="row">
             <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1" style="background-color: #f8f8f8;position: relative;">
-    <dl>
-            <dt>二 01 十一月 2016</dt>
-            <dd><a href="https://jenihk.github.io/source-leakage.html">SVN、Git 源码泄露</a></dd>
-            <dt>六 29 十月 2016</dt>
-            <dd><a href="https://jenihk.github.io/dirtycow.html">DirtyCow 漏洞利用</a></dd>
-            <dt>五 28 十月 2016</dt>
-            <dd><a href="https://jenihk.github.io/UrlScan.html">Python 学习之 Url爆破</a></dd>
-            <dt>二 25 十月 2016</dt>
-            <dd><a href="https://jenihk.github.io/pelican.html">Github Pages 个人博客搭建</a></dd>
-            <dt>六 22 十月 2016</dt>
-            <dd><a href="https://jenihk.github.io/iptables.html">iptables学习笔记</a></dd>
-            <dt>五 21 十月 2016</dt>
-            <dd><a href="https://jenihk.github.io/repairguide.html">grub rescue> 终端模式修复方法</a></dd>
-            <dt>二 18 十月 2016</dt>
-            <dd><a href="https://jenihk.github.io/gsmsniffer-2.html">短信嗅探平台搭建（二）</a></dd>
-            <dt>日 16 十月 2016</dt>
-            <dd><a href="https://jenihk.github.io/gsmsniffer-1.html">短信嗅探平台搭建（一）</a></dd>
-            <dt>五 14 十月 2016</dt>
-            <dd><a href="https://jenihk.github.io/arch-install.html">Archlinux+KDE安装</a></dd>
-        <hr>
-    </dl>
+    <!-- Post Content -->
+    <article style="background-color: #f8f8f8;position: relative;">
+        <p><strong><em>前言</em></strong></p>
+<p>在之前的博文中提到过Github，它是目前为止最先进的分布式版本控制系统，与它同样著名的是SVN，全名Subversion,它和Github一样是源代码管理系统和版本控制软件，只不过它并不是分布式的，而是集中式的。为了方便开发和管理，大部分的开发者或团体都会使用此类版本控制系统。正常来说，使用这类版本控制系统不会出现神马问题，但是由于一些使用者的疏忽或偷懒，造成了源码的泄露。</p>
+<p><strong><em>泄露原因</em></strong></p>
+<p>为什么说是由于疏忽或偷懒呢。我们首先来看下这类版本控制系统的一个特点，我以 Github 为例。如果你要使用 Git 的话首先要在本地使用<code>git init</code>命令创建版本库，命令执行完成后，目录下回出现一个隐藏文件夹，文件夹名为 .git ,这个目录是 Git 用来跟踪管理版本库的，里面存放了所提交的文档索引内容，Git 可以根据该文件夹内的内容对其所管理的文档进行内容跟踪，从而实现版本控制。讲到这里你可能已经想到了，如果我们能得到这个 .git 文件夹，就可以利用 .git 文件夹内的文件，还原重建工程源代码，这也就是源码会泄露的原因。但是一般来说，正常的提交部署操作并不会将这个文件夹部署到线上环境，如果线上环境存在这个文件夹，大多是因为开发人员进行了错误的配置，或者是直接复制了工程的整个文件夹到服务器。SVN也是一样的道理，SVN的本地存在一个 .svn 文件，一旦暴露在外网环境，同样可以借助里面包含的文件，还原出服务器源码、SVN服务器账号密码等信息。</p>
+<p><strong><em>利用工具</em></strong></p>
+<p>针对这些文件泄露的利用工具网上有很多，我在这里提供两个</p>
+<p>针对 SVN 的利用工具，工具来源：<a href="http://www.cnseay.com/4104/">Seay</a></p>
+<blockquote>
+<p>百度网盘： <a href="http://pan.baidu.com/s/1ge2c4CV">传送门</a> | 密码：uk8a</p>
+</blockquote>
+<p>针对 Git 的利用工具，工具来源：<a href="http://www.lijiejie.com/githack-a-git-disclosure-exploit/">李劼杰的博客</a></p>
+<blockquote>
+<p>源码地址： <a href="https://github.com/lijiejie/GitHack">传送门</a></p>
+</blockquote>
+<p><strong><em>总结</em></strong></p>
+<p>对于这种文件泄露的漏洞，最好的解决方法就是严格要求部署方式，只要管理员的操作符合规范，就不会出现源码泄露的问题。当然，也可以设置对提交的文件进行过滤，以防止误操作。</p>
+        <hr />
+        <p>作者:JenI&#160; &#160; &#160; &#160;转载请注明出处，谢谢</p>
+    </article>
+
+    <hr>
+
+        <div class="comments">
+            <h2>Comments !</h2>
+            <div id="disqus_thread"></div>
+            <script type="text/javascript">
+                var disqus_shortname = 'jenihk';
+                var disqus_identifier = 'source-leakage.html';
+                var disqus_url = 'https://jenihk.github.io/source-leakage.html';
+                (function() {
+                    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+                    dsq.src = '//jenihk.disqus.com/embed.js';
+                    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+                })();
+            </script>
+            <noscript>Please enable JavaScript to view the comments.</noscript>
+        </div>
+ <!--                   
+    <div id="disqus_thread"></div>
+    <script>
+
+/**
+*  RECOMMENDED CONFIGURATION VARIABLES: EDIT AND UNCOMMENT THE SECTION BELOW TO INSERT DYNAMIC VALUES FROM YOUR PLATFORM OR CMS.
+*  LEARN WHY DEFINING THESE VARIABLES IS IMPORTANT: https://disqus.com/admin/universalcode/#configuration-variables*/
+/*
+var disqus_config = function () {
+this.page.url = PAGE_URL;  // Replace PAGE_URL with your page's canonical URL variable
+this.page.identifier = PAGE_IDENTIFIER; // Replace PAGE_IDENTIFIER with your page's unique identifier variable
+};
+*/
+        (function() { // DON'T EDIT BELOW THIS LINE
+            var d = document, s = d.createElement('script');
+            s.src = '//jenihk.disqus.com/embed.js';
+            s.setAttribute('data-timestamp', +new Date());
+            (d.head || d.body).appendChild(s);
+        })();
+    </script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+-->
             </div>
         </div>
     </div>
