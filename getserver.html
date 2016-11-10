@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="zh">
+
+<head>
+            <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="description" content="">
+        <meta name="author" content="">
+
+        <title>JenI's Blog</title>
+
+        <link rel="icon" href="https://jenihk.github.io/theme/images/favicon.ico" type="image/x-icon">  
+        <link rel="shortcut icon" href="https://jenihk.github.io/theme/images/favicon.ico" type="image/x-icon">  
+
+
+        <link href="https://jenihk.github.io/theme/css/iconfont.css" rel="stylesheet">
+
+        <!-- Bootstrap Core CSS -->
+        <link href="https://jenihk.github.io/theme/css/bootstrap.min.css" rel="stylesheet">
+
+        <!-- Custom CSS -->
+        <link href="https://jenihk.github.io/theme/css/clean-blog.min.css" rel="stylesheet">
+
+        <!-- Code highlight color scheme -->
+            <link href="https://jenihk.github.io/theme/css/code_blocks/monokai.css" rel="stylesheet">
+
+        <!-- Custom Fonts -->
+        <link href="http://maxcdn.bootstrapcdn.com/font-awesome/4.1.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+        <link href='http://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+        <link href='http://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/css'>
+
+        <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+        <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+        <!--[if lt IE 9]>
+            <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+            <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+        <![endif]-->
+
+
+
+
+
+
+			<meta property="og:locale" content="zh">
+		<meta property="og:site_name" content="JenI's Blog">
+
+	<meta property="og:type" content="article">
+	<meta property="article:author" content="">
+	<meta property="og:url" content="https://jenihk.github.io/getserver.html">
+	<meta property="og:title" content="Python 学习之 爬虫应用">
+	<meta property="og:description" content="使用Python实现一键爬取免费ss帐号">
+	<meta property="og:image" content="https://jenihk.github.io/theme/images/posts/getserver/cover.png">
+	<meta property="article:published_time" content="2016-11-11 00:00:00+08:00">
+</head>
+
+<body style="background-color: #f8f8f8">
+
+    <!-- Navigation -->
+    <nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+        <div class="container-fluid">
+            <!-- Brand and toggle get grouped for better mobile display -->
+            <div class="navbar-header page-scroll">
+                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <a class="navbar-brand" href="https://jenihk.github.io/">JenI's Blog</a>
+            </div>
+
+            <!-- Collect the nav links, forms, and other content for toggling -->
+            <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+                <ul class="nav navbar-nav navbar-right">
+                        <li><a href="https://jenihk.github.io/category/an-quan.html">安全</a></li>
+                        <li><a href="https://jenihk.github.io/category/xi-tong.html">系统</a></li>
+                        <li><a href="https://jenihk.github.io/category/ri-chang.html">日常</a></li>
+
+                </ul>
+            </div>
+            <!-- /.navbar-collapse -->
+        </div>
+        <!-- /.container -->
+    </nav>
+
+    <!-- Page Header -->
+        <header class="intro-header" style="background-image: url('theme/images/posts/getserver/cover.png')">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                    <div class="post-heading">
+                        <h1>Python 学习之 爬虫应用</h1>
+                            <h3 class="subheading">使用Python实现一键爬取免费ss帐号</h3>
+                        <span class="meta">Posted by
+                                <a href="https://jenihk.github.io/author/jeni.html">JenI</a>
+                             on 2016-11-11 00:00:00+08:00
+                        </span>
+                        
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1" style="background-color: #f8f8f8;position: relative;">
+    <!-- Post Content -->
+    <article style="background-color: #f8f8f8;position: relative;">
+        <p><strong><em>前言</em></strong></p>
+<p>ss代理相信大家都不陌生了，不管是爬墙出去查资料，还是挂代理隐匿自己的真实ip，ss都成了首选方式。但是作为一个穷鬼，实在不舍得花几十块钱买一个稳定的ss代理服务器(现在只是偶尔查个资料用，感觉买一个并不是十分必要)，所以一直使用网上提供的免费的ss账号，免费账号地址请戳 <a href="http://www.ishadowsocks.org/">这里</a> 。但是免费的账号也存在一些问题，一个是网络不太稳定，还有一个就是每六个小时换一次密码，需要手动去修改配置文件，重新开启代理服务。虽然每六个小时才需要改一次，但作为一个懒人，还是觉得太麻烦，于是写了个简单的爬虫，将抓到的账号密码直接更新到配置文件，并开启代理服务。</p>
+<p>当然，如果你需要一个稳定的、可长期使用的ss，还是推荐拿钞票去换个账号。</p>
+<p><strong><em>环境</em></strong></p>
+<ul>
+<li>linux系统</li>
+<li>命令行版的shadowsocks</li>
+</ul>
+<p><strong><em>正常方式挂代理</em></strong></p>
+<p>首先要安装 shadowsocks ,archlinux下执行
+<pre>
+sudo pacman -S shadowsocks
+</pre></p>
+<p>debain系执行
+<pre>
+sudo apt-get install shadowsocks
+</pre></p>
+<p>然后</p>
+<ol>
+<li>访问前言给出的免费的ss账号网站，记录下想要使用的ss代理账号和密码</li>
+<li>修改 /etc/shadowsocks/config.json文件，将记录下的免费ss账号、端口、密码填入，格式如下<br />
+<pre>
+{
+    "server":"my_server_ip",
+    "server_port":10000,
+    "local_address": "127.0.0.1",
+    "local_port":1080,
+    "password":"mypassword",
+    "timeout":300,
+    "method":"aes-256-cfb",
+    "fast_open": false,
+    "workers": 1,
+    "prefer_ipv6": false
+}
+</pre></li>
+<li>执行<br />
+archlinux:<br />
+<pre>
+sslocal -c /etc/shadowsocks/config.json
+</pre><br />
+debain:<br />
+<pre>
+service shadowsocks restart
+</pre></li>
+</ol>
+<p>浏览器代理改为 socks5 ,127.0.0.1,1080 便可以访问被墙掉的网站。</p>
+<p><strong><em>爬虫编写过程</em></strong></p>
+<p>上面给出的正常情况下开启 sock5 代理的方法比较繁琐，我们写个简单的爬虫自动化这个过程。</p>
+<p>首先，我们要抓取整个页面的内容，导入 urllib2 库，使用 urlopen() 函数打开网页。
+<pre>
+from urllib2 import urlopen</p>
+<p>res = urllib2.urlopen('http://www.ishadowsocks.org')
+print res.read()
+</pre></p>
+<p>此时我们可以看到该网页的整页 html 源码，我们需要从获取到的源码内提取出关键的部分，也就是免费的账号密码部分，该部分源码如下：
+<pre>
+&lt;!-- Free Shadowsocks Section --&gt;
+&lt;section id="free"&gt;
+    &lt;div class="container"&gt;
+        &lt;div class="row"&gt;
+            &lt;div class="col-lg-12 text-center"&gt;
+                &lt;h3&gt;实验帐号&lt;/h3&gt;
+                &lt;hr class="star-primary"&gt;
+            &lt;/div&gt;
+        &lt;/div&gt;
+        &lt;div class="row"&gt;
+            &lt;div class="col-sm-4 text-center"&gt;
+                &lt;h4&gt;A服务器地址:a.iss.tf&lt;/h4&gt;
+                &lt;h4&gt;端口:1024&lt;/h4&gt;
+                &lt;h4&gt;A密码:00543226&lt;/h4&gt;
+                &lt;h4&gt;加密方式:aes-256-cfb&lt;/h4&gt;
+                &lt;h4&gt;状态:&lt;font color="green"&gt;正常&lt;/font&gt;&lt;/h4&gt;
+                &lt;h4&gt;&lt;font color="red"&gt;注意：每6小时更换一次密码&lt;/font&gt;&lt;/h4&gt;
+            &lt;/div&gt;
+            &lt;div class="col-sm-4 text-center"&gt;
+                &lt;h4&gt;B服务器地址:b.iss.tf&lt;/h4&gt;
+                &lt;h4&gt;端口:20000&lt;/h4&gt;
+                &lt;h4&gt;B密码:32459517&lt;/h4&gt;
+                &lt;h4&gt;加密方式:aes-256-cfb&lt;/h4&gt;
+                &lt;h4&gt;状态:&lt;font color="green"&gt;正常&lt;/font&gt;&lt;/h4&gt;
+                &lt;h4&gt;&lt;font color="red"&gt;注意：每6小时更换一次密码&lt;/font&gt;&lt;/h4&gt;
+            &lt;/div&gt;
+            &lt;div class="col-sm-4 text-center"&gt;
+                &lt;h4&gt;C服务器地址:c.iss.tf&lt;/h4&gt;
+                &lt;h4&gt;端口:10008&lt;/h4&gt;
+                &lt;h4&gt;C密码:&lt;/h4&gt;
+                &lt;h4&gt;加密方式:aes-256-cfb&lt;/h4&gt;
+                &lt;h4&gt;状态:&lt;font color="green"&gt;正常&lt;/font&gt;&lt;/h4&gt;
+                &lt;h4&gt;&lt;font color="red"&gt;注意：每6小时更换一次密码&lt;/font&gt;&lt;/h4&gt;
+            &lt;/div&gt;
+        &lt;/div&gt;
+    &lt;div class="row"&gt;
+        &lt;div class="col-sm-12 text-center"&gt;
+        &lt;/br&gt;
+        &lt;p&gt;&lt;a href="http://www.shadowsocks8.net/" class="btn btn btn-info"  target="_blank"&gt;
+        &lt;i class="fa fa-paper-plane-o"&gt;&lt;/i&gt; 更多帐号&lt;/a&gt;&lt;/p&gt;
+        &lt;/div&gt;
+    &lt;/div&gt;
+&lt;/section&gt;
+</pre></p>
+<p>高端的做法是使用正则表达式逐步匹配到该部分的关键内容，但是，懒惰的我们有更方便的选择，也就是使用 bs4 ，全称 Beautiful Soup ，它是 python 的一个库，它提供了简单的函数用来处理导航、搜索、修改分析树等功能，通过解析文档为用户提供需要抓取的数据，因为简单，所以不需要多少代码就可以写出一个完整的程序。首先安装bs4
+<pre>
+sudo pip install BeautifulSoup4
+</pre></p>
+<p>在代码中导入bs4并使用它解析网页源码
+<pre>
+from bs4 import BeautifulSoup</p>
+<p>soup = BeautifulSoup(urlopen('http://www.ishadowsocks.org').read(),'html5lib')
+</pre></p>
+<p>其中 html5lib 是我之前安装的第三方的解析器，这里使用 python 标准库中的 html.parser 是一样的，只是 html5lib 的容错性好一点，尽管它比较慢。（使用 html5lib 需使用 pip 进行安装）</p>
+<p>使用 find_all(class_='col-sm-4 text-center') 方式筛选出所有使用了该样式的块内的源码，由于首页上免费的账号有三个，所以使用 [:3] 切片的方式截取前三条数据（find_all 方法取出的内容为列表）。
+<pre>
+soup.find_all(class_='col-sm-4 text-center')[:3]
+</pre></p>
+<p>上面的代码截取出的内容应该如下所示：
+<pre>
+&lt;div class="col-sm-4 text-center"&gt;
+    &lt;h4&gt;A服务器地址:a.iss.tf&lt;/h4&gt;
+    &lt;h4&gt;端口:1024&lt;/h4&gt;
+    &lt;h4&gt;A密码:00543226&lt;/h4&gt;
+    &lt;h4&gt;加密方式:aes-256-cfb&lt;/h4&gt;
+    &lt;h4&gt;状态:&lt;font color="green"&gt;正常&lt;/font&gt;&lt;/h4&gt;
+    &lt;h4&gt;&lt;font color="red"&gt;注意：每6小时更换一次密码&lt;/font&gt;&lt;/h4&gt;
+&lt;/div&gt;
+&lt;div class="col-sm-4 text-center"&gt;
+    &lt;h4&gt;B服务器地址:b.iss.tf&lt;/h4&gt;
+    &lt;h4&gt;端口:20000&lt;/h4&gt;
+    &lt;h4&gt;B密码:32459517&lt;/h4&gt;
+    &lt;h4&gt;加密方式:aes-256-cfb&lt;/h4&gt;
+    &lt;h4&gt;状态:&lt;font color="green"&gt;正常&lt;/font&gt;&lt;/h4&gt;
+    &lt;h4&gt;&lt;font color="red"&gt;注意：每6小时更换一次密码&lt;/font&gt;&lt;/h4&gt;
+&lt;/div&gt;
+&lt;div class="col-sm-4 text-center"&gt;
+    &lt;h4&gt;C服务器地址:c.iss.tf&lt;/h4&gt;
+    &lt;h4&gt;端口:10008&lt;/h4&gt;
+    &lt;h4&gt;C密码:&lt;/h4&gt;
+    &lt;h4&gt;加密方式:aes-256-cfb&lt;/h4&gt;
+    &lt;h4&gt;状态:&lt;font color="green"&gt;正常&lt;/font&gt;&lt;/h4&gt;
+    &lt;h4&gt;&lt;font color="red"&gt;注意：每6小时更换一次密码&lt;/font&gt;&lt;/h4&gt;
+&lt;/div&gt;
+</pre></p>
+<p>两侧的 html 标签如何处理？没关系，我们循环输出列表出的每一条数据，使用 stripped_strings 方法进行处理（去掉多余的换行和提取 html 标签内的内容），再将提取出的内容逐条添加到一个新的空列表
+<pre>
+message = []
+for i in soup.find_all(class_='col-sm-4 text-center')[:3]:
+    for j in i.stripped_strings:
+        message.append(j)
+</pre>
+此时 message 列表的内容如下：
+<pre>
+A服务器地址:a.iss.tf
+端口:1024
+A密码:08615258
+加密方式:aes-256-cfb
+状态:
+正常
+注意：每6小时更换一次密码
+B服务器地址:b.iss.tf
+端口:20000
+B密码:56875323
+加密方式:aes-256-cfb
+状态:
+正常
+注意：每6小时更换一次密码
+C服务器地址:c.iss.tf
+端口:10008
+C密码:72834677
+加密方式:aes-256-cfb
+状态:
+正常
+注意：每6小时更换一次密码
+</pre></p>
+<p>由于 config.json 文件中加密方式等都是固定的，所以每次只需要更新服务器地址、端口号、密码就可以了（如果服务器不变的话其实只需要更新密码）。先定义一个字典(windows 根据自己的配置文件可能字典内容略有不同)
+<pre>
+iis = {
+    "server":"my_server_ip",
+    "server_port":10000,
+    "local_address": "127.0.0.1",
+    "local_port":1080,
+    "password":"mypassword",
+    "timeout":300,
+    "method":"aes-256-cfb",
+    "fast_open": false,
+    "workers": 1,
+    "prefer_ipv6": false
+}
+</pre></p>
+<p>如果想获取第一台服务器配置文件
+<pre>
+iss.update({"server":message[0].split(":")[1].encode('ascii'),"server_port":int(message[1].split(":")[1]),"password":str(message[2].split(":")[1])})
+</pre></p>
+<p>如果想获取第二台服务器配置文件
+<pre>
+iss.update({"server":message[7].split(":")[1].encode('ascii'),"server_port":int(message[8].split(":")[1]),"password":str(message[9].split(":")[1])})
+</pre></p>
+<p>如果想获取第三台服务器配置文件
+<pre>
+iss.update({"server":message[14].split(":")[1].encode('ascii'),"server_port":int(message[15].split(":")[1]),"password":str(message[16].split(":")[1])})
+</pre></p>
+<p>引入 json 模块，将更新过的字典 iss 导出到配置文件
+<pre>
+import json</p>
+<p>json.dump(iss,open("config.json","w"))
+</pre></p>
+<p>最后将所有代码整合到一起，并引入 sys 模块，通过该模块处理脚本执行时传入的服务器号码（第几台服务器）,以及 os 模块，用来执行系统命令。最终代码为
+<pre>
+#coding=utf-8  </p>
+<p>from urllib2 import urlopen
+from bs4 import BeautifulSoup
+from os import system
+import json
+import sys</p>
+<p>def main(number):
+    iss = {
+        "server":"",
+        "server_port":None,
+        "local_address":"127.0.0.1",
+        "local_port":1080,
+        "password":None,
+        "timeout":300,
+        "method":"aes-256-cfb",
+        "fast_open":False,
+        "workers":1
+        }
+    try:
+        soup = BeautifulSoup(urlopen('http://www.ishadowsocks.org').read(),'html5lib')
+        message = []
+        for i in soup.find_all(class_='col-sm-4 text-center')[:3]:
+            for j in i.stripped_strings:
+                message.append(j)
+        if number == 1:
+            iss.update({"server":message[0].split(":")[1].encode('ascii'),"server_port":int(message[1].split(":")[1]),"password":str(message[2].split(":")[1])})
+        elif number == 2:
+            iss.update({"server":message[7].split(":")[1].encode('ascii'),"server_port":int(message[8].split(":")[1]),"password":str(message[9].split(":")[1])})
+        elif number == 3:
+            iss.update({"server":message[14].split(":")[1].encode('ascii'),"server_port":int(message[15].split(":")[1]),"password":str(message[16].split(":")[1])})
+        else:
+            iss.update({"server":message[0].split(":")[1].encode('ascii'),"server_port":int(message[1].split(":")[1]),"password":str(message[2].split(":")[1])})
+    except Exception,e:
+        print "[-]ERROR ：" + str(e)
+    json.dump(iss,open("config.json","w")) # windows 用户导出到 shadowsocks 代理软件所在目录，并改名为 gui-config.json
+    system('sslocal -c config.json') # debain 用户使用 system('service shadowsocks restart') 开启服务。windows用户删掉这行</p>
+<p>if __name__ == '__main__':
+    if len(sys.argv) != 2:
+        main(1)
+    else:
+        main(int(sys.argv[1]))
+</pre></p>
+<p><strong><em>使用方法</em></strong></p>
+<p>执行下列命令获取第一台服务器配置并自动开启 socks5 代理
+<pre>
+python getserver.py # 或者在末尾加数字 1
+</pre></p>
+<p>执行下列命令获取第二台服务器配置并自动开启 socks5 代理
+<pre>
+python getserver.py 2
+</pre></p>
+<p>执行下列命令获取第三台服务器配置并自动开启 socks5 代理
+<pre>
+python getserver.py 3
+</pre></p>
+<p><strong>当输入数字大于3时默认取第一台服务器</strong></p>
+        <hr />
+        <p>作者:JenI&#160; &#160; &#160; &#160;转载请注明出处，谢谢</p>
+    </article>
+
+    <hr>
+
+        <div class="comments">
+            <h2>Comments !</h2>
+            <div id="disqus_thread"></div>
+            <script type="text/javascript">
+                var disqus_shortname = 'jenihk';
+                var disqus_identifier = 'getserver.html';
+                var disqus_url = 'https://jenihk.github.io/getserver.html';
+                (function() {
+                    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+                    dsq.src = '//jenihk.disqus.com/embed.js';
+                    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+                })();
+            </script>
+            <noscript>Please enable JavaScript to view the comments.</noscript>
+        </div>
+ <!--                   
+    <div id="disqus_thread"></div>
+    <script>
+
+/**
+*  RECOMMENDED CONFIGURATION VARIABLES: EDIT AND UNCOMMENT THE SECTION BELOW TO INSERT DYNAMIC VALUES FROM YOUR PLATFORM OR CMS.
+*  LEARN WHY DEFINING THESE VARIABLES IS IMPORTANT: https://disqus.com/admin/universalcode/#configuration-variables*/
+/*
+var disqus_config = function () {
+this.page.url = PAGE_URL;  // Replace PAGE_URL with your page's canonical URL variable
+this.page.identifier = PAGE_IDENTIFIER; // Replace PAGE_IDENTIFIER with your page's unique identifier variable
+};
+*/
+        (function() { // DON'T EDIT BELOW THIS LINE
+            var d = document, s = d.createElement('script');
+            s.src = '//jenihk.disqus.com/embed.js';
+            s.setAttribute('data-timestamp', +new Date());
+            (d.head || d.body).appendChild(s);
+        })();
+    </script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+-->
+            </div>
+        </div>
+    </div>
+
+    <hr>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                    <ul class="list-inline text-center">
+                        <li>
+                            <a href="http://weibo.com/1992014191/profile?rightmod=1&wvr=6&mod=personinfo&is_all=1">
+                                <span class="fa-stack fa-lg">
+                                    <i class="icon iconfont">&#xe657;</i>
+                                </span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="http://github.com/jenihk">
+                                <span class="fa-stack fa-lg">
+                                    <i class="icon iconfont">&#xe618;</i>
+                                </span>
+                            </a>
+                        </li>
+                    </ul>
+                    <p class="copyright text-muted">Blog powered by <a href="http://getpelican.com">Pelican</a>,
+                which takes great advantage of <a href="http://python.org">Python</a>.</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- jQuery -->
+    <script src="https://jenihk.github.io/theme/js/jquery.js"></script>
+
+    <!-- Bootstrap Core JavaScript -->
+    <script src="https://jenihk.github.io/theme/js/bootstrap.min.js"></script>
+
+    <!-- Custom Theme JavaScript -->
+    <script src="https://jenihk.github.io/theme/js/clean-blog.min.js"></script>
+    
+    <!-- CanvasParticles -->
+    <script src="https://jenihk.github.io/theme/js/canvas-particle.js"></script>
+
+    
+
+    <script type="text/javascript">
+        CanvasParticle();
+    </script>
+
+    <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-85780345-1']);
+    _gaq.push(['_trackPageview']);
+    (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+    </script>
+<script type="text/javascript">
+    var disqus_shortname = 'jenihk';
+    (function () {
+        var s = document.createElement('script'); s.async = true;
+        s.type = 'text/javascript';
+        s.src = '//' + disqus_shortname + '.disqus.com/count.js';
+        (document.getElementsByTagName('HEAD')[0] || document.getElementsByTagName('BODY')[0]).appendChild(s);
+    }());
+</script>
+</body>
+
+</html>
