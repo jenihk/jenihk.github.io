@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="zh">
+
+<head>
+            <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="description" content="">
+        <meta name="author" content="">
+
+        <title>JenI's Blog</title>
+
+        <link rel="icon" href="https://jenihk.github.io/theme/images/favicon.ico" type="image/x-icon">  
+        <link rel="shortcut icon" href="https://jenihk.github.io/theme/images/favicon.ico" type="image/x-icon">  
+
+
+        <link href="https://jenihk.github.io/theme/css/iconfont.css" rel="stylesheet">
+
+        <!-- Bootstrap Core CSS -->
+        <link href="https://jenihk.github.io/theme/css/bootstrap.min.css" rel="stylesheet">
+
+        <!-- Custom CSS -->
+        <link href="https://jenihk.github.io/theme/css/clean-blog.min.css" rel="stylesheet">
+
+        <!-- Code highlight color scheme -->
+            <link href="https://jenihk.github.io/theme/css/code_blocks/monokai.css" rel="stylesheet">
+
+        <!-- Custom Fonts -->
+        <link href="http://maxcdn.bootstrapcdn.com/font-awesome/4.1.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+        <link href='http://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+        <link href='http://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/css'>
+
+        <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+        <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+        <!--[if lt IE 9]>
+            <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+            <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+        <![endif]-->
+
+
+
+
+
+
+			<meta property="og:locale" content="zh">
+		<meta property="og:site_name" content="JenI's Blog">
+
+	<meta property="og:type" content="article">
+	<meta property="article:author" content="">
+	<meta property="og:url" content="https://jenihk.github.io/tools-sign.html">
+	<meta property="og:title" content="T00ls 微信公众号自动签到脚本">
+	<meta property="og:description" content="">
+	<meta property="og:image" content="https://jenihk.github.io/">
+	<meta property="article:published_time" content="2016-12-05 00:00:00+08:00">
+</head>
+
+<body style="background-color: #f8f8f8">
+
+    <!-- Navigation -->
+    <nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+        <div class="container-fluid">
+            <!-- Brand and toggle get grouped for better mobile display -->
+            <div class="navbar-header page-scroll">
+                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <a class="navbar-brand" href="https://jenihk.github.io/">JenI's Blog</a>
+            </div>
+
+            <!-- Collect the nav links, forms, and other content for toggling -->
+            <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+                <ul class="nav navbar-nav navbar-right">
+                        <li><a href="https://jenihk.github.io/category/an-quan.html">安全</a></li>
+                        <li><a href="https://jenihk.github.io/category/xi-tong.html">系统</a></li>
+                        <li><a href="https://jenihk.github.io/category/ri-chang.html">日常</a></li>
+
+                </ul>
+            </div>
+            <!-- /.navbar-collapse -->
+        </div>
+        <!-- /.container -->
+    </nav>
+
+    <!-- Page Header -->
+        <header class="intro-header" style="background-image: url('https://jenihk.github.io/theme/images/post-bg.jpg')">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                    <div class="post-heading">
+                        <h1>T00ls 微信公众号自动签到脚本</h1>
+                        <span class="meta">Posted by
+                                <a href="https://jenihk.github.io/author/jeni.html">JenI</a>
+                             on 2016-12-05 00:00:00+08:00
+                        </span>
+                        
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1" style="background-color: #f8f8f8;position: relative;">
+    <!-- Post Content -->
+    <article style="background-color: #f8f8f8;position: relative;">
+        <p><strong><em>前言</em></strong></p>
+<p>T00ls是当前国内为数不多的民间网络信息安全研究团队之一。作为专业的安全技术交流平台，无数安全爱好者在T00ls网上发表技术文章，这对信息安全的发展起着至关重要的作用，同时对于我们刚刚接触安全行业的人来说，更是学习安全知识，提升自我能力的宝地。然而T00ls的注册并不像其他论坛那样容易。官网提供的注册方法是提交自己的安全作品，作品只接受各大知名厂商（互联网公司、安全公司、大型企业网站）安全漏洞（含注入、跨站、代码执行等等）或者自己独立原创的安全文章、攻防思路，而且每天只限10个申请名额。这对于我们菜鸟来说存在一定难度，一是写出的文章未必满足 T00ls 的要求，二是未必能抢到每天的申请名额。所以 T00ls 网为了照顾新手，特意开通了微信公众号签到功能，规定连续签到90天的用户可以获得 T00ls 邀请码，但是，连续签到也不是个容易事，说不定哪天给忘了，那之前的努力就白费了，所以我写了个简单的脚本，放到服务器上后台运行，实现每天自动签到并抽奖。</p>
+<p><strong><em>脚本</em></strong></p>
+<p>使用这个脚本需要在服务器上先安装几个相关的库或依赖，首先使用 xshell 或者 putty 等软件远程 ssh 连接服务器（centos），然后执行
+<pre>
+yum install gcc python-devel zlib-devel libjpeg-turbo-devel.x86_64
+#pip的默认源速度慢得让人想死，这里推荐使用清华大学的pypi源
+pip install -i https://pypi.tuna.tsinghua.edu.cn/simple upgrade pip
+pip install -i https://pypi.tuna.tsinghua.edu.cn/simple itchat
+pip install -i https://pypi.tuna.tsinghua.edu.cn/simple pillow
+</pre></p>
+<p>环境部署完成后，创建一个 .py 脚本文件，名字随意，如：sign.py ，脚本内容如下：
+<pre>
+# -*- coding=utf-8 -*-</p>
+<p>"""
+@author: JenI<br />
+@time: 2016-12-05 
+"""</p>
+<p>import time
+import itchat
+import threading</p>
+<p># define the sign function , sign in daily 00:00 - 00:01
+def sign():
+    today = int(time.strftime('%y%m%d', time.localtime(time.time())))
+    while True:
+        if today == int(time.strftime('%y%m%d', time.localtime(time.time()))):
+            time.sleep(60)
+        else:
+            try:
+                itchat.send(msg='3',toUserName='T00lsNet')
+                time.sleep(3)
+                itchat.send(msg='4',toUserName='T00lsNet')
+                today = int(time.strftime('%y%m%d', time.localtime(time.time())))
+            except Exception,e:
+                print('Error : '+ str(e))</p>
+<p># login the wechat by scan QR code
+itchat.auto_login(enableCmdQR=True)
+t = threading.Thread(target=sign)
+t.setDaemon(True)
+t.start()
+itchat.run()
+</pre></p>
+<p>但是如果直接执行上边的脚本，等我们断掉和服务器的远程连接时，脚本也就被停了，而我们的目的是脚本持续在后台运行，达到每天签到的目的，所以需要把该脚本转到后台执行。</p>
+<p>让进程在后台运行的方法有很多，nohup、setsid、disown、screen等，这里使用一个 shell 的小技巧，在命令结尾加一个 &amp; 符就可以了。创建一个 start.sh 文件，内容如下：
+<pre>
+python sign.py &amp;
+</pre></p>
+<p>赋予 start.sh 文件执行权限并执行脚本
+<pre>
+chmod +x start.sh
+./start.sh
+</pre></p>
+<p>由于我的服务器没有安装图形界面，所以我将登陆所需要的二维码以命令行方式显示，手机扫码登陆后直接关掉 xshell 或 putty 等连接软件即可。</p>
+<p><strong><em>注意</em></strong></p>
+<ul>
+<li>请确保登陆的微信的公众号中存在 T00ls ，微信ID为 T00lsNet</li>
+<li>itchat 为一个开源的微信个人号API，使用它登录后手机会显示已在网页版登陆。也就是说使用这个脚本后相当于一直持续登陆网页版微信，这就会带来一个问题，当再使用客户端或网页版微信时会顶掉脚本的登陆状态，脚本就会被停掉。为了避免这种事情发生。我建议使用另一个一般不在电脑登陆的微信号（新注册一个或使用家人朋友的）</li>
+</ul>
+<p><strong><em>其他</em></strong></p>
+<p>关于 itchat ，可能仅仅几行代码，就可以完成一个能够处理所有信息的微信机器人，当然，它还有更多有趣的用法。如果你想了解更多，请查看它最新的帮助文档</p>
+<p><a href="http://itchat.readthedocs.io/zh/latest/">itchat 使用手册</a></p>
+        <hr />
+        <p>作者:JenI&#160; &#160; &#160; &#160;转载请注明出处，谢谢</p>
+    </article>
+
+    <hr>
+
+        <div class="comments">
+            <h2>Comments !</h2>
+            <div id="disqus_thread"></div>
+            <script type="text/javascript">
+                var disqus_shortname = 'jenihk';
+                var disqus_identifier = 'tools-sign.html';
+                var disqus_url = 'https://jenihk.github.io/tools-sign.html';
+                (function() {
+                    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+                    dsq.src = '//jenihk.disqus.com/embed.js';
+                    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+                })();
+            </script>
+            <noscript>Please enable JavaScript to view the comments.</noscript>
+        </div>
+ <!--                   
+    <div id="disqus_thread"></div>
+    <script>
+
+/**
+*  RECOMMENDED CONFIGURATION VARIABLES: EDIT AND UNCOMMENT THE SECTION BELOW TO INSERT DYNAMIC VALUES FROM YOUR PLATFORM OR CMS.
+*  LEARN WHY DEFINING THESE VARIABLES IS IMPORTANT: https://disqus.com/admin/universalcode/#configuration-variables*/
+/*
+var disqus_config = function () {
+this.page.url = PAGE_URL;  // Replace PAGE_URL with your page's canonical URL variable
+this.page.identifier = PAGE_IDENTIFIER; // Replace PAGE_IDENTIFIER with your page's unique identifier variable
+};
+*/
+        (function() { // DON'T EDIT BELOW THIS LINE
+            var d = document, s = d.createElement('script');
+            s.src = '//jenihk.disqus.com/embed.js';
+            s.setAttribute('data-timestamp', +new Date());
+            (d.head || d.body).appendChild(s);
+        })();
+    </script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+-->
+            </div>
+        </div>
+    </div>
+
+    <hr>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                    <ul class="list-inline text-center">
+                        <li>
+                            <a href="http://weibo.com/1992014191/profile?rightmod=1&wvr=6&mod=personinfo&is_all=1">
+                                <span class="fa-stack fa-lg">
+                                    <i class="icon iconfont">&#xe657;</i>
+                                </span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="http://github.com/jenihk">
+                                <span class="fa-stack fa-lg">
+                                    <i class="icon iconfont">&#xe618;</i>
+                                </span>
+                            </a>
+                        </li>
+                    </ul>
+                    <p class="copyright text-muted">Blog powered by <a href="http://getpelican.com">Pelican</a>,
+                which takes great advantage of <a href="http://python.org">Python</a>.</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- jQuery -->
+    <script src="https://jenihk.github.io/theme/js/jquery.js"></script>
+
+    <!-- Bootstrap Core JavaScript -->
+    <script src="https://jenihk.github.io/theme/js/bootstrap.min.js"></script>
+
+    <!-- Custom Theme JavaScript -->
+    <script src="https://jenihk.github.io/theme/js/clean-blog.min.js"></script>
+    
+    <!-- CanvasParticles -->
+    <script src="https://jenihk.github.io/theme/js/canvas-particle.js"></script>
+
+    
+
+    <script type="text/javascript">
+        CanvasParticle();
+    </script>
+
+    <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-85780345-1']);
+    _gaq.push(['_trackPageview']);
+    (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+    </script>
+<script type="text/javascript">
+    var disqus_shortname = 'jenihk';
+    (function () {
+        var s = document.createElement('script'); s.async = true;
+        s.type = 'text/javascript';
+        s.src = '//' + disqus_shortname + '.disqus.com/count.js';
+        (document.getElementsByTagName('HEAD')[0] || document.getElementsByTagName('BODY')[0]).appendChild(s);
+    }());
+</script>
+</body>
+
+</html>
