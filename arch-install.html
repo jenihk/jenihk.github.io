@@ -177,7 +177,7 @@
 mkfs.ext4 /dev/sda2<br />
 mkfs.ext4 /dev/sda3<br />
 mkswap /dev/sda4<br />
-swqpon /dev/sda4<br />
+swapon /dev/sda4<br />
 mount /dev/sda2 /mnt<br />
 cd /mnt<br />
 mkdir boot home<br />
@@ -309,7 +309,7 @@ reboot  </p>
 <p>pacman -S zsh grml-zsh-config<br />
 useradd -m -g users -G wheel -s /bin/zsh zhangsan（假设创建一个名为zhangsan的普通用户）<br />
 passwd zhangsan（为zhangsan用户设置密码）<br />
-ln -sf /etc/shel/.zshrc /home/zhangsan/.zshrc<br />
+ln -sf /etc/skel/.zshrc /home/zhangsan/.zshrc<br />
 nano /etc/sudoers</p>
 </blockquote>
 <p>找到root ALL=(ALL) ALL下面加一行，如下，注意格式一定不要错

@@ -218,7 +218,7 @@ python2 urlscan.py -H https://www.baidu.com -d php.txt
 <p>我们随便打开一个上面提示存在的页面，看看有什么效果。结果是当我们访问一个不存在的页面时，网页被重定向到了其他页面，由于 urllib2 会自动处理 301、302 等状态码，所以我们的脚本得到的状态码始终是重定向之后的 200。</p>
 <p>找到原因了，那就改写脚本,我们不使用 urlopen 方式打开网页，而是使用我们自己创建的 opener 打开。首先定义 HTTPRedirectHandler 类：
 <pre>
-lass RedirctHandler(urllib2.HTTPRedirectHandler):
+class RedirctHandler(urllib2.HTTPRedirectHandler):
   def http_error_301(self, req, fp, code, msg, headers):
     pass
   def http_error_302(self, req, fp, code, msg, headers):
