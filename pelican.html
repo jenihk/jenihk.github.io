@@ -116,13 +116,13 @@
 <p><strong><em>正文</em></strong></p>
 <p>博客的搭建方式有很多种，其中最方便的就是使用像 wordpress 这种博客平台，源码上传服务器，创建数据库，稍作设置，浏览器访问，改主题，装插件，博客就搭好了，但是说起来容易，真正搭建时也会遇到各种各样的问题。不过不要紧，因为 wordpress 的用户很多，基本上遇到问题网上都能找到解决办法。</p>
 <p>所以还是老规矩，哪里不会点哪里，既然 wordpress 搭建博客比较简单，那我们就采用另一种相对较复杂的方式搭建，也就是使用 Pelican + Github Pages 方式搭建,首先解释名词。</p>
-<p>Github Pages<br />
+<p>Github Pages<br>
 你可能没听过 Github Pages,但你一定或多或少的听说过 Github,Github 是一个面向开源及私有软件项目的托管平台，它就像是程序员的 Facebook,你可以把自己写的程序、脚本开源，然后放到 Github 上，其他人可以自由使用，也可以参与你的开源项目。Github Pages 可以理解成是用户编写的，托管在 Github 上的静态网页。</p>
-<p>Pelican<br />
+<p>Pelican<br>
 Pelican是一个用Python语言编写的静态网页生成器，支持使用restructuredText和Markdown写文章，配置灵活，扩展性强，有许多优秀的主题和插件可供使用。类似的静态网页生成器还有很多，比如基于 Ruby 的 jekyll,基于 node-js 的 hexo 等，它们各有各的优点，如果熟悉 ruby 和 node-js 的朋友也可以选择这两个生成器。</p>
 <p><strong><em>创建 Github Pages</em></strong></p>
-<p>先去github注册一个账号，<a href="https://github.com/">注册Github</a>,登录后点击右上角的 “+” ，创建一个新的仓库(New repository)，仓库名为 username.github.io ,其中 username 为自己的 Github 用户名，仓库名就是之后你博客的地址．<br />
-Github Pages 的官网有相关介绍　<a href="https://pages.github.com/">Github Pages</a><br />
+<p>先去github注册一个账号，<a href="https://github.com/">注册Github</a>,登录后点击右上角的 “+” ，创建一个新的仓库(New repository)，仓库名为 username.github.io ,其中 username 为自己的 Github 用户名，仓库名就是之后你博客的地址．<br>
+Github Pages 的官网有相关介绍　<a href="https://pages.github.com/">Github Pages</a><br>
 创建成功后使用浏览器访问 https://username.github.io 就可以访问到你的 Github Pages 首页了，但是因为仓库还是空的，你应该看到的是404页面。接下来转回本地</p>
 <p><strong><em>搭建Pelican环境</em></strong></p>
 <p>安装 git 和 virtualenv。pip 在安装 python 时应该已经被安装了
@@ -195,7 +195,7 @@ THEME = 'clean-blog'
 <p>不同的主题会有稍微不同的设置方法，主题中独有的特性会在主题文件夹内的 README.md 内标出，但大部分配置方式都遵循 <a href="http://pelican-docs-zh-cn.readthedocs.io/en/latest/">pelican的官方文档</a> （这份文档是 pelican 3.3.0 版本的中文翻译版），使用 pelican 过程中遇到的问题可以到这里查阅文档，一般都可以解决</p>
 <p>书写自己的第一篇文章，在 myblog/content 文件夹内创建一个 hello.md 文件，里面写入下列内容：
 <pre>
-Title: Hello World !   <br />
+Title: Hello World !   <br>
 Date: 2016-10-25 10:20
 Category: test
 Tags: test

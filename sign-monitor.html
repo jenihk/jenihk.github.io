@@ -47,11 +47,11 @@
 
 	<meta property="og:type" content="article">
 	<meta property="article:author" content="">
-	<meta property="og:url" content="https://jenihk.github.io/tools-sign.html">
-	<meta property="og:title" content="T00ls 微信公众号自动签到脚本">
+	<meta property="og:url" content="https://jenihk.github.io/sign-monitor.html">
+	<meta property="og:title" content="T00ls 签到程序监控脚本">
 	<meta property="og:description" content="">
 	<meta property="og:image" content="https://jenihk.github.io/">
-	<meta property="article:published_time" content="2016-12-05 00:00:00+08:00">
+	<meta property="article:published_time" content="2017-02-08 00:00:00+08:00">
 </head>
 
 <body style="background-color: #f8f8f8">
@@ -90,10 +90,10 @@
             <div class="row">
                 <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
                     <div class="post-heading">
-                        <h1>T00ls 微信公众号自动签到脚本</h1>
+                        <h1>T00ls 签到程序监控脚本</h1>
                         <span class="meta">Posted by
                                 <a href="https://jenihk.github.io/author/jeni.html">JenI</a>
-                             on 2016-12-05 00:00:00+08:00
+                             on 2017-02-08 00:00:00+08:00
                         </span>
                         
                     </div>
@@ -109,66 +109,100 @@
     <!-- Post Content -->
     <article style="background-color: #f8f8f8;position: relative;">
         <p><strong><em>前言</em></strong></p>
-<p>T00ls是当前国内为数不多的民间网络信息安全研究团队之一。作为专业的安全技术交流平台，无数安全爱好者在T00ls网上发表技术文章，这对信息安全的发展起着至关重要的作用，同时对于我们刚刚接触安全行业的人来说，更是学习安全知识，提升自我能力的宝地。然而T00ls的注册并不像其他论坛那样容易。官网提供的注册方法是提交自己的安全作品，作品只接受各大知名厂商（互联网公司、安全公司、大型企业网站）安全漏洞（含注入、跨站、代码执行等等）或者自己独立原创的安全文章、攻防思路，而且每天只限10个申请名额。这对于我们菜鸟来说存在一定难度，一是写出的文章未必满足 T00ls 的要求，二是未必能抢到每天的申请名额。所以 T00ls 网为了照顾新手，特意开通了微信公众号签到功能，规定连续签到90天的用户可以获得 T00ls 邀请码，但是，连续签到也不是个容易事，说不定哪天给忘了，那之前的努力就白费了，所以我写了个简单的脚本，放到服务器上后台运行，实现每天自动签到并抽奖。</p>
-<p><strong><em>脚本</em></strong></p>
-<p>使用这个脚本需要在服务器上先安装几个相关的库或依赖，首先使用 xshell 或者 putty 等软件远程 ssh 连接服务器（centos），然后执行
-<pre>
-yum install gcc python-devel zlib-devel libjpeg-turbo-devel.x86_64
-#pip的默认源速度慢得让人想死，这里推荐使用清华大学的pypi源
-pip install -i https://pypi.tuna.tsinghua.edu.cn/simple --upgrade pip
-pip install -i https://pypi.tuna.tsinghua.edu.cn/simple itchat
-pip install -i https://pypi.tuna.tsinghua.edu.cn/simple pillow
-</pre></p>
-<p>环境部署完成后，创建一个 .py 脚本文件，名字随意，如：sign.py ，脚本内容如下：
-<pre>
-# -*- coding=utf-8 -*-</p>
-<p>"""
-@author: JenI<br>
-@time: 2016-12-05 
-"""</p>
-<p>import time
-import itchat
-import threading</p>
-<p># define the sign function , sign in daily 00:00 - 00:01
-def sign():
-    today = int(time.strftime('%y%m%d', time.localtime(time.time())))
-    while True:
-        if today == int(time.strftime('%y%m%d', time.localtime(time.time()))):
-            time.sleep(60)
-        else:
-            try:
-                itchat.send(msg='3',toUserName='T00lsNet')
-                time.sleep(3)
-                itchat.send(msg='4',toUserName='T00lsNet')
-                today = int(time.strftime('%y%m%d', time.localtime(time.time())))
-            except Exception,e:
-                print('Error : '+ str(e))</p>
-<p># login the wechat by scan QR code
-itchat.auto_login(enableCmdQR=True)
-t = threading.Thread(target=sign)
-t.setDaemon(True)
-t.start()
-itchat.run()
-</pre></p>
-<p>但是如果直接执行上边的脚本，等我们断掉和服务器的远程连接时，脚本也就被停了，而我们的目的是脚本持续在后台运行，达到每天签到的目的，所以需要把该脚本转到后台执行。</p>
-<p>让进程在后台运行的方法有很多，nohup、setsid、disown、screen等，这里使用一个 shell 的小技巧，在命令结尾加一个 &amp; 符就可以了。创建一个 start.sh 文件，内容如下：
-<pre>
-python sign.py &amp;
-</pre></p>
-<p>赋予 start.sh 文件执行权限并执行脚本
-<pre>
-chmod +x start.sh
+<p>最近堕落的不行，一直懒得写博客，打着学逆向的幌子往椅子上一摊，假模假样的看汇编视频，结果新东西没学多少，之前会的东西倒是忘的挺多。年也过完了，新年新气象，再懒下去也不是事，多少写点东西吧。</p>
+<p>最近有同学跟我反映说上一篇文章写的那个 T00ls 签到脚本有问题，放服务器上跑几天自己就停了。我虽然没遇到，但是既然有人遇到了，还是应该想个解决办法，毕竟签到这个事是要求连续的，断一天之前的努力就白费了。</p>
+<p><strong><em>正文</em></strong></p>
+<p>我服务器上的脚本没出现过这种情况，就算出现了日志文件里也不一定有该脚本进程结束的记录，所以这里也没办法分析脚本进程意外消失的原因。没办法，只能采取一个更加直接且有效的办法，就是再写一个监控脚本，用来监控签到脚本的进程，只要发现签到进程消失，就重新启动一个签到进程，这样签到就不会意外中断了。</p>
+<p>这里有一个小问题，就是重新启动的签到进程并不持有微信的登录状态，这怎么办？没关系，itchat 库里的 auto_login 方法 提供了一个 hotReload 属性用于短时间关闭程序后重连，这样即使程序关闭，一定时间内重新开启也可以不用重新扫码。设置方法很简单，只需要使 hotReload 值为真就可以了</p>
+<div class="highlight"><pre><span></span>itchat.auto_login(hotReload=True)
+</pre></div>
+
+
+<p>这样签到脚本就变为</p>
+<div class="highlight"><pre><span></span><span class="c1"># -*- coding=utf-8 -*-</span>
+
+<span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">import</span> <span class="nn">itchat</span>
+<span class="kn">import</span> <span class="nn">threading</span>
+
+<span class="k">def</span> <span class="nf">sign</span><span class="p">():</span>
+    <span class="n">today</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">time</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s1">&#39;%y%m</span><span class="si">%d</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">time</span><span class="o">.</span><span class="n">localtime</span><span class="p">(</span><span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">())))</span>
+    <span class="k">while</span> <span class="bp">True</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">today</span> <span class="o">==</span> <span class="nb">int</span><span class="p">(</span><span class="n">time</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s1">&#39;%y%m</span><span class="si">%d</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">time</span><span class="o">.</span><span class="n">localtime</span><span class="p">(</span><span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()))):</span>
+            <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">600</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">itchat</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="n">msg</span><span class="o">=</span><span class="s1">&#39;3&#39;</span><span class="p">,</span><span class="n">toUserName</span><span class="o">=</span><span class="s1">&#39;T00lsNet&#39;</span><span class="p">)</span>
+            <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+            <span class="n">itchat</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="n">msg</span><span class="o">=</span><span class="s1">&#39;4&#39;</span><span class="p">,</span><span class="n">toUserName</span><span class="o">=</span><span class="s1">&#39;T00lsNet&#39;</span><span class="p">)</span>
+            <span class="n">today</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">time</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s1">&#39;%y%m</span><span class="si">%d</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">time</span><span class="o">.</span><span class="n">localtime</span><span class="p">(</span><span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">())))</span>
+
+<span class="n">itchat</span><span class="o">.</span><span class="n">auto_login</span><span class="p">(</span><span class="n">enableCmdQR</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span><span class="n">hotReload</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+<span class="n">t</span> <span class="o">=</span> <span class="n">threading</span><span class="o">.</span><span class="n">Thread</span><span class="p">(</span><span class="n">target</span><span class="o">=</span><span class="n">sign</span><span class="p">)</span>
+<span class="n">t</span><span class="o">.</span><span class="n">setDaemon</span><span class="p">(</span><span class="bp">True</span><span class="p">)</span>
+<span class="n">t</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+<span class="n">itchat</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
+</pre></div>
+
+
+<p>然后我们写个shell脚本用来监控签到脚本。身为监控脚本，自己首先不能停，所以先来个无限循环</p>
+<div class="highlight"><pre><span></span><span class="k">while</span> <span class="o">:</span>
+  <span class="k">do</span>
+    <span class="err">#</span> <span class="n">something</span>
+  <span class="n">done</span>
+</pre></div>
+
+
+<p>通过 ps -ef 命令查看签到脚本进程是否存在，这里需要注意，再使用 grep 命令时需要使用 -v 参数将 grep 自己产生的结果去掉，不然查询结果中会一直有一个带有 sign 字符的进程</p>
+<div class="highlight"><pre><span></span>ps -ef |grep &quot;sign.py&quot; |grep -v &quot;grep&quot;
+</pre></div>
+
+
+<p>这样如果签到进程存在会返回该进程的详细信息，如果不存在则无返回结果。之后再通过简单的条件判断语句对签到进程进行监控。整体代码如下:</p>
+<table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11</pre></div></td><td class="code"><div class="highlight"><pre><span></span><span class="ch">#!/bin/bash</span>
+<span class="k">while</span> :
+  <span class="k">do</span>
+    <span class="nv">SignExist</span><span class="o">=</span><span class="k">$(</span>ps -ef <span class="p">|</span>grep <span class="s2">&quot;sign.py&quot;</span> <span class="p">|</span>grep -v <span class="s2">&quot;grep&quot;</span><span class="k">)</span>
+      <span class="k">if</span> <span class="o">[</span> <span class="s2">&quot;</span><span class="nv">$SignExist</span><span class="s2">&quot;</span> <span class="o">]</span> <span class="p">;</span> <span class="k">then</span>
+        <span class="k">continue</span>
+      <span class="k">else</span>
+        python sign.py <span class="p">&amp;</span>
+      <span class="k">fi</span>
+        sleep <span class="m">10</span>
+  <span class="k">done</span>
+</pre></div>
+</td></tr></table>
+
+<p>监控脚本每隔十秒检测一次签到进程是否存在，一旦签到进程消失便立刻重新启动一个新的签到进程。</p>
+<p>将监控脚本保存，并赋予执行权限</p>
+<div class="highlight"><pre><span></span>chmod +x monitor.sh
+</pre></div>
+
+
+<p>然后修改start.sh文件，将内容改为</p>
+<div class="highlight"><pre><span></span>./monitor.sh &amp;
+</pre></div>
+
+
+<p>执行签到脚本，扫码登录后执行监控脚本</p>
+<div class="highlight"><pre><span></span>python sign.py &amp;
+# 扫码登录
+# 执行监控脚本
 ./start.sh
-</pre></p>
-<p>由于我的服务器没有安装图形界面，所以我将登陆所需要的二维码以命令行方式显示，手机扫码登陆后直接关掉 xshell 或 putty 等连接软件即可。</p>
-<p><strong><em>注意</em></strong></p>
-<ul>
-<li>请确保登陆的微信的公众号中存在 T00ls ，微信ID为 T00lsNet</li>
-<li>itchat 为一个开源的微信个人号API，使用它登录后手机会显示已在网页版登陆。也就是说使用这个脚本后相当于一直持续登陆网页版微信，这就会带来一个问题，当再使用客户端或网页版微信时会顶掉脚本的登陆状态，脚本就会被停掉。为了避免这种事情发生。我建议使用另一个一般不在电脑登陆的微信号（新注册一个或使用家人朋友的）</li>
-</ul>
-<p><strong><em>其他</em></strong></p>
-<p>关于 itchat ，可能仅仅几行代码，就可以完成一个能够处理所有信息的微信机器人，当然，它还有更多有趣的用法。如果你想了解更多，请查看它最新的帮助文档</p>
-<p><a href="http://itchat.readthedocs.io/zh/latest/">itchat 使用手册</a></p>
+</pre></div>
+
+
+<p><strong><em>总结</em></strong></p>
+<p>Linux 的 shell 编程在系统管理等领域起着不可忽视的作用，了解一点 shell 编程，也是很有必要的。</p>
         <hr />
         <p>作者:JenI&#160; &#160; &#160; &#160;转载请注明出处，谢谢</p>
     </article>
@@ -180,8 +214,8 @@ chmod +x start.sh
             <div id="disqus_thread"></div>
             <script type="text/javascript">
                 var disqus_shortname = 'jenihk';
-                var disqus_identifier = 'tools-sign.html';
-                var disqus_url = 'https://jenihk.github.io/tools-sign.html';
+                var disqus_identifier = 'sign-monitor.html';
+                var disqus_url = 'https://jenihk.github.io/sign-monitor.html';
                 (function() {
                     var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
                     dsq.src = '//jenihk.disqus.com/embed.js';

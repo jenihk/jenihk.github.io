@@ -164,24 +164,24 @@
 <blockquote>
 <p>/dev/sda  </p>
 <blockquote>
-<p>/dev/sda1 --&gt;boot分区<br />
-/dev/sda2 --&gt;root分区<br />
-/dev/sda3 --&gt;home分区<br />
+<p>/dev/sda1 --&gt;boot分区<br>
+/dev/sda2 --&gt;root分区<br>
+/dev/sda3 --&gt;home分区<br>
 /dev/sda4 --&gt;swap分区</p>
 </blockquote>
 </blockquote>
 <p>格式化分区并挂载</p>
 <p>boot分区、root分区、home分区：</p>
 <blockquote>
-<p>mkfs.ext4 /dev/sda1<br />
-mkfs.ext4 /dev/sda2<br />
-mkfs.ext4 /dev/sda3<br />
-mkswap /dev/sda4<br />
-swapon /dev/sda4<br />
-mount /dev/sda2 /mnt<br />
-cd /mnt<br />
-mkdir boot home<br />
-mount /dev/sda1 /mnt/boot（当存在efi分区时将boot目录挂载到efi分区）<br />
+<p>mkfs.ext4 /dev/sda1<br>
+mkfs.ext4 /dev/sda2<br>
+mkfs.ext4 /dev/sda3<br>
+mkswap /dev/sda4<br>
+swapon /dev/sda4<br>
+mount /dev/sda2 /mnt<br>
+cd /mnt<br>
+mkdir boot home<br>
+mount /dev/sda1 /mnt/boot（当存在efi分区时将boot目录挂载到efi分区）<br>
 mount /dev/sda3 /mnt/home</p>
 </blockquote>
 <p>linux不同与windows，windows是把硬盘上的分区映射到盘符上，但linux没有盘符的概念，它只有树状结构的目录，简单的理解，挂载就是将目录指向不同的分区，之后你对这个目录下的文件进行操作都相当于对该目录所指向的分区内的文件进行操作</p>
@@ -235,7 +235,7 @@ Server=https://mirrors.ustc.edu.cn/archlinux/$repo/os/$arch
 </blockquote>
 <p>更改语言环境</p>
 <blockquote>
-<p>nano /etc/locale.gen<br />
+<p>nano /etc/locale.gen<br>
 找到以下四行，去掉行首的#</p>
 </blockquote>
 <pre>
@@ -246,8 +246,8 @@ zh_CN.GB2312
 </pre>
 
 <blockquote>
-<p>ctrl+x 摁y，再回车退出，之后执行<br />
-locale-gen<br />
+<p>ctrl+x 摁y，再回车退出，之后执行<br>
+locale-gen<br>
 echo LANG=en_US.UTF-8 &gt; /etc/locale.conf</p>
 </blockquote>
 <p>更改root用户的密码</p>
@@ -261,13 +261,13 @@ echo LANG=en_US.UTF-8 &gt; /etc/locale.conf</p>
 </blockquote>
 <p>执行以下命令确保新系统可以联网</p>
 <blockquote>
-<p>pacman -S iw wpa_supplicant dialog<br />
+<p>pacman -S iw wpa_supplicant dialog<br>
 pacman -S net-tools dnsutils inetutils iproute2</p>
 </blockquote>
 <p>安装启动引导器，有很多引导器可以选择，如grub，syslinux，systemd-boot等</p>
 <p>UEFI用户可以systemd-boot,首先确认启动方式是UEFI模式，并可以正确访问EFI变量</p>
 <blockquote>
-<p>bootctl --path=$esp install<br />
+<p>bootctl --path=$esp install<br>
 nano /boot/loader/entries/arch.conf</p>
 </blockquote>
 <p>加入如下内容
@@ -280,14 +280,14 @@ options        root=/dev/sda2 rw
 ctrl+x 摁y，再回车退出</p>
 <p>传统启动方式的电脑可以使用grub</p>
 <blockquote>
-<p>pacman -S grub<br />
-grub-install --target=i386-pc --recheck --debug /dev/sda<br />
+<p>pacman -S grub<br>
+grub-install --target=i386-pc --recheck --debug /dev/sda<br>
 grub-mkconfig -o /boot/grub/grub.cfg</p>
 </blockquote>
 <p>或者使用syslinux</p>
 <blockquote>
-<p>pacman -S syslinux gptfdisk xf86-video-vesa<br />
-syslinux-install_update -i -a -m<br />
+<p>pacman -S syslinux gptfdisk xf86-video-vesa<br>
+syslinux-install_update -i -a -m<br>
 nano /boot/syslinux/syslinux.cfg</p>
 </blockquote>
 <pre>
@@ -300,16 +300,16 @@ root=/dev/sda2
 
 <p>退出chroot环境，重启电脑,重启时进入bios将应该改为第一启动项</p>
 <blockquote>
-<p>exit<br />
+<p>exit<br>
 reboot  </p>
 </blockquote>
 <p>重新启动后以root用户登录，联网</p>
 <p>创建一个普通用户并使用zsh作为默认shell。以普通用户执行没有权限的操作时，可以使用sudo命令进行临时提权</p>
 <blockquote>
-<p>pacman -S zsh grml-zsh-config<br />
-useradd -m -g users -G wheel -s /bin/zsh zhangsan（假设创建一个名为zhangsan的普通用户）<br />
-passwd zhangsan（为zhangsan用户设置密码）<br />
-ln -sf /etc/skel/.zshrc /home/zhangsan/.zshrc<br />
+<p>pacman -S zsh grml-zsh-config<br>
+useradd -m -g users -G wheel -s /bin/zsh zhangsan（假设创建一个名为zhangsan的普通用户）<br>
+passwd zhangsan（为zhangsan用户设置密码）<br>
+ln -sf /etc/skel/.zshrc /home/zhangsan/.zshrc<br>
 nano /etc/sudoers</p>
 </blockquote>
 <p>找到root ALL=(ALL) ALL下面加一行，如下，注意格式一定不要错
@@ -321,7 +321,7 @@ zhangsan ALL=(ALL) ALL
 <p>首先安装，Archlinux默认提供了vesa，它兼容大多数的显卡，如果对图形化有高要求的人可以根据自己系统的显卡品牌安装不同厂商各自的开源或闭源显卡驱动，详见:<a href="https://wiki.archlinux.org/index.php/Xorg_(%E7%AE%80%E4%BD%93%E4%B8%AD%E6%96%87)">xorg</a></p>
 <p>安装xorg</p>
 <blockquote>
-<p>pacman -S xorg-xinit xorg-twm xorg-xclock xterm<br />
+<p>pacman -S xorg-xinit xorg-twm xorg-xclock xterm<br>
 cp /etc/X11/xinit/xinitrc /home/zhangsan/.xinitrc</p>
 </blockquote>
 <p><strong><em>安装桌面环境</em></strong></p>
@@ -360,9 +360,9 @@ exec startkde
 </pre>
 如果想开机直接进入桌面环境</p>
 <blockquote>
-<p>pacman -S sddm sddm-kcm<br />
-systemctl enable sddm<br />
-sddm --example-config &gt; /etc/sddm.conf<br />
+<p>pacman -S sddm sddm-kcm<br>
+systemctl enable sddm<br>
+sddm --example-config &gt; /etc/sddm.conf<br>
 nano /etc/sddm.conf</p>
 </blockquote>
 <p>对应行修改如下
@@ -392,7 +392,7 @@ SigLevel=Optional TrustedOnly
 Server=https://mirrors.ustc.edu.cn/archlinuxcn/$arch
 </pre></p>
 <blockquote>
-<p>pacman -Syy<br />
+<p>pacman -Syy<br>
 sudo pacman -S yaourt archlinuxcn-keyring</p>
 </blockquote>
 <p><strong><em>安装输入法</em></strong></p>
@@ -409,7 +409,7 @@ sudo pacman -S yaourt archlinuxcn-keyring</p>
 </blockquote>
 <p><strong><em>安装结束</em></strong></p>
 <blockquote>
-<p>pacman -Syu<br />
+<p>pacman -Syu<br>
 reboot</p>
 </blockquote>
 <p>如果使用sddm显示管理器的用户此时开机后应该已经进入桌面了，直接输入普通用户用户名和密码即可登录</p>

@@ -113,16 +113,16 @@
 <p>iptables是Linux内核级防火墙的命令行工具，它的功能非常强大，但配置过程相对复杂。在它之前的内核版本中，使用了其他的软件实现防火墙功能，2.0内核中，防火墙工具叫ipfwadm;2.2内核中防火墙工具叫ipchains。linux内核3.13版本中引入了nftables,它被设计的目的就是替换现有的iptables,逐步取代iptables成为主要的Linux防火墙工具。然而国内应用的并不广泛，相关资料也不多，大部分使用linux系统防火墙的人还在使用iptables。尽管这方面的知识更偏向于运维人员，但既然涉及系统安全，学习一下还是十分有必要的。</p>
 <p><strong><em>简介</em></strong></p>
 <p>iptables采用表 =&gt; 链 =&gt; 规则（即iptables =&gt; Tables =&gt; Chains =&gt; Rules）的结构，有点类似关系型数据库的样子，iptables由表构成，表由一个个链构成，每个链内又包含一条条规则.</p>
-<p>iptables默认包含5张表（tables）:<br />
-- raw 用于配置数据包，raw 中的数据包不会被系统跟踪。不常用<br />
-- filter 是用于存放所有与防火墙相关操作的默认表。常用<br />
-- nat 用于网络地址转换（例如：端口转发）。常用<br />
-- mangle 用于对特定数据包的修改。不常用<br />
+<p>iptables默认包含5张表（tables）:<br>
+- raw 用于配置数据包，raw 中的数据包不会被系统跟踪。不常用<br>
+- filter 是用于存放所有与防火墙相关操作的默认表。常用<br>
+- nat 用于网络地址转换（例如：端口转发）。常用<br>
+- mangle 用于对特定数据包的修改。不常用<br>
 - security 用于强制访问控制网络规则。不常用  </p>
 <p>其中filter表对我们来说是最常用的，filter表中默认包含INPUT,OUTPUT,FORWORD三个链，INPUT链处理来自外部的数据，OUTPUT处理向外发送的数据，FORWORD将数据转发到本机的其他网卡设备上。</p>
-<p>链（chains）<br />
+<p>链（chains）<br>
 链是由一条条规则串起来的有顺序的列表，默认的链内是没有规则的。</p>
-<p>规则（rules）<br />
+<p>规则（rules）<br>
 规则用来对数据包进行过滤，需要注意的是，规则是有顺序的，当一个数据包通过网络到达服务器时，首先匹配第一条规则，如果满足rule1,则会执行rule1对应的操作(如ACCEPT,DROP,QUEUE,RETURN)，而并不会继续匹配之后的规则，第一条规则不满足时，匹配第二条，当所有规则都不匹配时，会执行默认操作。</p>
 <p><strong><em>使用</em></strong></p>
 <p>开启iptables服务并设置开机启动</p>

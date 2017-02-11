@@ -129,7 +129,7 @@ sudo apt-get install shadowsocks
 <p>然后</p>
 <ol>
 <li>访问前言给出的免费的ss账号网站，记录下想要使用的ss代理账号和密码</li>
-<li>修改 /etc/shadowsocks/config.json文件，将记录下的免费ss账号、端口、密码填入，格式如下<br />
+<li>修改 /etc/shadowsocks/config.json文件，将记录下的免费ss账号、端口、密码填入，格式如下<br>
 <pre>
 {
     "server":"my_server_ip",
@@ -144,12 +144,12 @@ sudo apt-get install shadowsocks
     "prefer_ipv6": false
 }
 </pre></li>
-<li>执行<br />
-archlinux:<br />
+<li>执行<br>
+archlinux:<br>
 <pre>
 sslocal -c /etc/shadowsocks/config.json
-</pre><br />
-debain:<br />
+</pre><br>
+debain:<br>
 <pre>
 service shadowsocks restart
 </pre></li>

