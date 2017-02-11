@@ -201,6 +201,22 @@
 </pre></div>
 
 
+<p>监控脚本效果如下：</p>
+<div class="highlight"><pre><span></span># 此时 sign 脚本进程 pid 为 14046,
+[root@jenisec ~]# ps -ef |grep &quot;sign&quot; |grep -v &quot;grep&quot; &amp;&amp; ps -ef | grep &quot;monitor&quot; |grep -v &quot;grep&quot;
+root     14046     1  0 Feb10 ?        00:00:37 python sign.py
+root     24322     1  1 Feb10 ?        00:10:23 /bin/bash ./monitor.sh
+
+# 使用 kill 命令杀掉该进程
+[root@jenisec ~]# kill 14046
+
+# 再次查询发现监控脚本重新启动了签到进程，进程 pid 为 28477
+[root@jenisec ~]# ps -ef |grep &quot;sign&quot; |grep -v &quot;grep&quot; &amp;&amp; ps -ef | grep &quot;monitor&quot; |grep -v &quot;grep&quot;
+root     28477 24322  3 00:56 ?        00:00:00 python sign.py
+root     24322     1  1 Feb10 ?        00:10:24 /bin/bash ./monitor.sh
+</pre></div>
+
+
 <p><strong><em>总结</em></strong></p>
 <p>Linux 的 shell 编程在系统管理等领域起着不可忽视的作用，了解一点 shell 编程，也是很有必要的。</p>
         <hr />
