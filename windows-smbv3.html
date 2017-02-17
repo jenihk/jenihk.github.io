@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="zh">
+
+<head>
+            <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="description" content="">
+        <meta name="author" content="">
+
+        <title>JenI's Blog</title>
+
+        <link rel="icon" href="https://jenihk.github.io/theme/images/favicon.ico" type="image/x-icon">  
+        <link rel="shortcut icon" href="https://jenihk.github.io/theme/images/favicon.ico" type="image/x-icon">  
+
+
+        <link href="https://jenihk.github.io/theme/css/iconfont.css" rel="stylesheet">
+
+        <!-- Bootstrap Core CSS -->
+        <link href="https://jenihk.github.io/theme/css/bootstrap.min.css" rel="stylesheet">
+
+        <!-- Custom CSS -->
+        <link href="https://jenihk.github.io/theme/css/clean-blog.min.css" rel="stylesheet">
+
+        <!-- Code highlight color scheme -->
+            <link href="https://jenihk.github.io/theme/css/code_blocks/monokai.css" rel="stylesheet">
+
+        <!-- Custom Fonts -->
+        <link href="http://maxcdn.bootstrapcdn.com/font-awesome/4.1.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+        <link href='http://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+        <link href='http://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/css'>
+
+        <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+        <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+        <!--[if lt IE 9]>
+            <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+            <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+        <![endif]-->
+
+
+
+
+        <meta name="tags" contents="window" />
+        <meta name="tags" contents="安全" />
+
+
+			<meta property="og:locale" content="zh">
+		<meta property="og:site_name" content="JenI's Blog">
+
+	<meta property="og:type" content="article">
+	<meta property="article:author" content="">
+	<meta property="og:url" content="https://jenihk.github.io/windows-smbv3.html">
+	<meta property="og:title" content="Windows SMBv3 远程拒绝服务(BSOD)漏洞">
+	<meta property="og:description" content="">
+	<meta property="og:image" content="https://jenihk.github.io/theme/images/posts/windows-smbv3/win10die.png">
+	<meta property="article:published_time" content="2017-02-14 00:00:00+08:00">
+</head>
+
+<body style="background-color: #f8f8f8">
+
+    <!-- Navigation -->
+    <nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+        <div class="container-fluid">
+            <!-- Brand and toggle get grouped for better mobile display -->
+            <div class="navbar-header page-scroll">
+                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <a class="navbar-brand" href="https://jenihk.github.io/">JenI's Blog</a>
+            </div>
+
+            <!-- Collect the nav links, forms, and other content for toggling -->
+            <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+                <ul class="nav navbar-nav navbar-right">
+                        <li><a href="https://jenihk.github.io/category/an-quan.html">安全</a></li>
+                        <li><a href="https://jenihk.github.io/category/xi-tong.html">系统</a></li>
+                        <li><a href="https://jenihk.github.io/category/ri-chang.html">日常</a></li>
+
+                </ul>
+            </div>
+            <!-- /.navbar-collapse -->
+        </div>
+        <!-- /.container -->
+    </nav>
+
+    <!-- Page Header -->
+        <header class="intro-header" style="background-image: url('theme/images/posts/windows-smbv3/win10die.png')">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                    <div class="post-heading">
+                        <h1>Windows SMBv3 远程拒绝服务(BSOD)漏洞</h1>
+                        <span class="meta">Posted by
+                                <a href="https://jenihk.github.io/author/jeni.html">JenI</a>
+                             on 2017-02-14 00:00:00+08:00
+                        </span>
+                        
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1" style="background-color: #f8f8f8;position: relative;">
+    <!-- Post Content -->
+    <article style="background-color: #f8f8f8;position: relative;">
+        <p><strong><em>前言</em></strong></p>
+<p>这个 SMBv3 漏洞是由 lgandx 爆出的一个未被微软修复的漏洞（暂未发布补丁），此漏洞主要影响 Windows Server 2012/2016、Win8/8.1 以及 Win10 系统。攻击者可以模拟成一个 SMB 服务器，诱使客户端发起 SMB 请求来触发漏洞；攻击者也可以通过中间人方式“毒化” SMB 回应，插入恶意的SMB回复实现拒绝服务或控制受害系统。</p>
+<p><strong><em>漏洞原理</em></strong></p>
+<p>由于 Windows 处理 SMB 协议驱动 mrxsmb20.sys 在解析 Tree Connect Response 时，没有对包的大小做正确处理而导致的空指针引用。当 Tree Connect Response 包中 SMB 协议长度大于 1024时(实际上大于945便会触发漏洞)，会导致系统蓝屏重启。</p>
+<p>网上给出了针对这个漏洞详细的分析</p>
+<p>链接：<a href="http://paper.seebug.org/215/?utm_source=tuicool&amp;utm_medium=referral">漏洞分析</a></p>
+<p><strong><em>漏洞复现</em></strong></p>
+<p>环境：</p>
+<div class="highlight"><pre><span></span>两台虚拟机网络同属于 vmnet9
+虚拟机1：archlinux 192.168.1.1
+虚拟机2：Win10 x64 192.168.1.2
+</pre></div>
+
+
+<p>首先将 linux 模拟成一台 SMB 服务器，下载该漏洞的 POC</p>
+<p><a href="https://github.com/lgandx/PoC/tree/master/SMBv3%20Tree%20Connect">Github地址</a></p>
+<p>将下载下来的 Win10.py 和 odict.py 两个文件同时存在放 Linux 系统中。这里之所以不使用  windows 系统是因为 windows 系统默认监听了 445 端口，这种情况下 poc 会产生一个 socket 错误，手动关闭 445 端口的监听是个办法，但不如直接使用 Linux 系统方便。</p>
+<p>运行脚本后，Linux 这台虚拟机便被模拟成一台 SMB 服务器。</p>
+<div class="highlight"><pre><span></span>python2 Win10.py
+</pre></div>
+
+
+<p>使用 Win10 访问 SMB 服务器</p>
+<p><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/win10unc.png" alt="win10unc" /></p>
+<p>触发漏洞，Win10 蓝屏崩溃</p>
+<p><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/win10die.png" alt="win10die" /></p>
+<p>此时模拟的 SMB 服务器状态</p>
+<p><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/win10py.png" alt="win10py" /></p>
+<p><strong><em>POC分析</em></strong></p>
+<p>Win10.py 文件 408 到 416 行代码如下</p>
+<div class="highlight"><pre><span></span>## Tree Connect
+if data[16:18] == &quot;\x03\x00&quot;:
+    head = SMBv2Header(Cmd=&quot;\x03\x00&quot;, MessageId=GrabMessageID(data), PID=&quot;\xff\xfe\x00\x00&quot;, TID=&quot;\x01\x00\x00\x00&quot;, CreditCharge=GrabCreditCharged(data), Credits=GrabCreditRequested(data), NTStatus=&quot;\x00\x00\x00\x00&quot;, SessionID=GrabSessionID(data))
+    t = SMB2TreeData(Data=&quot;C&quot;*1500)#//BUG &lt;============这里控制数据长度
+    packet1 = str(head)+str(t)
+    buffer1 = longueur(packet1)+packet1
+    print &quot;[*]Triggering Bug; Tree Connect SMBv2 packet sent.&quot;
+    self.request.send(buffer1)
+    data = self.request.recv(1024)
+</pre></div>
+
+
+<p>其中 t = SMB2TreeData(Data="C"*1500) 是关键点，源码中发送了 1500 个 “C” ，head 长度为 80，所以packet1 总长度为 1580。经过测试，只要数据包超过 0x400(即十进制的1024) 便会触发漏洞，减去 head 长度，data 长度只要大于 945 便会引发蓝屏。</p>
+<p><strong><em>总结</em></strong></p>
+<p>目前还未提供针对此漏洞的补丁，建议用户暂时在防火墙处阻止TCP 端口 139 和 445，通过阻止入站和出站 SMB 流量，保护位于防火墙后面的系统防范此漏洞攻击造成的安全风险。</p>
+        <hr />
+        <p>作者:JenI&#160; &#160; &#160; &#160;转载请注明出处，谢谢</p>
+    </article>
+
+    <hr>
+
+        <div class="comments">
+            <h2>Comments !</h2>
+            <div id="disqus_thread"></div>
+            <script type="text/javascript">
+                var disqus_shortname = 'jenihk';
+                var disqus_identifier = 'windows-smbv3.html';
+                var disqus_url = 'https://jenihk.github.io/windows-smbv3.html';
+                (function() {
+                    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+                    dsq.src = '//jenihk.disqus.com/embed.js';
+                    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+                })();
+            </script>
+            <noscript>Please enable JavaScript to view the comments.</noscript>
+        </div>
+ <!--                   
+    <div id="disqus_thread"></div>
+    <script>
+
+/**
+*  RECOMMENDED CONFIGURATION VARIABLES: EDIT AND UNCOMMENT THE SECTION BELOW TO INSERT DYNAMIC VALUES FROM YOUR PLATFORM OR CMS.
+*  LEARN WHY DEFINING THESE VARIABLES IS IMPORTANT: https://disqus.com/admin/universalcode/#configuration-variables*/
+/*
+var disqus_config = function () {
+this.page.url = PAGE_URL;  // Replace PAGE_URL with your page's canonical URL variable
+this.page.identifier = PAGE_IDENTIFIER; // Replace PAGE_IDENTIFIER with your page's unique identifier variable
+};
+*/
+        (function() { // DON'T EDIT BELOW THIS LINE
+            var d = document, s = d.createElement('script');
+            s.src = '//jenihk.disqus.com/embed.js';
+            s.setAttribute('data-timestamp', +new Date());
+            (d.head || d.body).appendChild(s);
+        })();
+    </script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+-->
+            </div>
+        </div>
+    </div>
+
+    <hr>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                    <ul class="list-inline text-center">
+                        <li>
+                            <a href="http://weibo.com/1992014191/profile?rightmod=1&wvr=6&mod=personinfo&is_all=1">
+                                <span class="fa-stack fa-lg">
+                                    <i class="icon iconfont">&#xe657;</i>
+                                </span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="http://github.com/jenihk">
+                                <span class="fa-stack fa-lg">
+                                    <i class="icon iconfont">&#xe618;</i>
+                                </span>
+                            </a>
+                        </li>
+                    </ul>
+                    <p class="copyright text-muted">Blog powered by <a href="http://getpelican.com">Pelican</a>,
+                which takes great advantage of <a href="http://python.org">Python</a>.</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- jQuery -->
+    <script src="https://jenihk.github.io/theme/js/jquery.js"></script>
+
+    <!-- Bootstrap Core JavaScript -->
+    <script src="https://jenihk.github.io/theme/js/bootstrap.min.js"></script>
+
+    <!-- Custom Theme JavaScript -->
+    <script src="https://jenihk.github.io/theme/js/clean-blog.min.js"></script>
+    
+    <!-- CanvasParticles -->
+    <script src="https://jenihk.github.io/theme/js/canvas-particle.js"></script>
+
+    
+
+    <script type="text/javascript">
+        CanvasParticle();
+    </script>
+
+    <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-85780345-1']);
+    _gaq.push(['_trackPageview']);
+    (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+    </script>
+<script type="text/javascript">
+    var disqus_shortname = 'jenihk';
+    (function () {
+        var s = document.createElement('script'); s.async = true;
+        s.type = 'text/javascript';
+        s.src = '//' + disqus_shortname + '.disqus.com/count.js';
+        (document.getElementsByTagName('HEAD')[0] || document.getElementsByTagName('BODY')[0]).appendChild(s);
+    }());
+</script>
+</body>
+
+</html>
