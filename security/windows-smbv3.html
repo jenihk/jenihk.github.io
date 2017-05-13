@@ -40,7 +40,6 @@
 
 
 
-        <meta name="tags" contents="系统，引导" />
 
 
 			<meta property="og:locale" content="zh">
@@ -48,11 +47,11 @@
 
 	<meta property="og:type" content="article">
 	<meta property="article:author" content="">
-	<meta property="og:url" content="https://jenihk.github.io/repairguide.html">
-	<meta property="og:title" content="grub rescue> 终端模式修复方法">
-	<meta property="og:description" content="解决分区发生变化时grub引导问题">
-	<meta property="og:image" content="https://jenihk.github.io/theme/images/posts/repairguide/cover.png">
-	<meta property="article:published_time" content="2016-10-21 00:00:00+08:00">
+	<meta property="og:url" content="https://jenihk.github.io/security/windows-smbv3.html">
+	<meta property="og:title" content="Windows SMBv3 远程拒绝服务(BSOD)漏洞">
+	<meta property="og:description" content="">
+	<meta property="og:image" content="https://jenihk.github.io/theme/images/posts/windows-smbv3/win10die.png">
+	<meta property="article:published_time" content="2017-02-14 00:00:00+08:00">
 </head>
 
 <body style="background-color: #f8f8f8">
@@ -86,16 +85,15 @@
     </nav>
 
     <!-- Page Header -->
-        <header class="intro-header" style="background-image: url('theme/images/posts/repairguide/cover.png')">
+        <header class="intro-header" style="background-image: url('theme/images/posts/windows-smbv3/win10die.png')">
         <div class="container">
             <div class="row">
                 <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
                     <div class="post-heading">
-                        <h1>grub rescue> 终端模式修复方法</h1>
-                            <h3 class="subheading">解决分区发生变化时grub引导问题</h3>
+                        <h1>Windows SMBv3 远程拒绝服务(BSOD)漏洞</h1>
                         <span class="meta">Posted by
                                 <a href="https://jenihk.github.io/author/jeni.html">JenI</a>
-                             on 2016-10-21 00:00:00+08:00
+                             on 2017-02-14 00:00:00+08:00
                         </span>
                         
                     </div>
@@ -111,84 +109,50 @@
     <!-- Post Content -->
     <article style="background-color: #f8f8f8;position: relative;">
         <p><strong><em>前言</em></strong></p>
-<p>由于之前电脑系统都是自己分区自己装的，所以并没有单独给windows系统预留出winRE分区，毕竟这个实在不太常用，系统出了问题还不如进PE来的实在．结果这次微软推送windows 10一周年更新，果然毫不犹豫的从最后一个ntfs分区内强行分了一个winRE分区出来，这对windows倒是没什么影响，但这多出来的一个分区改变了我原本硬盘的分区方式，原来的分区号都向后推了一位，第8个分区变成了第9个分区，导致我的另一个系统引导出现错误，引导软件找不到linux的根目录．
-<pre>
-/dev/sda4         346904576    348596223     1691648     826M Windows 恢复环境
-/dev/sda7        1607491584   1674600447    67108864      32G Linux root (x86-64)
-/dev/sda8        1674600448   1682989055     8388608       4G Linux swap
-/dev/sda9        1682989056   1953525134   270536079     129G Linux home
-</pre></p>
-<p>对于这种情况，不同的引导软件有不同的修复方式</p>
-<p><strong><em>systemd-boot(针对arch)</em></strong></p>
-<p>开机调u盘启动，进入livecd，挂载分区，并chroot到硬盘系统
-<pre>
-mount /dev/sda7 /mnt
-mount /dev/sda1 /mnt/boot
-arch-chroot /mnt /bin/bash
-</pre></p>
-<p>修改/boot/loader/entries/arch.conf为
-<pre>
-title      Arch Linux
-linux      /vmlinuz-linux
-initrd     /initramfs-linux.img
-options      root=/dev/sda7 rw    #原来是sda6，现在改为sda7
-</pre></p>
-<p>其中/dev/sda7也可以改为第7快硬盘的UUID,reboot重启即可进入</p>
-<p><strong><em>syslinux</em></strong></p>
-<p>依然是u启进livecd，挂分区，chroot,然后修改/boot/syslinux/syslinux.cfg
-<pre>
-LABEL arch
-    MENU LABEL Arch Linux
-    LINUX ../vmlinuz-linux
-    APPEND root=/dev/sdb7 rw
-    INITRD ../initramfs-linux.img</p>
-<p>LABEL archfallback
-    MENU LABEL Arch Linux Fallback
-    LINUX ../vmlinuz-linux
-    APPEND root=/dev/sdb7 rw
-    INITRD ../initramfs-linux-fallback.img
-</pre></p>
-<p>修改完重启</p>
-<p><strong><em>grub</em></strong></p>
-<p>接下来就是本篇博文的关键内容了，因为现在大部分Linux发行版本默认以grub作为引导软件，所以着重记录一下grub下引导问题的修复问题</p>
-<p>当开机系统找不到grub路径或grub的配置文件出现问题时，会自动进入grub救援模式，也就是屏幕会出现下列信息
-<pre>
-error: file '/boot/grub/i386-pc/normal.mod' not found.
-Entering rescue mode...
-grub rescue&gt;
-</pre></p>
-<p>此时的救援模式并非平时使用的shell终端,在这里可以执行的命令很有限，仅有
-<pre>
-set,ls,insmod,root,prefix等
-</pre></p>
-<p>首先使用ls命令，该命令会列出所有的磁盘信息
-<pre>
-grub rescue&gt;ls
- (hd0),(hd0,msdos4),(hd0,msdos2),(hd0,msdos9),(hd0,msdos7),(hd0,msdos5),(hd0,msdos3),(hd0,msdos1),(hd0,msdos8),(hd0,msdos6)
-</pre></p>
-<p>依次替换msdos1位置的数字以查看每个磁盘下的文件，当显示文件则说明linux安装在这个分区
-<pre>
-grub rescue&gt;ls(hd0,msdos1)/boot/grub
-</pre></p>
-<p>假设linux系统被装在了(hd0,msdos7)上，使用下列命令找回丢失的grub菜单
-<pre>
-grub rescue&gt;set root=(hd0,msdos7)
-grub rescue&gt;set prefix=(hd0,msdos7)/boot/grub
-grub rescue&gt;insmod /boot/grub/normal.mod
-</pre></p>
-<p>使用以下命令显示grub菜单
-<pre>
-grub rescue&gt;normal
-</pre></p>
-<p>这时应该就进入grub菜单项了，选中linux系统，摁e键临时编辑grub配置文件，我以kali为例</p>
-<p><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/grub.png" style="text-align:center" alt="grub" /></p>
-<p>将上图中(hd0,msdos1)替换为自己的linux所在分区(hd0,msdos7),然后ctrl+x就可以进入系统了，但这只是临时的，当电脑重启，问题依然存在，所以要重新安装grub并修改配置文件
-<pre>
-sudo update-grub
-grub-install --target=i386-pc /dev/sda
-grub-mkconfig -o /boot/grub/grub.cfg
-</pre></p>
-<p>这样问题就解决了，当然，具体到不同的环境修复方法或多或少会有些不同，但基本命令熟悉了之后再遇到这种问题随机应变就可以了</p>
+<p>这个 SMBv3 漏洞是由 lgandx 爆出的一个未被微软修复的漏洞（暂未发布补丁），此漏洞主要影响 Windows Server 2012/2016、Win8/8.1 以及 Win10 系统。攻击者可以模拟成一个 SMB 服务器，诱使客户端发起 SMB 请求来触发漏洞；攻击者也可以通过中间人方式“毒化” SMB 回应，插入恶意的SMB回复实现拒绝服务或控制受害系统。</p>
+<p><strong><em>漏洞原理</em></strong></p>
+<p>由于 Windows 处理 SMB 协议驱动 mrxsmb20.sys 在解析 Tree Connect Response 时，没有对包的大小做正确处理而导致的空指针引用。当 Tree Connect Response 包中 SMB 协议长度大于 1024时(实际上大于945便会触发漏洞)，会导致系统蓝屏重启。</p>
+<p>网上给出了针对这个漏洞详细的分析</p>
+<p>链接：<a href="http://paper.seebug.org/215/?utm_source=tuicool&amp;utm_medium=referral">漏洞分析</a></p>
+<p><strong><em>漏洞复现</em></strong></p>
+<p>环境：</p>
+<div class="highlight"><pre><span></span>两台虚拟机网络同属于 vmnet9
+虚拟机1：archlinux 192.168.1.1
+虚拟机2：Win10 x64 192.168.1.2
+</pre></div>
+
+
+<p>首先将 linux 模拟成一台 SMB 服务器，下载该漏洞的 POC</p>
+<p><a href="https://github.com/lgandx/PoC/tree/master/SMBv3%20Tree%20Connect">Github地址</a></p>
+<p>将下载下来的 Win10.py 和 odict.py 两个文件同时存在放 Linux 系统中。这里之所以不使用  windows 系统是因为 windows 系统默认监听了 445 端口，这种情况下 poc 会产生一个 socket 错误，手动关闭 445 端口的监听是个办法，但不如直接使用 Linux 系统方便。</p>
+<p>运行脚本后，Linux 这台虚拟机便被模拟成一台 SMB 服务器。</p>
+<div class="highlight"><pre><span></span>python2 Win10.py
+</pre></div>
+
+
+<p>使用 Win10 访问 SMB 服务器</p>
+<p><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/win10smbv3/win10unc.png" style="text-align:center"  alt="win10unc" /></p>
+<p>触发漏洞，Win10 蓝屏崩溃</p>
+<p><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/win10smbv3/win10die.png" style="text-align:center" alt="win10die" /></p>
+<p>此时模拟的 SMB 服务器状态</p>
+<p><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/win10smbv3/win10py.png" style="text-align:center" alt="win10py" /></p>
+<p><strong><em>POC分析</em></strong></p>
+<p>Win10.py 文件 408 到 416 行代码如下</p>
+<div class="highlight"><pre><span></span>## Tree Connect
+if data[16:18] == &quot;\x03\x00&quot;:
+    head = SMBv2Header(Cmd=&quot;\x03\x00&quot;, MessageId=GrabMessageID(data), PID=&quot;\xff\xfe\x00\x00&quot;, TID=&quot;\x01\x00\x00\x00&quot;, CreditCharge=GrabCreditCharged(data), Credits=GrabCreditRequested(data), NTStatus=&quot;\x00\x00\x00\x00&quot;, SessionID=GrabSessionID(data))
+    t = SMB2TreeData(Data=&quot;C&quot;*1500)#//BUG &lt;============这里控制数据长度
+    packet1 = str(head)+str(t)
+    buffer1 = longueur(packet1)+packet1
+    print &quot;[*]Triggering Bug; Tree Connect SMBv2 packet sent.&quot;
+    self.request.send(buffer1)
+    data = self.request.recv(1024)
+</pre></div>
+
+
+<p>其中 t = SMB2TreeData(Data="C"*1500) 是关键点，源码中发送了 1500 个 “C” ，head 长度为 80，所以packet1 总长度为 1580。经过测试，只要数据包超过 0x400(即十进制的1024) 便会触发漏洞，减去 head 长度，data 长度只要大于 945 便会引发蓝屏。</p>
+<p><strong><em>总结</em></strong></p>
+<p>目前还未提供针对此漏洞的补丁，建议用户暂时在防火墙处阻止TCP 端口 139 和 445，通过阻止入站和出站 SMB 流量，保护位于防火墙后面的系统防范此漏洞攻击造成的安全风险。</p>
         <hr />
         <p>作者:JenI&#160; &#160; &#160; &#160;转载请注明出处，谢谢</p>
     </article>
@@ -200,8 +164,8 @@ grub-mkconfig -o /boot/grub/grub.cfg
             <div id="disqus_thread"></div>
             <script type="text/javascript">
                 var disqus_shortname = 'jenihk';
-                var disqus_identifier = 'repairguide.html';
-                var disqus_url = 'https://jenihk.github.io/repairguide.html';
+                var disqus_identifier = 'security/windows-smbv3.html';
+                var disqus_url = 'https://jenihk.github.io/security/windows-smbv3.html';
                 (function() {
                     var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
                     dsq.src = '//jenihk.disqus.com/embed.js';

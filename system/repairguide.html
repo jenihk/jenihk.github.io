@@ -40,6 +40,7 @@
 
 
 
+        <meta name="tags" contents="系统，引导" />
 
 
 			<meta property="og:locale" content="zh">
@@ -47,11 +48,11 @@
 
 	<meta property="og:type" content="article">
 	<meta property="article:author" content="">
-	<meta property="og:url" content="https://jenihk.github.io/tools-sign.html">
-	<meta property="og:title" content="T00ls 微信公众号自动签到脚本">
-	<meta property="og:description" content="">
-	<meta property="og:image" content="https://jenihk.github.io/">
-	<meta property="article:published_time" content="2016-12-05 00:00:00+08:00">
+	<meta property="og:url" content="https://jenihk.github.io/system/repairguide.html">
+	<meta property="og:title" content="grub rescue> 终端模式修复方法">
+	<meta property="og:description" content="解决分区发生变化时grub引导问题">
+	<meta property="og:image" content="https://jenihk.github.io/theme/images/posts/repairguide/cover.png">
+	<meta property="article:published_time" content="2016-10-21 00:00:00+08:00">
 </head>
 
 <body style="background-color: #f8f8f8">
@@ -85,15 +86,16 @@
     </nav>
 
     <!-- Page Header -->
-        <header class="intro-header" style="background-image: url('https://jenihk.github.io/theme/images/post-bg.jpg')">
+        <header class="intro-header" style="background-image: url('theme/images/posts/repairguide/cover.png')">
         <div class="container">
             <div class="row">
                 <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
                     <div class="post-heading">
-                        <h1>T00ls 微信公众号自动签到脚本</h1>
+                        <h1>grub rescue> 终端模式修复方法</h1>
+                            <h3 class="subheading">解决分区发生变化时grub引导问题</h3>
                         <span class="meta">Posted by
                                 <a href="https://jenihk.github.io/author/jeni.html">JenI</a>
-                             on 2016-12-05 00:00:00+08:00
+                             on 2016-10-21 00:00:00+08:00
                         </span>
                         
                     </div>
@@ -109,66 +111,84 @@
     <!-- Post Content -->
     <article style="background-color: #f8f8f8;position: relative;">
         <p><strong><em>前言</em></strong></p>
-<p>T00ls是当前国内为数不多的民间网络信息安全研究团队之一。作为专业的安全技术交流平台，无数安全爱好者在T00ls网上发表技术文章，这对信息安全的发展起着至关重要的作用，同时对于我们刚刚接触安全行业的人来说，更是学习安全知识，提升自我能力的宝地。然而T00ls的注册并不像其他论坛那样容易。官网提供的注册方法是提交自己的安全作品，作品只接受各大知名厂商（互联网公司、安全公司、大型企业网站）安全漏洞（含注入、跨站、代码执行等等）或者自己独立原创的安全文章、攻防思路，而且每天只限10个申请名额。这对于我们菜鸟来说存在一定难度，一是写出的文章未必满足 T00ls 的要求，二是未必能抢到每天的申请名额。所以 T00ls 网为了照顾新手，特意开通了微信公众号签到功能，规定连续签到90天的用户可以获得 T00ls 邀请码，但是，连续签到也不是个容易事，说不定哪天给忘了，那之前的努力就白费了，所以我写了个简单的脚本，放到服务器上后台运行，实现每天自动签到并抽奖。</p>
-<p><strong><em>脚本</em></strong></p>
-<p>使用这个脚本需要在服务器上先安装几个相关的库或依赖，首先使用 xshell 或者 putty 等软件远程 ssh 连接服务器（centos），然后执行
+<p>由于之前电脑系统都是自己分区自己装的，所以并没有单独给windows系统预留出winRE分区，毕竟这个实在不太常用，系统出了问题还不如进PE来的实在．结果这次微软推送windows 10一周年更新，果然毫不犹豫的从最后一个ntfs分区内强行分了一个winRE分区出来，这对windows倒是没什么影响，但这多出来的一个分区改变了我原本硬盘的分区方式，原来的分区号都向后推了一位，第8个分区变成了第9个分区，导致我的另一个系统引导出现错误，引导软件找不到linux的根目录．
 <pre>
-yum install gcc python-devel zlib-devel libjpeg-turbo-devel.x86_64
-#pip的默认源速度慢得让人想死，这里推荐使用清华大学的pypi源
-pip install -i https://pypi.tuna.tsinghua.edu.cn/simple --upgrade pip
-pip install -i https://pypi.tuna.tsinghua.edu.cn/simple itchat
-pip install -i https://pypi.tuna.tsinghua.edu.cn/simple pillow
+/dev/sda4         346904576    348596223     1691648     826M Windows 恢复环境
+/dev/sda7        1607491584   1674600447    67108864      32G Linux root (x86-64)
+/dev/sda8        1674600448   1682989055     8388608       4G Linux swap
+/dev/sda9        1682989056   1953525134   270536079     129G Linux home
 </pre></p>
-<p>环境部署完成后，创建一个 .py 脚本文件，名字随意，如：sign.py ，脚本内容如下：
+<p>对于这种情况，不同的引导软件有不同的修复方式</p>
+<p><strong><em>systemd-boot(针对arch)</em></strong></p>
+<p>开机调u盘启动，进入livecd，挂载分区，并chroot到硬盘系统
 <pre>
-# -*- coding=utf-8 -*-</p>
-<p>"""
-@author: JenI<br>
-@time: 2016-12-05 
-"""</p>
-<p>import time
-import itchat
-import threading</p>
-<p># define the sign function , sign in daily 00:00 - 00:01
-def sign():
-    today = int(time.strftime('%y%m%d', time.localtime(time.time())))
-    while True:
-        if today == int(time.strftime('%y%m%d', time.localtime(time.time()))):
-            time.sleep(60)
-        else:
-            try:
-                itchat.send(msg='3',toUserName='T00lsNet')
-                time.sleep(3)
-                itchat.send(msg='4',toUserName='T00lsNet')
-                today = int(time.strftime('%y%m%d', time.localtime(time.time())))
-            except Exception,e:
-                print('Error : '+ str(e))</p>
-<p># login the wechat by scan QR code
-itchat.auto_login(enableCmdQR=True)
-t = threading.Thread(target=sign)
-t.setDaemon(True)
-t.start()
-itchat.run()
+mount /dev/sda7 /mnt
+mount /dev/sda1 /mnt/boot
+arch-chroot /mnt /bin/bash
 </pre></p>
-<p>但是如果直接执行上边的脚本，等我们断掉和服务器的远程连接时，脚本也就被停了，而我们的目的是脚本持续在后台运行，达到每天签到的目的，所以需要把该脚本转到后台执行。</p>
-<p>让进程在后台运行的方法有很多，nohup、setsid、disown、screen等，这里使用一个 shell 的小技巧，在命令结尾加一个 &amp; 符就可以了。创建一个 start.sh 文件，内容如下：
+<p>修改/boot/loader/entries/arch.conf为
 <pre>
-python sign.py &amp;
+title      Arch Linux
+linux      /vmlinuz-linux
+initrd     /initramfs-linux.img
+options      root=/dev/sda7 rw    #原来是sda6，现在改为sda7
 </pre></p>
-<p>赋予 start.sh 文件执行权限并执行脚本
+<p>其中/dev/sda7也可以改为第7快硬盘的UUID,reboot重启即可进入</p>
+<p><strong><em>syslinux</em></strong></p>
+<p>依然是u启进livecd，挂分区，chroot,然后修改/boot/syslinux/syslinux.cfg
 <pre>
-chmod +x start.sh
-./start.sh
+LABEL arch
+    MENU LABEL Arch Linux
+    LINUX ../vmlinuz-linux
+    APPEND root=/dev/sdb7 rw
+    INITRD ../initramfs-linux.img</p>
+<p>LABEL archfallback
+    MENU LABEL Arch Linux Fallback
+    LINUX ../vmlinuz-linux
+    APPEND root=/dev/sdb7 rw
+    INITRD ../initramfs-linux-fallback.img
 </pre></p>
-<p>由于我的服务器没有安装图形界面，所以我将登陆所需要的二维码以命令行方式显示，手机扫码登陆后直接关掉 xshell 或 putty 等连接软件即可。</p>
-<p><strong><em>注意</em></strong></p>
-<ul>
-<li>请确保登陆的微信的公众号中存在 T00ls ，微信ID为 T00lsNet</li>
-<li>itchat 为一个开源的微信个人号API，使用它登录后手机会显示已在网页版登陆。也就是说使用这个脚本后相当于一直持续登陆网页版微信，这就会带来一个问题，当再使用客户端或网页版微信时会顶掉脚本的登陆状态，脚本就会被停掉。为了避免这种事情发生。我建议使用另一个一般不在电脑登陆的微信号（新注册一个或使用家人朋友的）</li>
-</ul>
-<p><strong><em>其他</em></strong></p>
-<p>关于 itchat ，可能仅仅几行代码，就可以完成一个能够处理所有信息的微信机器人，当然，它还有更多有趣的用法。如果你想了解更多，请查看它最新的帮助文档</p>
-<p><a href="http://itchat.readthedocs.io/zh/latest/">itchat 使用手册</a></p>
+<p>修改完重启</p>
+<p><strong><em>grub</em></strong></p>
+<p>接下来就是本篇博文的关键内容了，因为现在大部分Linux发行版本默认以grub作为引导软件，所以着重记录一下grub下引导问题的修复问题</p>
+<p>当开机系统找不到grub路径或grub的配置文件出现问题时，会自动进入grub救援模式，也就是屏幕会出现下列信息
+<pre>
+error: file '/boot/grub/i386-pc/normal.mod' not found.
+Entering rescue mode...
+grub rescue&gt;
+</pre></p>
+<p>此时的救援模式并非平时使用的shell终端,在这里可以执行的命令很有限，仅有
+<pre>
+set,ls,insmod,root,prefix等
+</pre></p>
+<p>首先使用ls命令，该命令会列出所有的磁盘信息
+<pre>
+grub rescue&gt;ls
+ (hd0),(hd0,msdos4),(hd0,msdos2),(hd0,msdos9),(hd0,msdos7),(hd0,msdos5),(hd0,msdos3),(hd0,msdos1),(hd0,msdos8),(hd0,msdos6)
+</pre></p>
+<p>依次替换msdos1位置的数字以查看每个磁盘下的文件，当显示文件则说明linux安装在这个分区
+<pre>
+grub rescue&gt;ls(hd0,msdos1)/boot/grub
+</pre></p>
+<p>假设linux系统被装在了(hd0,msdos7)上，使用下列命令找回丢失的grub菜单
+<pre>
+grub rescue&gt;set root=(hd0,msdos7)
+grub rescue&gt;set prefix=(hd0,msdos7)/boot/grub
+grub rescue&gt;insmod /boot/grub/normal.mod
+</pre></p>
+<p>使用以下命令显示grub菜单
+<pre>
+grub rescue&gt;normal
+</pre></p>
+<p>这时应该就进入grub菜单项了，选中linux系统，摁e键临时编辑grub配置文件，我以kali为例</p>
+<p><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/grub/grub.png" style="text-align:center" alt="grub" /></p>
+<p>将上图中(hd0,msdos1)替换为自己的linux所在分区(hd0,msdos7),然后ctrl+x就可以进入系统了，但这只是临时的，当电脑重启，问题依然存在，所以要重新安装grub并修改配置文件
+<pre>
+sudo update-grub
+grub-install --target=i386-pc /dev/sda
+grub-mkconfig -o /boot/grub/grub.cfg
+</pre></p>
+<p>这样问题就解决了，当然，具体到不同的环境修复方法或多或少会有些不同，但基本命令熟悉了之后再遇到这种问题随机应变就可以了</p>
         <hr />
         <p>作者:JenI&#160; &#160; &#160; &#160;转载请注明出处，谢谢</p>
     </article>
@@ -180,8 +200,8 @@ chmod +x start.sh
             <div id="disqus_thread"></div>
             <script type="text/javascript">
                 var disqus_shortname = 'jenihk';
-                var disqus_identifier = 'tools-sign.html';
-                var disqus_url = 'https://jenihk.github.io/tools-sign.html';
+                var disqus_identifier = 'system/repairguide.html';
+                var disqus_url = 'https://jenihk.github.io/system/repairguide.html';
                 (function() {
                     var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
                     dsq.src = '//jenihk.disqus.com/embed.js';

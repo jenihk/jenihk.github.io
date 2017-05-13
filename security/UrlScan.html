@@ -47,7 +47,7 @@
 
 	<meta property="og:type" content="article">
 	<meta property="article:author" content="">
-	<meta property="og:url" content="https://jenihk.github.io/UrlScan.html">
+	<meta property="og:url" content="https://jenihk.github.io/security/UrlScan.html">
 	<meta property="og:title" content="Python 学习之 Url爆破">
 	<meta property="og:description" content="使用Python实现一个简单的网站敏感目录扫描工具">
 	<meta property="og:image" content="https://jenihk.github.io/theme/images/posts/urlscan/cover.png">
@@ -244,7 +244,7 @@ def ScanUrl(url):
 </pre></p>
 <p>这时在遇到重定向的网页时就会直接跳过，而不会再把所有页面都视作存在了。</p>
 <p>脚本效果如下：</p>
-<p><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/scan.png" style="text-align:center" alt="scan" /></p>
+<p><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/urlscan/scan.png" style="text-align:center" alt="scan" /></p>
 <p>现在效果已经出来了，但是还有一个问题，现在的脚本在执行时是单线程，速度太慢了，如果可以改成多线程肯定可以节省很多时间。多线程的话要再引入一个 threading 模块
 <pre>
 import threading
@@ -328,8 +328,8 @@ import threading</p>
             <div id="disqus_thread"></div>
             <script type="text/javascript">
                 var disqus_shortname = 'jenihk';
-                var disqus_identifier = 'UrlScan.html';
-                var disqus_url = 'https://jenihk.github.io/UrlScan.html';
+                var disqus_identifier = 'security/UrlScan.html';
+                var disqus_url = 'https://jenihk.github.io/security/UrlScan.html';
                 (function() {
                     var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
                     dsq.src = '//jenihk.disqus.com/embed.js';

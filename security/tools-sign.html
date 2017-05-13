@@ -47,11 +47,11 @@
 
 	<meta property="og:type" content="article">
 	<meta property="article:author" content="">
-	<meta property="og:url" content="https://jenihk.github.io/windows-smbv3.html">
-	<meta property="og:title" content="Windows SMBv3 远程拒绝服务(BSOD)漏洞">
+	<meta property="og:url" content="https://jenihk.github.io/security/tools-sign.html">
+	<meta property="og:title" content="T00ls 微信公众号自动签到脚本">
 	<meta property="og:description" content="">
-	<meta property="og:image" content="https://jenihk.github.io/theme/images/posts/windows-smbv3/win10die.png">
-	<meta property="article:published_time" content="2017-02-14 00:00:00+08:00">
+	<meta property="og:image" content="https://jenihk.github.io/">
+	<meta property="article:published_time" content="2016-12-05 00:00:00+08:00">
 </head>
 
 <body style="background-color: #f8f8f8">
@@ -85,15 +85,15 @@
     </nav>
 
     <!-- Page Header -->
-        <header class="intro-header" style="background-image: url('theme/images/posts/windows-smbv3/win10die.png')">
+        <header class="intro-header" style="background-image: url('https://jenihk.github.io/theme/images/post-bg.jpg')">
         <div class="container">
             <div class="row">
                 <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
                     <div class="post-heading">
-                        <h1>Windows SMBv3 远程拒绝服务(BSOD)漏洞</h1>
+                        <h1>T00ls 微信公众号自动签到脚本</h1>
                         <span class="meta">Posted by
                                 <a href="https://jenihk.github.io/author/jeni.html">JenI</a>
-                             on 2017-02-14 00:00:00+08:00
+                             on 2016-12-05 00:00:00+08:00
                         </span>
                         
                     </div>
@@ -109,50 +109,66 @@
     <!-- Post Content -->
     <article style="background-color: #f8f8f8;position: relative;">
         <p><strong><em>前言</em></strong></p>
-<p>这个 SMBv3 漏洞是由 lgandx 爆出的一个未被微软修复的漏洞（暂未发布补丁），此漏洞主要影响 Windows Server 2012/2016、Win8/8.1 以及 Win10 系统。攻击者可以模拟成一个 SMB 服务器，诱使客户端发起 SMB 请求来触发漏洞；攻击者也可以通过中间人方式“毒化” SMB 回应，插入恶意的SMB回复实现拒绝服务或控制受害系统。</p>
-<p><strong><em>漏洞原理</em></strong></p>
-<p>由于 Windows 处理 SMB 协议驱动 mrxsmb20.sys 在解析 Tree Connect Response 时，没有对包的大小做正确处理而导致的空指针引用。当 Tree Connect Response 包中 SMB 协议长度大于 1024时(实际上大于945便会触发漏洞)，会导致系统蓝屏重启。</p>
-<p>网上给出了针对这个漏洞详细的分析</p>
-<p>链接：<a href="http://paper.seebug.org/215/?utm_source=tuicool&amp;utm_medium=referral">漏洞分析</a></p>
-<p><strong><em>漏洞复现</em></strong></p>
-<p>环境：</p>
-<div class="highlight"><pre><span></span>两台虚拟机网络同属于 vmnet9
-虚拟机1：archlinux 192.168.1.1
-虚拟机2：Win10 x64 192.168.1.2
-</pre></div>
-
-
-<p>首先将 linux 模拟成一台 SMB 服务器，下载该漏洞的 POC</p>
-<p><a href="https://github.com/lgandx/PoC/tree/master/SMBv3%20Tree%20Connect">Github地址</a></p>
-<p>将下载下来的 Win10.py 和 odict.py 两个文件同时存在放 Linux 系统中。这里之所以不使用  windows 系统是因为 windows 系统默认监听了 445 端口，这种情况下 poc 会产生一个 socket 错误，手动关闭 445 端口的监听是个办法，但不如直接使用 Linux 系统方便。</p>
-<p>运行脚本后，Linux 这台虚拟机便被模拟成一台 SMB 服务器。</p>
-<div class="highlight"><pre><span></span>python2 Win10.py
-</pre></div>
-
-
-<p>使用 Win10 访问 SMB 服务器</p>
-<p><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/win10unc.png" alt="win10unc" /></p>
-<p>触发漏洞，Win10 蓝屏崩溃</p>
-<p><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/win10die.png" alt="win10die" /></p>
-<p>此时模拟的 SMB 服务器状态</p>
-<p><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/win10py.png" alt="win10py" /></p>
-<p><strong><em>POC分析</em></strong></p>
-<p>Win10.py 文件 408 到 416 行代码如下</p>
-<div class="highlight"><pre><span></span>## Tree Connect
-if data[16:18] == &quot;\x03\x00&quot;:
-    head = SMBv2Header(Cmd=&quot;\x03\x00&quot;, MessageId=GrabMessageID(data), PID=&quot;\xff\xfe\x00\x00&quot;, TID=&quot;\x01\x00\x00\x00&quot;, CreditCharge=GrabCreditCharged(data), Credits=GrabCreditRequested(data), NTStatus=&quot;\x00\x00\x00\x00&quot;, SessionID=GrabSessionID(data))
-    t = SMB2TreeData(Data=&quot;C&quot;*1500)#//BUG &lt;============这里控制数据长度
-    packet1 = str(head)+str(t)
-    buffer1 = longueur(packet1)+packet1
-    print &quot;[*]Triggering Bug; Tree Connect SMBv2 packet sent.&quot;
-    self.request.send(buffer1)
-    data = self.request.recv(1024)
-</pre></div>
-
-
-<p>其中 t = SMB2TreeData(Data="C"*1500) 是关键点，源码中发送了 1500 个 “C” ，head 长度为 80，所以packet1 总长度为 1580。经过测试，只要数据包超过 0x400(即十进制的1024) 便会触发漏洞，减去 head 长度，data 长度只要大于 945 便会引发蓝屏。</p>
-<p><strong><em>总结</em></strong></p>
-<p>目前还未提供针对此漏洞的补丁，建议用户暂时在防火墙处阻止TCP 端口 139 和 445，通过阻止入站和出站 SMB 流量，保护位于防火墙后面的系统防范此漏洞攻击造成的安全风险。</p>
+<p>T00ls是当前国内为数不多的民间网络信息安全研究团队之一。作为专业的安全技术交流平台，无数安全爱好者在T00ls网上发表技术文章，这对信息安全的发展起着至关重要的作用，同时对于我们刚刚接触安全行业的人来说，更是学习安全知识，提升自我能力的宝地。然而T00ls的注册并不像其他论坛那样容易。官网提供的注册方法是提交自己的安全作品，作品只接受各大知名厂商（互联网公司、安全公司、大型企业网站）安全漏洞（含注入、跨站、代码执行等等）或者自己独立原创的安全文章、攻防思路，而且每天只限10个申请名额。这对于我们菜鸟来说存在一定难度，一是写出的文章未必满足 T00ls 的要求，二是未必能抢到每天的申请名额。所以 T00ls 网为了照顾新手，特意开通了微信公众号签到功能，规定连续签到90天的用户可以获得 T00ls 邀请码，但是，连续签到也不是个容易事，说不定哪天给忘了，那之前的努力就白费了，所以我写了个简单的脚本，放到服务器上后台运行，实现每天自动签到并抽奖。</p>
+<p><strong><em>脚本</em></strong></p>
+<p>使用这个脚本需要在服务器上先安装几个相关的库或依赖，首先使用 xshell 或者 putty 等软件远程 ssh 连接服务器（centos），然后执行
+<pre>
+yum install gcc python-devel zlib-devel libjpeg-turbo-devel.x86_64
+#pip的默认源速度慢得让人想死，这里推荐使用清华大学的pypi源
+pip install -i https://pypi.tuna.tsinghua.edu.cn/simple --upgrade pip
+pip install -i https://pypi.tuna.tsinghua.edu.cn/simple itchat
+pip install -i https://pypi.tuna.tsinghua.edu.cn/simple pillow
+</pre></p>
+<p>环境部署完成后，创建一个 .py 脚本文件，名字随意，如：sign.py ，脚本内容如下：
+<pre>
+# -*- coding=utf-8 -*-</p>
+<p>"""
+@author: JenI<br>
+@time: 2016-12-05 
+"""</p>
+<p>import time
+import itchat
+import threading</p>
+<p># define the sign function , sign in daily 00:00 - 00:01
+def sign():
+    today = int(time.strftime('%y%m%d', time.localtime(time.time())))
+    while True:
+        if today == int(time.strftime('%y%m%d', time.localtime(time.time()))):
+            time.sleep(60)
+        else:
+            try:
+                itchat.send(msg='3',toUserName='T00lsNet')
+                time.sleep(3)
+                itchat.send(msg='4',toUserName='T00lsNet')
+                today = int(time.strftime('%y%m%d', time.localtime(time.time())))
+            except Exception,e:
+                print('Error : '+ str(e))</p>
+<p># login the wechat by scan QR code
+itchat.auto_login(enableCmdQR=True)
+t = threading.Thread(target=sign)
+t.setDaemon(True)
+t.start()
+itchat.run()
+</pre></p>
+<p>但是如果直接执行上边的脚本，等我们断掉和服务器的远程连接时，脚本也就被停了，而我们的目的是脚本持续在后台运行，达到每天签到的目的，所以需要把该脚本转到后台执行。</p>
+<p>让进程在后台运行的方法有很多，nohup、setsid、disown、screen等，这里使用一个 shell 的小技巧，在命令结尾加一个 &amp; 符就可以了。创建一个 start.sh 文件，内容如下：
+<pre>
+python sign.py &amp;
+</pre></p>
+<p>赋予 start.sh 文件执行权限并执行脚本
+<pre>
+chmod +x start.sh
+./start.sh
+</pre></p>
+<p>由于我的服务器没有安装图形界面，所以我将登陆所需要的二维码以命令行方式显示，手机扫码登陆后直接关掉 xshell 或 putty 等连接软件即可。</p>
+<p><strong><em>注意</em></strong></p>
+<ul>
+<li>请确保登陆的微信的公众号中存在 T00ls ，微信ID为 T00lsNet</li>
+<li>itchat 为一个开源的微信个人号API，使用它登录后手机会显示已在网页版登陆。也就是说使用这个脚本后相当于一直持续登陆网页版微信，这就会带来一个问题，当再使用客户端或网页版微信时会顶掉脚本的登陆状态，脚本就会被停掉。为了避免这种事情发生。我建议使用另一个一般不在电脑登陆的微信号（新注册一个或使用家人朋友的）</li>
+</ul>
+<p><strong><em>其他</em></strong></p>
+<p>关于 itchat ，可能仅仅几行代码，就可以完成一个能够处理所有信息的微信机器人，当然，它还有更多有趣的用法。如果你想了解更多，请查看它最新的帮助文档</p>
+<p><a href="http://itchat.readthedocs.io/zh/latest/">itchat 使用手册</a></p>
         <hr />
         <p>作者:JenI&#160; &#160; &#160; &#160;转载请注明出处，谢谢</p>
     </article>
@@ -164,8 +180,8 @@ if data[16:18] == &quot;\x03\x00&quot;:
             <div id="disqus_thread"></div>
             <script type="text/javascript">
                 var disqus_shortname = 'jenihk';
-                var disqus_identifier = 'windows-smbv3.html';
-                var disqus_url = 'https://jenihk.github.io/windows-smbv3.html';
+                var disqus_identifier = 'security/tools-sign.html';
+                var disqus_url = 'https://jenihk.github.io/security/tools-sign.html';
                 (function() {
                     var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
                     dsq.src = '//jenihk.disqus.com/embed.js';
