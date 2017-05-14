@@ -118,11 +118,13 @@
 <ul>
 <li>首先正常访问一个使用 Jakarta 的 Apache Struts2 应用</li>
 </ul>
-<p><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/struts2/s2-045-1.png" alt="s2-045-1" /></p>
+<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/struts2/s2-045-1.png" alt="s2-045-1" /></div>
+
 <ul>
 <li>再次访问时抓取请求数据包</li>
 </ul>
-<p><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/struts2/s2-045-2.png" alt="s2-045-2" /></p>
+<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/struts2/s2-045-2.png" alt="s2-045-2" /></div>
+
 <ul>
 <li>修改 header 头，将 Content-Type 赋值为以下内容：</li>
 </ul>
@@ -130,11 +132,13 @@
 </pre></div>
 
 
-<p><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/struts2/s2-045-3.png" alt="s2-045-3" /></p>
+<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/struts2/s2-045-3.png" alt="s2-045-3" /></div>
+
 <ul>
 <li>将数据包重新发出，此时页面回显了 ifconfig 命令的执行结果，说明命令成功被执行。</li>
 </ul>
-<p><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/struts2/s2-045-4.png" alt="s2-045-4" /></p>
+<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/struts2/s2-045-4.png" alt="s2-045-4" /></div>
+
 <p><strong><em>版本对比</em></strong></p>
 <p>通过对比存在漏洞版本和新版本，发现新版本更新了三个文件：
 <pre>
@@ -176,7 +180,8 @@ return request;
 
 
 <p>其中content_type.contains("multipart/form-data"))一句对内容的类型进行了判断，而poc中对应的#nike='multipart/form-data'便是对内容类型的一个定义，是为了让if语句为真,为真时执行：MultiPartRequest mpr = getMultiPartRequest();其中getMultiPartRequest()是关键，它内部的struts.multipart.parser属性默认值为jakarta。</p>
-<p><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/struts2/s2-045-5.png" alt="s2-045-5" /></p>
+<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/struts2/s2-045-5.png" alt="s2-045-5" /></div>
+
 <p>因此当有上传操作时，会默认使用 jakarta 作为文件上传解析器。再回顾存在漏洞的版本，当我们构造恶意请求数据包时，引发封装过程异常，e.getMessage() 为默认的 "the request doesn't contain a multipart/form-data or multipart/mixed stream, content type header is" + content-type，此时 http 请求头 content-type 中的{}内部引入的指令被执行。从而触发漏洞。</p>
 <p><strong><em>漏洞POC</em></strong></p>
 <div class="highlight"><pre><span></span><span class="c1"># -*- coding:utf-8 -*-</span>

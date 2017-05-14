@@ -181,7 +181,8 @@ grub rescue&gt;insmod /boot/grub/normal.mod
 grub rescue&gt;normal
 </pre></p>
 <p>这时应该就进入grub菜单项了，选中linux系统，摁e键临时编辑grub配置文件，我以kali为例</p>
-<p><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/grub/grub.png" style="text-align:center" alt="grub" /></p>
+<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/grub/grub.png" alt="grub" /></div>
+
 <p>将上图中(hd0,msdos1)替换为自己的linux所在分区(hd0,msdos7),然后ctrl+x就可以进入系统了，但这只是临时的，当电脑重启，问题依然存在，所以要重新安装grub并修改配置文件
 <pre>
 sudo update-grub

