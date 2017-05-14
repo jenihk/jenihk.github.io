@@ -5,41 +5,41 @@ xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 
 <url>
 <loc>https://jenihk.github.io/</loc>
-<lastmod>2017-05-14T00:17:22-00:00</lastmod>
+<lastmod>2017-05-14T00:24:20-00:00</lastmod>
 <changefreq>daily</changefreq>
 <priority>0.5</priority>
 </url>
 
 <url>
 <loc>https://jenihk.github.io/archives.html</loc>
-<lastmod>2017-05-14T00:17:22-00:00</lastmod>
+<lastmod>2017-05-14T00:24:20-00:00</lastmod>
 <changefreq>daily</changefreq>
 <priority>0.5</priority>
 </url>
 
 <url>
 <loc>https://jenihk.github.io/tags.html</loc>
-<lastmod>2017-05-14T00:17:22-00:00</lastmod>
+<lastmod>2017-05-14T00:24:20-00:00</lastmod>
 <changefreq>daily</changefreq>
 <priority>0.5</priority>
 </url>
 
 <url>
 <loc>https://jenihk.github.io/categories.html</loc>
-<lastmod>2017-05-14T00:17:22-00:00</lastmod>
+<lastmod>2017-05-14T00:24:20-00:00</lastmod>
 <changefreq>daily</changefreq>
 <priority>0.5</priority>
 </url>
 
 <url>
-<loc>https://jenihk.github.io/struts2-s2-046.html</loc>
+<loc>https://jenihk.github.io/security/struts2-s2-046.html</loc>
 <lastmod>2017-03-21T00:00:00+08:00</lastmod>
 <changefreq>monthly</changefreq>
 <priority>0.7</priority>
 </url>
 
 <url>
-<loc>https://jenihk.github.io/struts2-s2-045.html</loc>
+<loc>https://jenihk.github.io/security/struts2-s2-045.html</loc>
 <lastmod>2017-03-07T00:00:00+08:00</lastmod>
 <changefreq>monthly</changefreq>
 <priority>0.7</priority>
