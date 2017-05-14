@@ -179,46 +179,7 @@ return request;
 <p><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/struts2/s2-045-5.png" alt="s2-045-5" /></p>
 <p>因此当有上传操作时，会默认使用 jakarta 作为文件上传解析器。再回顾存在漏洞的版本，当我们构造恶意请求数据包时，引发封装过程异常，e.getMessage() 为默认的 "the request doesn't contain a multipart/form-data or multipart/mixed stream, content type header is" + content-type，此时 http 请求头 content-type 中的{}内部引入的指令被执行。从而触发漏洞。</p>
 <p><strong><em>漏洞POC</em></strong></p>
-<table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
- 2
- 3
- 4
- 5
- 6
- 7
- 8
- 9
-10
-11
-12
-13
-14
-15
-16
-17
-18
-19
-20
-21
-22
-23
-24
-25
-26
-27
-28
-29
-30
-31
-32
-33
-34
-35
-36
-37
-38
-39</pre></div></td><td class="code"><div class="highlight"><pre><span></span><span class="ch">#! /usr/bin/env python</span>
-<span class="c1"># encoding:utf-8</span>
+<div class="highlight"><pre><span></span><span class="c1"># -*- coding:utf-8 -*-</span>
 
 <span class="kn">import</span> <span class="nn">urllib2</span>
 <span class="kn">import</span> <span class="nn">sys</span><span class="o">,</span><span class="nn">os</span>
@@ -257,7 +218,6 @@ return request;
 <span class="k">if</span> <span class="vm">__name__</span><span class="o">==</span><span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
     <span class="n">main</span><span class="p">()</span>
 </pre></div>
-</td></tr></table>
         <hr />
         <p>作者:JenI&#160; &#160; &#160; &#160;转载请注明出处，谢谢</p>
     </article>
