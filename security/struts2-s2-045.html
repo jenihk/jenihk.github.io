@@ -136,12 +136,12 @@
 </ul>
 <p><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/struts2/s2-045-4.png" alt="s2-045-4" /></p>
 <p><strong><em>版本对比</em></strong></p>
-<p>通过对比存在漏洞版本和新版本，发现新版本更新了三个文件：</p>
-<ol>
-<li>/core/src/main/java/org/apache/struts2/dispatcher/multipart/MultiPartRequestWrapper.java  </li>
-<li>/core/src/main/java/org/apache/struts2/dispatcher/multipart/JakartaMultiPartRequest.java  </li>
-<li>/core/src/main/java/org/apache/struts2/dispatcher/multipart/JakartaStreamMultiPartRequest.java</li>
-</ol>
+<p>通过对比存在漏洞版本和新版本，发现新版本更新了三个文件：
+<pre>
+/core/src/main/java/org/apache/struts2/dispatcher/multipart/MultiPartRequestWrapper.java<br>
+/core/src/main/java/org/apache/struts2/dispatcher/multipart/JakartaMultiPartRequest.java<br>
+/core/src/main/java/org/apache/struts2/dispatcher/multipart/JakartaStreamMultiPartRequest.java
+</pre></p>
 <p>三个文件内更新的内容一致，都是对用户报错行为加了判断条件</p>
 <p>存在漏洞版本：</p>
 <div class="highlight"><pre><span></span>return LocalizedTextUtil.findText(this.getClass(), errorKey, defaultLocale, e.getMessage(), args);
