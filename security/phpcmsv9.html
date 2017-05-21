@@ -123,7 +123,7 @@
 <p>通过源码可知，swfupload_json() 函数首先以 get 方式接收传入的参数，将 aid、src、filename 等参数经 json 编码后设置为 cookie 的值，而 cookie 的键则为 system.php 文件中 cookie_pre 与 json_str 拼接后的内容。键值对经 set_cookie() 函数编码后作为 cookie 的值。其中关键的地点在 $arr['src'] = safe_replace(trim($_GET['src'])); 一句，这里使用 safe_replace 函数对 src 参数传入内容进行处理，我们看下 safe_replace 函数的定义。</p>
 <div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/phpcms/phpcms-3.png" alt="phpcms-3" /></div>
 
-<p>可以看到 safe_replace 函数对字符串中的特殊字符进行了替换删除操作，但是由于该函数只执行了一次，所以只需对 payload 进行适当的改变就可以绕过过滤，举例来说，假设，我们传入的 payload 为 %27and%20，经过 safe_replace 函数处理后，传入数据库的内容为 and%20，%27 被删除了，但假如我们将 payload 改写为% *27an<em>d%20，经 safe_replace 函数处理一次后，删除了其中的</em>，传入数据库的内容就变为了 %27and%20，这样就绕过了安全函数的过滤。
+<p>可以看到 safe_replace 函数对字符串中的特殊字符进行了替换删除操作，但是由于该函数只执行了一次，所以只需对 payload 进行适当的改变就可以绕过过滤，举例来说，假设，我们传入的 payload 为 %27and%20，经过 safe_replace 函数处理后，传入数据库的内容为 and%20，%27 被删除了，但假如我们将 payload 改写为% *27an*d%20，经 safe_replace 函数处理一次后，删除了其中的*，传入数据库的内容就变为了 %27and%20，这样就绕过了安全函数的过滤。
 到这里我们成功让 payload 绕过过滤，cookie 值成功传入到 set_cookie 函数中，下面为 set_cookie 函数定义:</p>
 <div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/phpcms/phpcms-4.png" alt="phpcms-4" /></div>
 
