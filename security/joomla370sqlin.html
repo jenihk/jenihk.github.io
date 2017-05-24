@@ -157,8 +157,11 @@
 <p>8.这里调用了父类的 populateState 方法，父类在 /libraries/legacy/model/list.php 文件中定义：</p>
 <div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/joomla/joomla370-11.png" alt="joomla370-11" /></div>
 
-<p>9.其中程序通过 $app-&gt;getUserStateFromRequest 获取一个 list，list 被赋值给 $list，这时再看我们的注入语句：
-/index.php?option=com_fields&amp;view=fields&amp;layout=modal&amp;list[fullordering]=updatexml(1,concat(0x3e,user()),0)  </p>
+<p>9.其中程序通过 $app-&gt;getUserStateFromRequest 获取一个 list，list 被赋值给 $list，这时再看我们的注入语句：</p>
+<div class="highlight"><pre><span></span>/index.php?option=com_fields&amp;view=fields&amp;layout=modal&amp;list[fullordering]=updatexml(1,concat(0x3e,user()),0)  
+</pre></div>
+
+
 <p>可以看到 list 中的 fullordering 被赋值为 updatexml(1,concat(0x3e,user()),0)，然后通过 2 提到的 getState 函数处理，最终经过 $db-&gt;escape 函数将内容传入到 $query-&gt;order 函数，与 order by 拼接后带入数据库，从而造成 SQL 注入。</p>
         <hr />
         <p>作者:JenI&#160; &#160; &#160; &#160;转载请注明出处，谢谢</p>
