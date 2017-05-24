@@ -112,10 +112,11 @@
         <p><strong><em>前言</em></strong></p>
 <p>Joomla! 是一套全球知名的内容管理系统，由 PHP 加上 MySQL 数据库所开发的软件系统。近日，Joomla! 3.7.0 Core 版本被发现存在 SQL 注入漏洞，漏洞出现在此版本新引入的 com_fields 组件，这个组件对访问者身份没有限制，也就是说任何人都可以访问到这个组件，并发起带有 SQL 注入语句的恶意请求。</p>
 <p>我使用了由 phithon 维护的一套开源漏洞靶场，在本地搭建了 joomla 3.7.0 版本环境，并下载了该版本的建站源码进行了简单的分析。</p>
-<ul>
-<li>漏洞靶场环境：https://github.com/phith0n/vulhub/tree/master/joomla/CVE-2017-8917</li>
-<li>建站源码下载：https://downloads.joomla.org/</li>
-</ul>
+<pre>
+漏洞靶场环境：https://github.com/phith0n/vulhub/tree/master/joomla/CVE-2017-8917
+建站源码下载：https://downloads.joomla.org/
+</pre>
+
 <p><strong><em>漏洞复现</em></strong></p>
 <p>首先搭建漏洞靶场环境。</p>
 <div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/joomla/joomla370-1.png" alt="joomla370-1" /></div>
