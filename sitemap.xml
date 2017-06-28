@@ -5,30 +5,37 @@ xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 
 <url>
 <loc>https://blog.jenisec.org/</loc>
-<lastmod>2017-06-22T08:52:34-00:00</lastmod>
+<lastmod>2017-06-28T14:37:15-00:00</lastmod>
 <changefreq>daily</changefreq>
 <priority>0.5</priority>
 </url>
 
 <url>
 <loc>https://blog.jenisec.org/archives.html</loc>
-<lastmod>2017-06-22T08:52:34-00:00</lastmod>
+<lastmod>2017-06-28T14:37:15-00:00</lastmod>
 <changefreq>daily</changefreq>
 <priority>0.5</priority>
 </url>
 
 <url>
 <loc>https://blog.jenisec.org/tags.html</loc>
-<lastmod>2017-06-22T08:52:34-00:00</lastmod>
+<lastmod>2017-06-28T14:37:15-00:00</lastmod>
 <changefreq>daily</changefreq>
 <priority>0.5</priority>
 </url>
 
 <url>
 <loc>https://blog.jenisec.org/categories.html</loc>
-<lastmod>2017-06-22T08:52:34-00:00</lastmod>
+<lastmod>2017-06-28T14:37:15-00:00</lastmod>
 <changefreq>daily</changefreq>
 <priority>0.5</priority>
+</url>
+
+<url>
+<loc>https://blog.jenisec.org/security/windows-link.html</loc>
+<lastmod>2017-06-17T00:00:00+08:00</lastmod>
+<changefreq>monthly</changefreq>
+<priority>0.7</priority>
 </url>
 
 <url>
@@ -173,7 +180,7 @@ xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 
 <url>
 <loc>https://blog.jenisec.org/category/an-quan.html</loc>
-<lastmod>2017-05-24T00:00:00+08:06</lastmod>
+<lastmod>2017-06-17T00:00:00+08:06</lastmod>
 <changefreq>daily</changefreq>
 <priority>0.5</priority>
 </url>
@@ -188,6 +195,13 @@ xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 <url>
 <loc>https://blog.jenisec.org/category/xi-tong.html</loc>
 <lastmod>2016-10-21T00:00:00+08:06</lastmod>
+<changefreq>daily</changefreq>
+<priority>0.5</priority>
+</url>
+
+<url>
+<loc>https://blog.jenisec.org/tag/windows.html</loc>
+<lastmod>2017-06-17T00:00:00+08:06</lastmod>
 <changefreq>daily</changefreq>
 <priority>0.5</priority>
 </url>
@@ -271,7 +285,7 @@ xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 
 <url>
 <loc>https://blog.jenisec.org/author/jeni.html</loc>
-<lastmod>2017-05-24T00:00:00+08:06</lastmod>
+<lastmod>2017-06-17T00:00:00+08:06</lastmod>
 <changefreq>daily</changefreq>
 <priority>0.5</priority>
 </url>

