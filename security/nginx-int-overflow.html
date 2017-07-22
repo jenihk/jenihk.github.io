@@ -254,7 +254,7 @@ nginx
                 <span class="n">l</span> <span class="o">+=</span> <span class="mi">50</span>
     <span class="k">return</span> <span class="n">info</span>
 
-<span class="k">if</span> <span class="vm">__name__</span><span class="o">==</span><span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+<span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">2</span><span class="p">:</span>
         <span class="k">print</span> <span class="s1">&#39;Usage: python run.py ip:port(default 80)&#39;</span>
     <span class="k">else</span><span class="p">:</span>
@@ -266,6 +266,9 @@ nginx
         <span class="k">except</span> <span class="ne">Exception</span><span class="p">,</span><span class="n">e</span><span class="p">:</span>
             <span class="k">print</span> <span class="s1">&#39;[-]Error: &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
             <span class="nb">exit</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+
+<span class="k">if</span> <span class="vm">__name__</span><span class="o">==</span><span class="s1">&#39;__main__&#39;</span><span class="p">::</span>
+    <span class="n">main</span><span class="p">()</span>
 </pre></div>
 
 
