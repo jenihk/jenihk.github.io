@@ -110,7 +110,7 @@
     <!-- Post Content -->
     <article style="background-color: #f8f8f8;position: relative;">
         <p><strong><em>前言</em></strong></p>
-<p>MetInfo 企业建站系统采用 PHP+Mysql 架构，是一款对 SEO 非常友好、功能全面、安全稳定、支持多终端展示并且使用起来极其简单的企业建站软件。用户可以在不需要任何编程的基础上，通过简单的设置和安装就能够在互联网搭建独立的企业网站，能够极大的降低企业建站成本。2017 年 08 月 01 日，metinfo 官方发布了新版本，修复了一个 SQL 注入漏洞。</p>
+<p>MetInfo 企业建站系统采用 PHP+Mysql 架构，是一款对SEO非常友好、功能全面、安全稳定、支持多终端展示并且使用起来极其简单的企业建站软件。用户可以在不需要任何编程的基础上，通过简单的设置和安装就能够在互联网搭建独立的企业网站，能够极大的降低企业建站成本。2017 年 08 月 01 日，metinfo 官方发布了新版本，修复了一个 SQL 注入漏洞。  </p>
 <p>我下载了 MetInfo5.3.5 版本的建站源码，对这个注入漏洞进行了简单的分析复现。</p>
 <p><strong><em>漏洞分析</em></strong></p>
 <p>漏洞出现在 /include/global.func.php 文件的 jump_pseudo 函数，函数部分源码如下：
