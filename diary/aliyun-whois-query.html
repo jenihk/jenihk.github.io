@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="zh">
+
+<head>
+            <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="description" content="">
+        <meta name="author" content="">
+
+        <title>JenI's Blog</title>
+
+        <link rel="icon" href="https://blog.jenisec.org/theme/images/favicon.ico" type="image/x-icon">  
+        <link rel="shortcut icon" href="https://blog.jenisec.org/theme/images/favicon.ico" type="image/x-icon">  
+
+
+        <link href="https://blog.jenisec.org/theme/css/iconfont.css" rel="stylesheet">
+
+        <!-- Bootstrap Core CSS -->
+        <link href="https://blog.jenisec.org/theme/css/bootstrap.min.css" rel="stylesheet">
+
+        <!-- Custom CSS -->
+        <link href="https://blog.jenisec.org/theme/css/clean-blog.min.css" rel="stylesheet">
+
+        <!-- Code highlight color scheme -->
+            <link href="https://blog.jenisec.org/theme/css/code_blocks/monokai.css" rel="stylesheet">
+
+        <!-- Custom Fonts -->
+        <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.1.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+        <link href='https://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+        <link href='https://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/css'>
+
+        <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+        <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+        <!--[if lt IE 9]>
+            <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+            <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+        <![endif]-->
+
+
+
+
+        <meta name="tags" contents="whois" />
+
+
+			<meta property="og:locale" content="zh">
+		<meta property="og:site_name" content="JenI's Blog">
+
+	<meta property="og:type" content="article">
+	<meta property="article:author" content="">
+	<meta property="og:url" content="https://blog.jenisec.org/diary/aliyun-whois-query.html">
+	<meta property="og:title" content="Aliyun API 签名算法的 Python 实现">
+	<meta property="og:description" content="">
+	<meta property="og:image" content="https://blog.jenisec.org/../theme/images/posts/aliyun/whois_cover.png">
+	<meta property="article:published_time" content="2017-10-11 00:00:00+08:00">
+</head>
+
+<body style="background-color: #f8f8f8">
+
+    <!-- Navigation -->
+    <nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+        <div class="container-fluid">
+            <!-- Brand and toggle get grouped for better mobile display -->
+            <div class="navbar-header page-scroll">
+                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <a class="navbar-brand" href="https://blog.jenisec.org/">JenI's Blog</a>
+            </div>
+
+            <!-- Collect the nav links, forms, and other content for toggling -->
+            <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+                <ul class="nav navbar-nav navbar-right">
+                        <li><a href="https://blog.jenisec.org/category/an-quan.html">安全</a></li>
+                        <li><a href="https://blog.jenisec.org/category/xi-tong.html">系统</a></li>
+                        <li><a href="https://blog.jenisec.org/category/ri-chang.html">日常</a></li>
+
+                </ul>
+            </div>
+            <!-- /.navbar-collapse -->
+        </div>
+        <!-- /.container -->
+    </nav>
+
+    <!-- Page Header -->
+        <header class="intro-header" style="background-image: url('../theme/images/posts/aliyun/whois_cover.png')">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                    <div class="post-heading">
+                        <h1>Aliyun API 签名算法的 Python 实现</h1>
+                        <span class="meta">Posted by
+                                <a href="https://blog.jenisec.org/author/jeni.html">JenI</a>
+                             on 2017-10-11 00:00:00+08:00
+                        </span>
+                        
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1" style="background-color: #f8f8f8;position: relative;">
+    <!-- Post Content -->
+    <article style="background-color: #f8f8f8;position: relative;">
+        <p><strong><em>前言</em></strong></p>
+<p>阿里对自家的云产品基本都提供了API接口，而且为API提供了相应的访问工具，也就是SDK。阿里云SDK支持多种主流语言，例如Java、Python、C#、PHP等。阿里虽然提供了SDK，但依然对API所使用的签名算法进行了详细说明，以方便有特殊要求的用户在自己的项目中更好的使用阿里云API。</p>
+<p>阿里云 API 所使用的签名算法看起来不难，但是在实现时却遇到了许多小问题，而且当签名结果存在问题时，服务器返回的错误信息只有 "Specified signature is not matched with our calculation." ，所以也不太好查找到底错误在哪。经过反复尝试，终于成功解决了所有问题，这里记录一下。</p>
+<p><strong><em>阿里云签名机制官方说明</em></strong></p>
+<div class="highlight"><pre><span></span>1 使用请求参数构造规范化的请求字符串（Canonicalized Query String）
+
+1-1 参数排序。 按照参数名称的字典顺序对请求中所有的请求参数（包括“公共请求参数”和接口的自定义参数，但不能包括“公共请求参数”中提到的 Signature 参数本身）进行排序。注：当使用 GET 方法提交请求时，这些参数就是请求 URI 中的参数部分（即 URI 中“?”之后由“&amp;”连接的部分）。
+
+1-2 参数编码。 对排序之后的请求参数的名称和值分别用UTF-8字符集进行URL编码。编码的规则如下：
+
+1-2-1 对于字符 A-Z、a-z、0-9 以及字符“-”、“_”、“.”、“~”不编码；
+
+1-2-2 对于其他字符编码成 “%XY” 的格式，其中 XY 是字符对应 ASCII 码的 16 进制表示。比如英文的双引号（”）对应的编码就是 %22
+
+1-2-3 对于扩展的 UTF-8 字符，编码成 “%XY%ZA…” 的格式；
+
+1-2-4 需要说明的是英文空格（ ）要被编码是 %20，而不是加号（+）。
+
+注：该编码方式和一般采用的“application/x-www-form-urlencoded” MIME格式编码算法(比如Java标准库中的 java.net.URLEncoder的实现) 相似, 但又有所不同。 实现时, 可以先用标准库的方式进行编码, 然后把编码后的字符串中加号（+）替换成 %20、星号（*）替换成 %2A、%7E 替换回波浪号（~），即可得到上述规则描述的编码字符串。这个算法可以用下面的percentEncode方法来实现：
+
+private static final String ENCODING = &quot;UTF-8&quot;;
+private static String percentEncode(String value) throws UnsupportedEncodingException {
+    return value != null ? URLEncoder.encode(value, ENCODING).replace(&quot;+&quot;, &quot;%20&quot;).replace(&quot;*&quot;, &quot;%2A&quot;).replace(&quot;%7E&quot;, &quot;~&quot;) : null;
+}
+
+1-3 将编码后的参数名称和值用英文等号（=）进行连接。
+
+1-4 再把英文等号连接得到的字符串按参数名称的字典顺序依次使用&amp;符号连接，即得到规范化请求字符串。
+
+2 将上一步构造的规范化字符串按照下面的规则构造成待签名的字符串：
+
+StringToSign= HTTPMethod + “&amp;” + percentEncode(“/”) + ”&amp;” + percentEncode(CanonicalizedQueryString)
+
+其中 HTTPMethod 是提交请求用的 HTTP 方法，比如 GET。
+
+percentEncode(“/”) 是按照 1-2 中描述的 URL 编码规则对字符 “/” 进行编码得到的值，即 “%2F”。
+
+percentEncode(CanonicalizedQueryString) 是对第 1 步中构造的规范化请求字符串按 1-2 中描述的 URL 编码规则编码后得到的字符串。
+
+3 按照 RFC2104 的定义，计算待签名字符串StringToSign的 HMAC 值。注意：计算签名时使用的 Key 就是用户持有的Access Key Secret并加上一个 “&amp;” 字符(ASCII:38)，使用的哈希算法是 SHA1。
+
+4 按照 Base64 编码规则把上面的 HMAC 值编码成字符串，即得到签名值（Signature）。
+
+5 将得到的签名值作为Signature参数添加到请求参数中，即完成对请求签名的过程。
+
+注意：得到的签名值在作为最后的请求参数值提交给ECS服务器的时候，要和其他参数一样，按照RFC3986的规则进行 URL 编码。 以 checkDomain 为例，假设使用的Access Key Id是 “testid”，Access Key Secret是 “testsecret”。 那么签名前的请求 URL 为：
+
+http://domain.aliyuncs.com/?TimeStamp=2016-05-19T09:06:05Z&amp;Format=JSON&amp;AccessKeyId=testid&amp;Action=CheckDomain&amp;SignatureMethod=HMAC-SHA1&amp;SignatureNonce=5033a7d9-dfeb-417d-9fdf-13459fe90c1a&amp;Version=2016-05-11&amp;SignatureVersion=1.0
+
+而计算得到的待签名字符串 StringToSign 为：
+
+GET&amp;%2F&amp;AccessKeyId%3Dtestid%26Action%3DCheckDomain%26Format%3DJSON%26SignatureMethod%3DHMAC-SHA1%26SignatureNonce%3D5033a7d9-dfeb-417d-9fdf-13459fe90c1a%26SignatureVersion%3D1.0%26TimeStamp%3D2016-05-19T09%253A06%253A05Z%26Version%3D2016-05-11
+
+因为Access Key Secret 是 “testsecret”，所以用于计算 HMAC 的 Key 为 “testsecret&amp;”，计算得到的签名值是：
+
+WXkgFH4ymmnCjSUM65f6I1n7%2FUs=
+
+将签名作为Signature参数加入到URL请求中， 得到最后的URL 为：
+
+http://domain.aliyuncs.com/?Format=JSON&amp;AccessKeyId=testid&amp;Action=CheckDomain&amp;SignatureMethod=HMAC-SHA1&amp;RegionId=cn-hangzhou&amp;DomainName=abc.com&amp;SignatureNonce=5033a7d9-dfeb-417d-9fdf-13459fe90c1a&amp;SignatureVersion=1.0&amp;Version=2016-05-11&amp;Signature=WXkgFH4ymmnCjSUM65f6I1n7%2FUs%3D&amp;Timestamp=2016-05-19T09%3A06%3A05Z
+</pre></div>
+
+
+<p><strong><em>阿里云签名机制的 PYTHON 实现</em></strong></p>
+<p>使用阿里云 API 时，需要在请求中添加各种参数，包括一些必须的公共参数和接口的自定义参数。以 whois 查询为例，请求中需要包含的自定义参数为：</p>
+<blockquote>
+<p>Action=GetWhoisInfo<br>
+DomainName=  </p>
+</blockquote>
+<p>公共参数时每个请求里都必须包含的</p>
+<table>
+<thead>
+<tr>
+<th align="right">名称</th>
+<th align="center">类型</th>
+<th align="right">是否必须</th>
+<th align="right">描述</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td align="right">Format</td>
+<td align="center">String</td>
+<td align="right">否</td>
+<td align="right">返回值的类型，支持 JSON 与 XML。默认为 XML。</td>
+</tr>
+<tr>
+<td align="right">Version</td>
+<td align="center">String</td>
+<td align="right">是</td>
+<td align="right">API 版本号，为日期形式：YYYY-MM-DD，本版本对应为2016-05-11。</td>
+</tr>
+<tr>
+<td align="right">AccessKeyId</td>
+<td align="center">String</td>
+<td align="right">是</td>
+<td align="right">阿里云颁发给用户的访问服务所用的密钥 ID。</td>
+</tr>
+<tr>
+<td align="right">Signature</td>
+<td align="center">String</td>
+<td align="right">是</td>
+<td align="right">签名结果串，关于签名的计算方法，请参见签名机制。</td>
+</tr>
+<tr>
+<td align="right">SignatureMethod</td>
+<td align="center">String</td>
+<td align="right">是</td>
+<td align="right">签名方式，目前支持 HMAC-SHA1。</td>
+</tr>
+<tr>
+<td align="right">Timestamp</td>
+<td align="center">String</td>
+<td align="right">是</td>
+<td align="right">请求的时间戳。日期格式按照 ISO8601 标准表示，并需要使用 UTC 时间。格式为YYYY-MM-DDThh:mm:ssZ，例如，2015-01-09T12:00:00Z（为 UTC 时间 2015 年 1 月 9 日 12 点 0 分 0 秒。）</td>
+</tr>
+<tr>
+<td align="right">SignatureVersion</td>
+<td align="center">String</td>
+<td align="right">是</td>
+<td align="right">签名算法版本，目前版本是 1.0。</td>
+</tr>
+<tr>
+<td align="right">SignatureNonce</td>
+<td align="center">String</td>
+<td align="right">是</td>
+<td align="right">唯一随机数，用于防止网络重放攻击。用户在不同请求间要使用不同的随机数值。</td>
+</tr>
+</tbody>
+</table>
+<p>这些参数中有些值是固定的，所以可以直接定义一个字典：</p>
+<div class="highlight"><pre><span></span>PARAMETERS = {
+        &#39;Action&#39;: &#39;GetWhoisInfo&#39;,
+        &#39;Format&#39;: &#39;JSON&#39;,
+        &#39;SignatureMethod&#39;: &#39;HMAC-SHA1&#39;,
+        &#39;SignatureVersion&#39;: &#39;1.0&#39;,
+        &#39;Version&#39;: &#39;2016-05-11&#39;
+}
+</pre></div>
+
+
+<p>对于剩下的参数，DomainName 可以作为脚本的输入，AccessKeyId 是阿里云颁发给用户的，在用户自己的控制台可以查看，SignatureMethod 是一串随机数，只要保证和之前的请求不一样就可以，这个随机值可以自己编写函数生成，也可以使用 uuid 模块进行生成，如下：</p>
+<div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">uuid</span>
+
+<span class="n">SignatureMethod</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">uuid</span><span class="o">.</span><span class="n">uuid1</span><span class="p">())</span>
+</pre></div>
+
+
+<p>Timestamp 参数为 UTC 时间戳：</p>
+<div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">time</span>
+
+<span class="n">Timestamp</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s2">&quot;%Y-%m-</span><span class="si">%d</span><span class="s2">T%H:%M:%SZ&quot;</span><span class="p">,</span> <span class="n">time</span><span class="o">.</span><span class="n">gmtime</span><span class="p">())</span>
+</pre></div>
+
+
+<p>这样就只剩下 Signature 一个参数了，这个参数相对复杂，需要按照上面提供的阿里云签名机制说明，一步一步生成。假设我们在某一时刻想要查询 google.com 的 whois 信息，那么我们请求中除去 Signature 外的所有参数为：</p>
+<div class="highlight"><pre><span></span>PARAMETERS = {
+    &quot;AccessKeyId&quot;: &quot;LTxxxxxxxxxxxxp8&quot;,
+    &quot;Action&quot;: &quot;GetWhoisInfo&quot;,
+    &quot;DomainName&quot;: &quot;google.com&quot;,
+    &quot;Format&quot;: &quot;JSON&quot;,
+    &quot;SignatureMethod&quot;: &quot;HMAC-SHA1&quot;,
+    &quot;SignatureNonce&quot;: &quot;9cf49f80-b24e-11e7-b1bf-28c2ddd1cd56&quot;,
+    &quot;SignatureVersion&quot;: &quot;1.0&quot;,
+    &quot;Timestamp&quot;: &quot;2017-10-11T08:47:16Z&quot;,
+    &quot;Version&quot;: &quot;2016-05-11&quot;
+}
+</pre></div>
+
+
+<p>首先对所有参数进行排序：</p>
+<div class="highlight"><pre><span></span>list_params = sorted(PARAMETERS.iteritems(), key=lambda x: x[0])
+</pre></div>
+
+
+<p>将排序后的参数使用 "=" 和 "&amp;" 拼接成 URL格式，之后使用 UTF-8 字符集进行 URL 编码，阿里云的签名说明中提供了 JAVA 语言的编码方法，将该方法使用 PYTHON 语法改写：</p>
+<div class="highlight"><pre><span></span>encode_str = urllib.urlencode(list_params)
+if sys.stdin.encoding is None:
+    res = urllib.quote(encode_str.decode(&#39;cp936&#39;).encode(&#39;utf8&#39;), safe=&#39;-_.~&#39;)
+else:
+    res = urllib.quote(encode_str.decode(sys.stdin.encoding).encode(&#39;utf8&#39;), safe=&#39;-_.~&#39;)
+res = res.replace(&quot;+&quot;, &quot;%20&quot;).replace(&quot;*&quot;, &quot;%2A&quot;).replace(&quot;%7E&quot;, &quot;~&quot;)
+</pre></div>
+
+
+<p>在编码后的 URL 参数前添加 'GET&amp;%2F&amp;'</p>
+<div class="highlight"><pre><span></span>StringToSign = &#39;GET&amp;%2F&amp;&#39; + res
+</pre></div>
+
+
+<p>使用 hmac-sha1 算法对上面得到的请求 URL 进行签名,计算签名时需提供 Access Key Secret，需要注意的是，Access Key Secret后面要添加一个 "&amp;" 符。再将得到的结果进行 Base64 编码，如下：</p>
+<div class="highlight"><pre><span></span>SignedString = base64.b64encode(hmac.new(dHxxxxxxxxxxxxxxxxxxxxxxxxxxTp&amp;, StringToSign, hashlib.sha1).digest()).rstrip()
+</pre></div>
+
+
+<p>得到签名后的值后，将这个值添加到 PARAMETERS 中</p>
+<div class="highlight"><pre><span></span>PARAMETERS[&#39;Signature&#39;] = SignedString
+</pre></div>
+
+
+<p>然后重新将 PARAMETERS 拼接成 URL，并添加到接口的请求域名后面：</p>
+<div class="highlight"><pre><span></span>url = &#39;https://domain.aliyuncs.com/?&#39; + urllib.urlencode(PARAMETERS)
+</pre></div>
+
+
+<p>之后再请求这个 URL,页面相应的内容也就是 google.com 的 whois 查询信息了。</p>
+<p><strong><em>阿里云 Whois 查询完整脚本</em></strong></p>
+<div class="highlight"><pre><span></span><span class="c1"># -*- coding:utf-8 -*-</span>
+
+<span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">import</span> <span class="nn">uuid</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">hmac</span>
+<span class="kn">import</span> <span class="nn">hashlib</span>
+<span class="kn">import</span> <span class="nn">base64</span>
+<span class="kn">import</span> <span class="nn">urllib</span>
+<span class="kn">import</span> <span class="nn">urllib2</span>
+<span class="kn">import</span> <span class="nn">json</span>
+
+<span class="c1"># 阿里云申请的 Access Key ID 和 Access Key Secret</span>
+<span class="n">API_ID</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+<span class="n">API_KEY</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+
+<span class="c1"># 设置固定请求参数</span>
+<span class="n">PARAMETERS</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;Action&#39;</span><span class="p">:</span> <span class="s1">&#39;GetWhoisInfo&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;Format&#39;</span><span class="p">:</span> <span class="s1">&#39;JSON&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;SignatureMethod&#39;</span><span class="p">:</span> <span class="s1">&#39;HMAC-SHA1&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;SignatureVersion&#39;</span><span class="p">:</span> <span class="s1">&#39;1.0&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;Version&#39;</span><span class="p">:</span> <span class="s1">&#39;2016-05-11&#39;</span>
+<span class="p">}</span>
+
+<span class="c1"># 格式化输出 json 数据</span>
+<span class="k">def</span> <span class="nf">printer</span><span class="p">(</span><span class="n">string</span><span class="p">):</span>
+    <span class="n">jsonContent</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">string</span><span class="p">)</span>
+    <span class="k">print</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">jsonContent</span><span class="p">,</span> <span class="n">sort_keys</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">separators</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">,</span> <span class="s1">&#39;: &#39;</span><span class="p">))</span>
+
+<span class="c1"># 生成请求参数和值</span>
+<span class="k">def</span> <span class="nf">get_encode_str</span><span class="p">(</span><span class="n">params</span><span class="p">):</span>
+    <span class="n">list_params</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">params</span><span class="o">.</span><span class="n">iteritems</span><span class="p">(),</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="n">encode_str</span> <span class="o">=</span> <span class="n">urllib</span><span class="o">.</span><span class="n">urlencode</span><span class="p">(</span><span class="n">list_params</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">sys</span><span class="o">.</span><span class="n">stdin</span><span class="o">.</span><span class="n">encoding</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">res</span> <span class="o">=</span> <span class="n">urllib</span><span class="o">.</span><span class="n">quote</span><span class="p">(</span><span class="n">encode_str</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s1">&#39;cp936&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s1">&#39;utf8&#39;</span><span class="p">),</span> <span class="n">safe</span><span class="o">=</span><span class="s1">&#39;-_.~&#39;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">res</span> <span class="o">=</span> <span class="n">urllib</span><span class="o">.</span><span class="n">quote</span><span class="p">(</span><span class="n">encode_str</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">stdin</span><span class="o">.</span><span class="n">encoding</span><span class="p">)</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s1">&#39;utf8&#39;</span><span class="p">),</span> <span class="n">safe</span><span class="o">=</span><span class="s1">&#39;-_.~&#39;</span><span class="p">)</span>
+    <span class="n">res</span> <span class="o">=</span> <span class="n">res</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;+&quot;</span><span class="p">,</span> <span class="s2">&quot;%20&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;*&quot;</span><span class="p">,</span> <span class="s2">&quot;%2A&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%7E</span><span class="s2">&quot;</span><span class="p">,</span> <span class="s2">&quot;~&quot;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">res</span>    
+
+<span class="c1"># 定义签名函数，使用 hmac-sha1 签名算法对字符串进行加密</span>
+<span class="k">def</span> <span class="nf">hmacSha1</span><span class="p">(</span><span class="n">Api_Key</span><span class="p">,</span> <span class="n">StringToSign</span><span class="p">):</span>
+    <span class="n">res</span> <span class="o">=</span> <span class="n">base64</span><span class="o">.</span><span class="n">b64encode</span><span class="p">(</span><span class="n">hmac</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="n">Api_Key</span><span class="p">,</span> <span class="n">StringToSign</span><span class="p">,</span> <span class="n">hashlib</span><span class="o">.</span><span class="n">sha1</span><span class="p">)</span><span class="o">.</span><span class="n">digest</span><span class="p">())</span><span class="o">.</span><span class="n">rstrip</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">res</span>
+
+<span class="k">def</span> <span class="nf">main</span><span class="p">(</span><span class="n">domain</span><span class="p">):</span>
+    <span class="c1"># 第一步，添加其他参数</span>
+    <span class="n">PARAMETERS</span><span class="p">[</span><span class="s1">&#39;DomainName&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">domain</span>
+    <span class="n">PARAMETERS</span><span class="p">[</span><span class="s1">&#39;AccessKeyId&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">API_ID</span>
+    <span class="n">PARAMETERS</span><span class="p">[</span><span class="s1">&#39;SignatureNonce&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">uuid</span><span class="o">.</span><span class="n">uuid1</span><span class="p">())</span>
+    <span class="n">PARAMETERS</span><span class="p">[</span><span class="s1">&#39;Timestamp&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s2">&quot;%Y-%m-</span><span class="si">%d</span><span class="s2">T%H:%M:%SZ&quot;</span><span class="p">,</span> <span class="n">time</span><span class="o">.</span><span class="n">gmtime</span><span class="p">())</span>
+
+    <span class="c1"># 第二步，对所有参数进行排序，拼接成待签名的字符串</span>
+    <span class="n">StringToSign</span> <span class="o">=</span> <span class="s1">&#39;GET&amp;</span><span class="si">%2F</span><span class="s1">&amp;&#39;</span> <span class="o">+</span> <span class="n">get_encode_str</span><span class="p">(</span><span class="n">PARAMETERS</span><span class="p">)</span>
+
+    <span class="c1"># 第三步，使用 hmac-sha1 算法进行签名，得到签名值</span>
+    <span class="n">SignedString</span> <span class="o">=</span> <span class="n">hmacSha1</span><span class="p">(</span><span class="n">API_KEY</span><span class="o">+</span><span class="s1">&#39;&amp;&#39;</span><span class="p">,</span> <span class="n">StringToSign</span><span class="p">)</span>
+    <span class="n">PARAMETERS</span><span class="p">[</span><span class="s1">&#39;Signature&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">SignedString</span>
+    <span class="c1"># print PARAMETERS</span>
+
+    <span class="c1"># 发送请求，接收返回数据并输出</span>
+    <span class="n">url</span> <span class="o">=</span> <span class="s1">&#39;https://domain.aliyuncs.com/?&#39;</span> <span class="o">+</span> <span class="n">urllib</span><span class="o">.</span><span class="n">urlencode</span><span class="p">(</span><span class="n">PARAMETERS</span><span class="p">)</span>
+    <span class="c1"># print url</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">req</span> <span class="o">=</span> <span class="n">urllib2</span><span class="o">.</span><span class="n">urlopen</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
+        <span class="n">res</span> <span class="o">=</span> <span class="n">req</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+        <span class="n">printer</span><span class="p">(</span><span class="n">res</span><span class="p">)</span>
+    <span class="k">except</span> <span class="n">urllib2</span><span class="o">.</span><span class="n">HTTPError</span><span class="p">,</span> <span class="n">e</span><span class="p">:</span>
+        <span class="n">res</span> <span class="o">=</span> <span class="n">e</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+        <span class="n">printer</span><span class="p">(</span><span class="n">res</span><span class="p">)</span>
+
+<span class="k">if</span> <span class="vm">__name__</span><span class="o">==</span><span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="k">print</span> <span class="s1">&#39;Usage: python </span><span class="si">%s</span><span class="s1"> &lt;domain&gt;&#39;</span> <span class="o">%</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">main</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+</pre></div>
+
+
+<p><strong><em>使用效果</em></strong></p>
+<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/aliyun/whois_query.png" alt="s2-052-10" /></div>
+        <hr />
+        <p>作者:JenI&#160; &#160; &#160; &#160;转载请注明出处，谢谢</p>
+    </article>
+
+    <hr>
+
+        <div class="comments">
+            <h2>Comments !</h2>
+            <div id="disqus_thread"></div>
+            <script type="text/javascript">
+                var disqus_shortname = 'jenihk';
+                var disqus_identifier = 'diary/aliyun-whois-query.html';
+                var disqus_url = 'https://blog.jenisec.org/diary/aliyun-whois-query.html';
+                (function() {
+                    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+                    dsq.src = '//jenihk.disqus.com/embed.js';
+                    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+                })();
+            </script>
+            <noscript>Please enable JavaScript to view the comments.</noscript>
+        </div>
+ <!--                   
+    <div id="disqus_thread"></div>
+    <script>
+
+/**
+*  RECOMMENDED CONFIGURATION VARIABLES: EDIT AND UNCOMMENT THE SECTION BELOW TO INSERT DYNAMIC VALUES FROM YOUR PLATFORM OR CMS.
+*  LEARN WHY DEFINING THESE VARIABLES IS IMPORTANT: https://disqus.com/admin/universalcode/#configuration-variables*/
+/*
+var disqus_config = function () {
+this.page.url = PAGE_URL;  // Replace PAGE_URL with your page's canonical URL variable
+this.page.identifier = PAGE_IDENTIFIER; // Replace PAGE_IDENTIFIER with your page's unique identifier variable
+};
+*/
+        (function() { // DON'T EDIT BELOW THIS LINE
+            var d = document, s = d.createElement('script');
+            s.src = '//jenihk.disqus.com/embed.js';
+            s.setAttribute('data-timestamp', +new Date());
+            (d.head || d.body).appendChild(s);
+        })();
+    </script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+-->
+            </div>
+        </div>
+    </div>
+
+    <hr>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                    <ul class="list-inline text-center">
+                        <li>
+                            <a href="http://weibo.com/1992014191/profile?rightmod=1&wvr=6&mod=personinfo&is_all=1">
+                                <span class="fa-stack fa-lg">
+                                    <i class="icon iconfont">&#xe657;</i>
+                                </span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="http://github.com/jenihk">
+                                <span class="fa-stack fa-lg">
+                                    <i class="icon iconfont">&#xe618;</i>
+                                </span>
+                            </a>
+                        </li>
+                    </ul>
+                    <p class="copyright text-muted">Blog powered by <a href="http://getpelican.com">Pelican</a>,
+                which takes great advantage of <a href="http://python.org">Python</a>.</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- jQuery -->
+    <script src="https://blog.jenisec.org/theme/js/jquery.js"></script>
+
+    <!-- Bootstrap Core JavaScript -->
+    <script src="https://blog.jenisec.org/theme/js/bootstrap.min.js"></script>
+
+    <!-- Custom Theme JavaScript -->
+    <script src="https://blog.jenisec.org/theme/js/clean-blog.min.js"></script>
+    
+    <!-- CanvasParticles -->
+    <script src="https://blog.jenisec.org/theme/js/canvas-particle.js"></script>
+
+    
+
+    <script type="text/javascript">
+        CanvasParticle();
+    </script>
+
+    <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-85780345-1']);
+    _gaq.push(['_trackPageview']);
+    (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+    </script>
+<script type="text/javascript">
+    var disqus_shortname = 'jenihk';
+    (function () {
+        var s = document.createElement('script'); s.async = true;
+        s.type = 'text/javascript';
+        s.src = '//' + disqus_shortname + '.disqus.com/count.js';
+        (document.getElementsByTagName('HEAD')[0] || document.getElementsByTagName('BODY')[0]).appendChild(s);
+    }());
+</script>
+</body>
+
+</html>
