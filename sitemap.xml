@@ -5,30 +5,37 @@ xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 
 <url>
 <loc>https://blog.jenisec.org/</loc>
-<lastmod>2017-10-18T10:42:31-00:00</lastmod>
+<lastmod>2017-11-25T21:46:33-00:00</lastmod>
 <changefreq>daily</changefreq>
 <priority>0.5</priority>
 </url>
 
 <url>
 <loc>https://blog.jenisec.org/archives.html</loc>
-<lastmod>2017-10-18T10:42:31-00:00</lastmod>
+<lastmod>2017-11-25T21:46:33-00:00</lastmod>
 <changefreq>daily</changefreq>
 <priority>0.5</priority>
 </url>
 
 <url>
 <loc>https://blog.jenisec.org/tags.html</loc>
-<lastmod>2017-10-18T10:42:31-00:00</lastmod>
+<lastmod>2017-11-25T21:46:33-00:00</lastmod>
 <changefreq>daily</changefreq>
 <priority>0.5</priority>
 </url>
 
 <url>
 <loc>https://blog.jenisec.org/categories.html</loc>
-<lastmod>2017-10-18T10:42:31-00:00</lastmod>
+<lastmod>2017-11-25T21:46:33-00:00</lastmod>
 <changefreq>daily</changefreq>
 <priority>0.5</priority>
+</url>
+
+<url>
+<loc>https://blog.jenisec.org/machinelearning/common-algorithms.html</loc>
+<lastmod>2017-11-25T00:00:00+08:00</lastmod>
+<changefreq>monthly</changefreq>
+<priority>0.7</priority>
 </url>
 
 <url>
@@ -221,6 +228,13 @@ xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 </url>
 
 <url>
+<loc>https://blog.jenisec.org/category/ji-qi-xue-xi.html</loc>
+<lastmod>2017-11-25T00:00:00+08:06</lastmod>
+<changefreq>daily</changefreq>
+<priority>0.5</priority>
+</url>
+
+<url>
 <loc>https://blog.jenisec.org/category/ri-chang.html</loc>
 <lastmod>2017-10-11T00:00:00+08:06</lastmod>
 <changefreq>daily</changefreq>
@@ -230,6 +244,13 @@ xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 <url>
 <loc>https://blog.jenisec.org/category/xi-tong.html</loc>
 <lastmod>2016-10-21T00:00:00+08:06</lastmod>
+<changefreq>daily</changefreq>
+<priority>0.5</priority>
+</url>
+
+<url>
+<loc>https://blog.jenisec.org/tag/suan-fa.html</loc>
+<lastmod>2017-11-25T00:00:00+08:06</lastmod>
 <changefreq>daily</changefreq>
 <priority>0.5</priority>
 </url>
@@ -348,7 +369,7 @@ xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 
 <url>
 <loc>https://blog.jenisec.org/author/jeni.html</loc>
-<lastmod>2017-10-11T00:00:00+08:06</lastmod>
+<lastmod>2017-11-25T00:00:00+08:06</lastmod>
 <changefreq>daily</changefreq>
 <priority>0.5</priority>
 </url>
