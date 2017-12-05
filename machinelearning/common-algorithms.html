@@ -167,7 +167,6 @@
 <div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/ml/algorithms/bayesian.png" alt="ml-algorithms-bayesian" /></div></p>
 <p><strong><em>神经网络</em></strong></p>
 <p>神经网络通过模仿生物神经网络的工作原理来做一些复杂的分类运算，因此而得名。神经网络一般会涉及两种传播方式，正向传播和反向传播。</p>
-<p>因为神经网络相对比较复杂，所以这里只做简单介绍。</p>
 <p>首先了解一下神经元。神经元其实可以理解为一个小型的计算器，它接受上一层传入的数据，计算线性加权和后传入激活函数，如下图
 <div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/ml/algorithms/neuron.png" alt="ml-algorithms-neuron" /></div></p>
 <p>线性加权和是指将每个输入的值和其对应的权重相乘后再求和，激活函数是我们自己指定的，可以使用 0-1 阶跃、sigmoid 等非线性函数。这就是神经网络里的一个神经元的工作流程。其中权重是一个很重要的东西，因为训练一个神经网络时，输入输出和激活函数都是给定的，唯一可变的就是这个权重，所以训练神经网络的过程就是不断调整权重使其达到最佳的过程，这样整个神经网络的预测效果才会最好。神经元的输出是下一层神经元的输入，每层神经元与下一层神经元连接，最终构成了神经网络，一个神经网路通常包含输入层，隐藏层，以及输出层，如下图所示(图片引自维基百科)：
