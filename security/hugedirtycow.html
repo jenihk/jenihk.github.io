@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="zh">
+
+<head>
+            <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="description" content="">
+        <meta name="author" content="">
+
+        <title>JenI's Blog</title>
+
+        <link rel="icon" href="https://blog.jenisec.org/theme/images/favicon.ico" type="image/x-icon">  
+        <link rel="shortcut icon" href="https://blog.jenisec.org/theme/images/favicon.ico" type="image/x-icon">  
+
+
+        <link href="https://blog.jenisec.org/theme/css/iconfont.css" rel="stylesheet">
+
+        <!-- Bootstrap Core CSS -->
+        <link href="https://blog.jenisec.org/theme/css/bootstrap.min.css" rel="stylesheet">
+
+        <!-- Custom CSS -->
+        <link href="https://blog.jenisec.org/theme/css/clean-blog.min.css" rel="stylesheet">
+
+        <!-- Code highlight color scheme -->
+            <link href="https://blog.jenisec.org/theme/css/code_blocks/monokai.css" rel="stylesheet">
+
+        <!-- Custom Fonts -->
+        <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.1.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+        <link href='https://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+        <link href='https://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/css'>
+
+        <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+        <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+        <!--[if lt IE 9]>
+            <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+            <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+        <![endif]-->
+
+
+
+
+
+
+			<meta property="og:locale" content="zh">
+		<meta property="og:site_name" content="JenI's Blog">
+
+	<meta property="og:type" content="article">
+	<meta property="article:author" content="">
+	<meta property="og:url" content="https://blog.jenisec.org/security/hugedirtycow.html">
+	<meta property="og:title" content="Huge DirtyCow 大脏牛漏洞分析">
+	<meta property="og:description" content="">
+	<meta property="og:image" content="https://blog.jenisec.org/../theme/images/posts/dirtycow/cover-2.png">
+	<meta property="article:published_time" content="2017-12-06 00:00:00+08:00">
+</head>
+
+<body style="background-color: #f8f8f8">
+
+    <!-- Navigation -->
+    <nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+        <div class="container-fluid">
+            <!-- Brand and toggle get grouped for better mobile display -->
+            <div class="navbar-header page-scroll">
+                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <a class="navbar-brand" href="https://blog.jenisec.org/">JenI's Blog</a>
+            </div>
+
+            <!-- Collect the nav links, forms, and other content for toggling -->
+            <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+                <ul class="nav navbar-nav navbar-right">
+                        <li><a href="https://blog.jenisec.org/category/ji-qi-xue-xi.html">机器学习</a></li>
+                        <li><a href="https://blog.jenisec.org/category/an-quan.html">安全</a></li>
+                        <li><a href="https://blog.jenisec.org/category/xi-tong.html">系统</a></li>
+                        <li><a href="https://blog.jenisec.org/category/ri-chang.html">日常</a></li>
+
+                </ul>
+            </div>
+            <!-- /.navbar-collapse -->
+        </div>
+        <!-- /.container -->
+    </nav>
+
+    <!-- Page Header -->
+        <header class="intro-header" style="background-image: url('../theme/images/posts/dirtycow/cover-2.png')">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                    <div class="post-heading">
+                        <h1>Huge DirtyCow 大脏牛漏洞分析</h1>
+                        <span class="meta">Posted by
+                                <a href="https://blog.jenisec.org/author/jeni.html">JenI</a>
+                             on 2017-12-06 00:00:00+08:00
+                        </span>
+                        
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1" style="background-color: #f8f8f8;position: relative;">
+    <!-- Post Content -->
+    <article style="background-color: #f8f8f8;position: relative;">
+        <p><strong><em>前言</em></strong></p>
+<p>最近，国外的Bindecy安全团队爆出Linux系统存在大脏牛漏洞，编号为CVE-2017–1000405。之所以叫它大脏牛漏洞并不是因为它的严重性高于2016年的脏牛漏洞，而是因为大脏牛漏洞针对的目标为Linux操作系统的大内存页和大零页。</p>
+<p>2016年的脏牛漏洞影响了近十年的所有 Linux 发行版，移动端的安卓系统也在其影响范围内。而这次的大脏牛漏洞影响范围就没那么广了，因为 Linux 大内存页的使用有一定限制，且在 Android 系统上大内存页功能并未启用，因此大脏牛漏洞对 Android 系统几乎无影响。</p>
+<p>下面是对该漏洞的简单分析。</p>
+<p><strong><em>漏洞分析</em></strong></p>
+<p>本次的大脏牛漏洞是由于对之前的脏牛漏洞 (CVE-2016-5195) 修补不完全导致的。2016 年的脏牛漏洞出现在 get_user_pages 函数中，该函数可以获取某一进程调用的虚拟地址所对应的物理地址。函数源码如下：
+<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/dirtycow/hugedirtycow-1.png" alt="hugedirtycow-1" /></div></p>
+<p>cond_resched 函数具有主动被调度的作用，所以当 retry 代码块生效时，会首先进行主动放权，然后等待下一次被调度。follow_page_mask 函数会从页表中获取指定地址的物理页，如果页表中不存在物理页则为缺页。此时函数返回 0，调用 faultin_page 函数进行处理。follow_page_mask 的 foll_flags 参数决定着当前的内存访问语义，如果它对应的权限与内存页的权限配置不一致时，会导致 follow_page_mask 返回值为 NULL。当返回值为 NULL 时，同样会调用 faultin_page 函数以处理目标地址中的错误信息。
+<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/dirtycow/hugedirtycow-2.png" alt="hugedirtycow-2" /></div></p>
+<p>该函数在处理缺页情况时，会从磁盘中调入页面，然后执行下一次 retry。如果以只读权限请求一个使用 FOLL_FORCE 标志即可读可写页面时，faultin_page 函数会进入 COW(Copy-On-Write) 流程，handle_mm_fault 将创建一个新的只读的 COW page，并将这个内存页标记为脏页(页内数据被修改后则为脏页)，同时，它还移除了内存页的 FOLL_WRITE 状态，以防止下一次 retry 时，同样流程申请的新的 COW page和原来的 COW page 拥有同样权限，从而导致无限 retry，进入死循环。移除操作在 faultin_page 函数体的最后：
+<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/dirtycow/hugedirtycow-3.png" alt="hugedirtycow-3" /></div></p>
+<p>再回到 get_user_pages 函数，正常情况下，follow_page_mask 请求获取可写的内存页，页表中不存在物理页，以缺页情况交由 faultin_page 函数处理，faultin_page 函数从磁盘中调入内存页，之后进入下一次 retry，follow_page_mask 再次被调用，继续请求获取可写的内存页，由于内存页没有可写权限，返回 NULL，调用 faultin_page 函数复制一个只读内存页并移除 FOLL_WRITE 标志。进入下一次 retry，follow_page_mask 请求获取虚拟地址对应内存页，此时成功返回 page。</p>
+<p>以上是正常情况下的 COW 流程，但是假设在第二次 retr 时(使用cond_resched主动放权后)，在同一时刻通过另一个线程调用 madvice(MADV_DONTNEED) 换出对应内存页，此时便会产生脏牛漏洞。换出对应内存页，然后再次 retry 时，发生缺页现象，使用 faultin_page 函数从磁盘调入内存页，再次 retry，由于此时的 foll_flags 不包含 FOLL_WRITE，所以不会再一次创建脏页，因此当请求获取虚拟地址对应的内存页时，会返回直接绑定特权文件的原始页。之后再进行写入操作时，内存中的数据同步到磁盘，只读文件便被修改。</p>
+<p>大脏牛漏洞的原理与上述脏牛漏洞原理相同，不过大脏牛漏洞目前只被发现可以攻击两个目标，一个是大内存页 (THP:Transparent Huge Pages)，另一个是零页 (zero page)</p>
+<p>一般情况下，Linux 的内存页为 4kb 大小，但是它允许 2M 和 1G 的大内存页以满足大内存程序的需求。大内存页是可以交换但是不可拆分的，能够用于三种映射情况，匿名,shmem 和 tmpfs 映射。</p>
+<p>零页是 Linux 系统为了节省资源而存在的一个特殊内存页。当程序想系统申请匿名内存页时，会通过 mmap 将申请映射到一个值为零的物理内存页，当程序执行写入操作时，才会真正向系统申请内存，由于零页是只读的，所以为了避免系统分配多个未被写入的新建零页，同一个零页会被映射在多个不同的进程中。</p>
+<p>对于原本只读的共享零页、大零页、大内存页，大脏牛漏洞都是可以对其值进行篡改的，下面的验证过程通过重新写入零页的值，造成系统上运行的程序在读取零页时出现 segmentation fault 而崩溃。由于浏览器的操作指令比较复杂，更容易触发漏洞，所以这里使用 Firefox 进行漏洞复现。</p>
+<p><strong><em>漏洞复现</em></strong></p>
+<p>当前 Linux 内核版本为 4.11.9-1
+<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/dirtycow/hugedirtycow-4.png" alt="hugedirtycow-4" /></div></p>
+<p>使用 gdb 调试火狐浏览器
+<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/dirtycow/hugedirtycow-5.png" alt="hugedirtycow-5" /></div></p>
+<p>开始调试
+<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/dirtycow/hugedirtycow-6.png" alt="hugedirtycow-6" /></div></p>
+<p>使用 gcc 编译 POC
+<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/dirtycow/hugedirtycow-7.png" alt="hugedirtycow-7" /></div></p>
+<p>运行可执行程序 a.out
+<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/dirtycow/hugedirtycow-8.png" alt="hugedirtycow-8" /></div></p>
+<p>正常操作浏览器，当浏览器进程读取零页时，gdb 成功捕获到了火狐浏览器的 segmentation fault，此时火狐浏览器崩溃。
+<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/dirtycow/hugedirtycow-9.png" alt="hugedirtycow-9" /></div></p>
+<p><strong><em>POC</em></strong></p>
+<blockquote>
+<p><a href="https://github.com/bindecy/HugeDirtyCowPOC">https://github.com/bindecy/HugeDirtyCowPOC</a></p>
+</blockquote>
+<p><strong><em>参考</em></strong></p>
+<blockquote>
+<p><a href="https://medium.com/bindecy/huge-dirty-cow-cve-2017-1000405-11eca132de0">https://medium.com/bindecy/huge-dirty-cow-cve-2017-1000405-11eca132de0(爬墙访问)</a>
+<a href="http://www.52bug.cn/content/plugins/openlink/viewPage.html?url=https://www.anquanke.com/post/id/89096">http://www.52bug.cn/content/plugins/openlink/viewPage.html?url=https://www.anquanke.com/post/id/89096</a>
+<a href="http://blog.csdn.net/gatieme/article/details/52403013">http://blog.csdn.net/gatieme/article/details/52403013</a></p>
+</blockquote>
+        <hr />
+        <p>作者:JenI&#160; &#160; &#160; &#160;转载请注明出处，谢谢</p>
+    </article>
+
+    <hr>
+
+        <div class="comments">
+            <h2>Comments !</h2>
+            <div id="disqus_thread"></div>
+            <script type="text/javascript">
+                var disqus_shortname = 'jenihk';
+                var disqus_identifier = 'security/hugedirtycow.html';
+                var disqus_url = 'https://blog.jenisec.org/security/hugedirtycow.html';
+                (function() {
+                    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+                    dsq.src = '//jenihk.disqus.com/embed.js';
+                    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+                })();
+            </script>
+            <noscript>Please enable JavaScript to view the comments.</noscript>
+        </div>
+ <!--                   
+    <div id="disqus_thread"></div>
+    <script>
+
+/**
+*  RECOMMENDED CONFIGURATION VARIABLES: EDIT AND UNCOMMENT THE SECTION BELOW TO INSERT DYNAMIC VALUES FROM YOUR PLATFORM OR CMS.
+*  LEARN WHY DEFINING THESE VARIABLES IS IMPORTANT: https://disqus.com/admin/universalcode/#configuration-variables*/
+/*
+var disqus_config = function () {
+this.page.url = PAGE_URL;  // Replace PAGE_URL with your page's canonical URL variable
+this.page.identifier = PAGE_IDENTIFIER; // Replace PAGE_IDENTIFIER with your page's unique identifier variable
+};
+*/
+        (function() { // DON'T EDIT BELOW THIS LINE
+            var d = document, s = d.createElement('script');
+            s.src = '//jenihk.disqus.com/embed.js';
+            s.setAttribute('data-timestamp', +new Date());
+            (d.head || d.body).appendChild(s);
+        })();
+    </script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+-->
+            </div>
+        </div>
+    </div>
+
+    <hr>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                    <ul class="list-inline text-center">
+                        <li>
+                            <a href="http://weibo.com/1992014191/profile?rightmod=1&wvr=6&mod=personinfo&is_all=1">
+                                <span class="fa-stack fa-lg">
+                                    <i class="icon iconfont">&#xe657;</i>
+                                </span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="http://github.com/jenihk">
+                                <span class="fa-stack fa-lg">
+                                    <i class="icon iconfont">&#xe618;</i>
+                                </span>
+                            </a>
+                        </li>
+                    </ul>
+                    <p class="copyright text-muted">Blog powered by <a href="http://getpelican.com">Pelican</a>,
+                which takes great advantage of <a href="http://python.org">Python</a>.</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- jQuery -->
+    <script src="https://blog.jenisec.org/theme/js/jquery.js"></script>
+
+    <!-- Bootstrap Core JavaScript -->
+    <script src="https://blog.jenisec.org/theme/js/bootstrap.min.js"></script>
+
+    <!-- Custom Theme JavaScript -->
+    <script src="https://blog.jenisec.org/theme/js/clean-blog.min.js"></script>
+    
+    <!-- CanvasParticles -->
+    <script src="https://blog.jenisec.org/theme/js/canvas-particle.js"></script>
+
+    
+
+    <script type="text/javascript">
+        CanvasParticle();
+    </script>
+
+    <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-85780345-1']);
+    _gaq.push(['_trackPageview']);
+    (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+    </script>
+<script type="text/javascript">
+    var disqus_shortname = 'jenihk';
+    (function () {
+        var s = document.createElement('script'); s.async = true;
+        s.type = 'text/javascript';
+        s.src = '//' + disqus_shortname + '.disqus.com/count.js';
+        (document.getElementsByTagName('HEAD')[0] || document.getElementsByTagName('BODY')[0]).appendChild(s);
+    }());
+</script>
+</body>
+
+</html>
