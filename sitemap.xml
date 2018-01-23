@@ -5,30 +5,37 @@ xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 
 <url>
 <loc>https://blog.jenisec.org/</loc>
-<lastmod>2017-12-28T21:26:57-00:00</lastmod>
+<lastmod>2018-01-23T23:16:25-00:00</lastmod>
 <changefreq>daily</changefreq>
 <priority>0.5</priority>
 </url>
 
 <url>
 <loc>https://blog.jenisec.org/archives.html</loc>
-<lastmod>2017-12-28T21:26:57-00:00</lastmod>
+<lastmod>2018-01-23T23:16:25-00:00</lastmod>
 <changefreq>daily</changefreq>
 <priority>0.5</priority>
 </url>
 
 <url>
 <loc>https://blog.jenisec.org/tags.html</loc>
-<lastmod>2017-12-28T21:26:57-00:00</lastmod>
+<lastmod>2018-01-23T23:16:25-00:00</lastmod>
 <changefreq>daily</changefreq>
 <priority>0.5</priority>
 </url>
 
 <url>
 <loc>https://blog.jenisec.org/categories.html</loc>
-<lastmod>2017-12-28T21:26:57-00:00</lastmod>
+<lastmod>2018-01-23T23:16:25-00:00</lastmod>
 <changefreq>daily</changefreq>
 <priority>0.5</priority>
+</url>
+
+<url>
+<loc>https://blog.jenisec.org/machinelearning/kNearestNeighbor.html</loc>
+<lastmod>2018-01-15T00:00:00+08:00</lastmod>
+<changefreq>monthly</changefreq>
+<priority>0.7</priority>
 </url>
 
 <url>
@@ -243,7 +250,7 @@ xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 
 <url>
 <loc>https://blog.jenisec.org/category/ji-qi-xue-xi.html</loc>
-<lastmod>2017-11-25T00:00:00+08:06</lastmod>
+<lastmod>2018-01-15T00:00:00+08:06</lastmod>
 <changefreq>daily</changefreq>
 <priority>0.5</priority>
 </url>
@@ -383,7 +390,7 @@ xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 
 <url>
 <loc>https://blog.jenisec.org/author/jeni.html</loc>
-<lastmod>2017-12-26T00:00:00+08:06</lastmod>
+<lastmod>2018-01-15T00:00:00+08:06</lastmod>
 <changefreq>daily</changefreq>
 <priority>0.5</priority>
 </url>
