@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="zh">
+
+<head>
+            <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="description" content="">
+        <meta name="author" content="">
+
+        <title>JenI's Blog</title>
+
+        <link rel="icon" href="https://blog.jenisec.org/theme/images/favicon.ico" type="image/x-icon">  
+        <link rel="shortcut icon" href="https://blog.jenisec.org/theme/images/favicon.ico" type="image/x-icon">  
+
+
+        <link href="https://blog.jenisec.org/theme/css/iconfont.css" rel="stylesheet">
+
+        <!-- Bootstrap Core CSS -->
+        <link href="https://blog.jenisec.org/theme/css/bootstrap.min.css" rel="stylesheet">
+
+        <!-- Custom CSS -->
+        <link href="https://blog.jenisec.org/theme/css/clean-blog.min.css" rel="stylesheet">
+
+        <!-- Code highlight color scheme -->
+            <link href="https://blog.jenisec.org/theme/css/code_blocks/monokai.css" rel="stylesheet">
+
+        <!-- Custom Fonts -->
+        <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.1.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+        <link href='https://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+        <link href='https://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/css'>
+
+        <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+        <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+        <!--[if lt IE 9]>
+            <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+            <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+        <![endif]-->
+
+
+
+
+
+
+			<meta property="og:locale" content="zh">
+		<meta property="og:site_name" content="JenI's Blog">
+
+	<meta property="og:type" content="article">
+	<meta property="article:author" content="">
+	<meta property="og:url" content="https://blog.jenisec.org/security/bbr-ss.html">
+	<meta property="og:title" content="CentOS7 开启 BBR 加速与 SS 搭建">
+	<meta property="og:description" content="">
+	<meta property="og:image" content="https://blog.jenisec.org/../theme/images/posts/ss/cover.png">
+	<meta property="article:published_time" content="2018-01-31 00:00:00+08:00">
+</head>
+
+<body style="background-color: #f8f8f8">
+
+    <!-- Navigation -->
+    <nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+        <div class="container-fluid">
+            <!-- Brand and toggle get grouped for better mobile display -->
+            <div class="navbar-header page-scroll">
+                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <a class="navbar-brand" href="https://blog.jenisec.org/">JenI's Blog</a>
+            </div>
+
+            <!-- Collect the nav links, forms, and other content for toggling -->
+            <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+                <ul class="nav navbar-nav navbar-right">
+                        <li><a href="https://blog.jenisec.org/category/ji-qi-xue-xi.html">机器学习</a></li>
+                        <li><a href="https://blog.jenisec.org/category/an-quan.html">安全</a></li>
+                        <li><a href="https://blog.jenisec.org/category/xi-tong.html">系统</a></li>
+                        <li><a href="https://blog.jenisec.org/category/ri-chang.html">日常</a></li>
+
+                </ul>
+            </div>
+            <!-- /.navbar-collapse -->
+        </div>
+        <!-- /.container -->
+    </nav>
+
+    <!-- Page Header -->
+        <header class="intro-header" style="background-image: url('../theme/images/posts/ss/cover.png')">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                    <div class="post-heading">
+                        <h1>CentOS7 开启 BBR 加速与 SS 搭建</h1>
+                        <span class="meta">Posted by
+                                <a href="https://blog.jenisec.org/author/jeni.html">JenI</a>
+                             on 2018-01-31 00:00:00+08:00
+                        </span>
+                        
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1" style="background-color: #f8f8f8;position: relative;">
+    <!-- Post Content -->
+    <article style="background-color: #f8f8f8;position: relative;">
+        <p><strong><em>前言</em></strong></p>
+<p>因为平时有爬墙出去查资料的需求，所以买了个VPS，搭了梯子。VPS买的Woothosting的年付15刀方案，KVM架构，搭了SS，做了BBR加速，整体速度还可以，Youtube 1080P 没什么压力，只是不定期某个时段会出现大量丢包情况，持续几秒，出现频率不高，倒是不影响使用。Woothosting 对外宣布成立于 2007 年，但也有人说它实际上成立于 2016 年，毕竟在 2016 年之前基本上没人听说过它。公司虽然没什么名气，但是服务还算到位，刚买的 VPS 出现了问题，我用蹩脚的 Chinglish 联系了他们的技术人员，技术人员十分热情的给我解决了问题，怕我玩不太转，还附上了截图和使用方法。</p>
+<p>言归正传，下面是针对 CentOS7 系统的梯子搭建过程，我也编写了相应的自动化脚本，如果不想一步一步自己搭建的同学可以直接使用下面的脚本。</p>
+<blockquote>
+<p><a href="https://github.com/jenihk/SS-auto-deploy-on-CentOS7">https://github.com/jenihk/SS-auto-deploy-on-CentOS7</a></p>
+</blockquote>
+<p><strong><em>搭建过程</em></strong></p>
+<div style="color:red">由于 OpenVZ 虚拟化架构不支持定制内核，所以请先确认自己的 VPS 是 KVM 架构，并且系统为 CentOS 7</div>
+
+<p>首先更新系统版本</p>
+<div class="highlight"><pre><span></span>yum -y update
+</pre></div>
+
+
+<p>查看此时的系统版本号</p>
+<div class="highlight"><pre><span></span>cat /etc/redhat-release
+</pre></div>
+
+
+<p>目前的最新版本号是 7.4.1708 ，所以上面的命令执行完应该会有如下显示：</p>
+<div class="highlight"><pre><span></span>[root@CentOS7 ~]# cat /etc/redhat-release
+CentOS Linux release 7.4.1708 (Core)
+</pre></div>
+
+
+<p>安装 elrepo 并升级内核</p>
+<div class="highlight"><pre><span></span><span class="n">rpm</span> <span class="o">--</span><span class="kn">import</span> <span class="nn">https</span><span class="p">:</span><span class="o">//</span><span class="n">www</span><span class="o">.</span><span class="n">elrepo</span><span class="o">.</span><span class="n">org</span><span class="o">/</span><span class="n">RPM</span><span class="o">-</span><span class="n">GPG</span><span class="o">-</span><span class="n">KEY</span><span class="o">-</span><span class="n">elrepo</span><span class="o">.</span><span class="n">org</span>
+<span class="n">rpm</span> <span class="o">-</span><span class="n">Uvh</span> <span class="n">http</span><span class="p">:</span><span class="o">//</span><span class="n">www</span><span class="o">.</span><span class="n">elrepo</span><span class="o">.</span><span class="n">org</span><span class="o">/</span><span class="n">elrepo</span><span class="o">-</span><span class="n">release</span><span class="o">-</span><span class="mf">7.0</span><span class="o">-</span><span class="mf">2.</span><span class="n">el7</span><span class="o">.</span><span class="n">elrepo</span><span class="o">.</span><span class="n">noarch</span><span class="o">.</span><span class="n">rpm</span>
+<span class="n">yum</span> <span class="o">--</span><span class="n">enablerepo</span><span class="o">=</span><span class="n">elrepo</span><span class="o">-</span><span class="n">kernel</span> <span class="n">install</span> <span class="n">kernel</span><span class="o">-</span><span class="n">ml</span> <span class="o">-</span><span class="n">y</span>
+</pre></div>
+
+
+<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/ss/elrepo.png" alt="elrepo" /></div>
+
+<p>查看当前已安装的内核</p>
+<div class="highlight"><pre><span></span>egrep ^menuentry /etc/grub2.cfg | cut -f 2 -d \&#39;
+</pre></div>
+
+
+<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/ss/menuentry_grub2.png" alt="menuentry_grub2" /></div>
+
+<p>从中找到新安装的内核，确定新内核的序号，序号如上图所示，从 0 开始计算。</p>
+<p>更新 grub 的配置文件，并重启系统，下面的第一条命令后面的数字就是新内核的序号，我这里是 0</p>
+<div class="highlight"><pre><span></span>grub2-set-default 0
+reboot
+</pre></div>
+
+
+<p>此时系统会默认使用新的内核，如下图所示
+<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/ss/start.png" alt="start" /></div></p>
+<p>但是这幅图正常情况下我们并看不到，所以在开机之后我们需要使用 uname -r 命令确定当前的内核版本。</p>
+<div class="highlight"><pre><span></span>[root@CentOS7 ~]# uname -r
+4.15.0-1.el7.elrepo.x86_64
+</pre></div>
+
+
+<p>确定使用了新版本的内核之后则可以开启 BBR，修改 /etc/sysctl.conf 文件</p>
+<div class="highlight"><pre><span></span>vi /etc/sysctl.conf
+</pre></div>
+
+
+<p>添加如下内容</p>
+<div class="highlight"><pre><span></span>net.core.default_qdisc = fq
+net.ipv4.tcp_congestion_control = bbr
+</pre></div>
+
+
+<p>加载系统参数</p>
+<div class="highlight"><pre><span></span>sysctl -p
+</pre></div>
+
+
+<p>输入下面的命令，如果返回结果中存在 bbr 算法，则说明已成功开启 BBR</p>
+<div class="highlight"><pre><span></span>[root@CentOS7 ~]# sysctl net.ipv4.tcp_available_congestion_control
+net.ipv4.tcp_available_congestion_control = reno cubic bbr
+</pre></div>
+
+
+<p>接着就可以安装 Shadowsocks 了，由于最小化安装的 CentOS 系统内没有 pip 工具，所以还需要先安装 pip</p>
+<div class="highlight"><pre><span></span>yum install -y python-setuptools &amp;&amp; easy_install pip
+pip install shadowsocks
+</pre></div>
+
+
+<p>创建 Shadowsocks 的配置文件，名字随意，例如</p>
+<div class="highlight"><pre><span></span>vi /etc/shadowsocks/config.json
+</pre></div>
+
+
+<p>添加以下内容到文件内，其中 server 要改成自己 VPS 的 IP 地址，server_port 改成 1024-65535 之间未被使用的任意数字，密码也设置为自己的</p>
+<div class="highlight"><pre><span></span>{
+    &quot;server&quot;:&quot;0.0.0.0&quot;,
+    &quot;server_port&quot;:9999,
+    &quot;local_address&quot;: &quot;127.0.0.1&quot;,
+    &quot;local_port&quot;:1080,
+    &quot;password&quot;:&quot;ChangeMe&quot;,
+    &quot;timeout&quot;:300,
+    &quot;method&quot;:&quot;aes-256-cfb&quot;,
+    &quot;fast_open&quot;: false
+}
+</pre></div>
+
+
+<p>启动 Shadowsocks 服务</p>
+<div class="highlight"><pre><span></span>ssserver -c /etc/shadowsocks/config.json -d start
+</pre></div>
+
+
+<p>配置防火墙，允许 Shadowsocks 服务所在端口被访问</p>
+<div class="highlight"><pre><span></span># 端口改成自己的
+firewall-cmd --zone=public --add-port=9999/tcp --permanent
+</pre></div>
+
+
+<p>到这里使用 SS 客户端进行连接应该就可以了。下图为 YouTube 1080P 视频测试图
+<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/ss/youtube.gif" alt="youtube" /></div></p>
+<p>如果对速度不太满意，也可以参考 Shadowsocks 官方的优化方法</p>
+<blockquote>
+<p><a href="https://github.com/shadowsocks/shadowsocks/wiki/Optimizing-Shadowsocks">https://github.com/shadowsocks/shadowsocks/wiki/Optimizing-Shadowsocks</a></p>
+</blockquote>
+        <hr />
+        <p>作者:JenI&#160; &#160; &#160; &#160;转载请注明出处，谢谢</p>
+    </article>
+
+    <hr>
+
+        <div class="comments">
+            <h2>Comments !</h2>
+            <div id="disqus_thread"></div>
+            <script type="text/javascript">
+                var disqus_shortname = 'jenihk';
+                var disqus_identifier = 'security/bbr-ss.html';
+                var disqus_url = 'https://blog.jenisec.org/security/bbr-ss.html';
+                (function() {
+                    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+                    dsq.src = '//jenihk.disqus.com/embed.js';
+                    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+                })();
+            </script>
+            <noscript>Please enable JavaScript to view the comments.</noscript>
+        </div>
+ <!--                   
+    <div id="disqus_thread"></div>
+    <script>
+
+/**
+*  RECOMMENDED CONFIGURATION VARIABLES: EDIT AND UNCOMMENT THE SECTION BELOW TO INSERT DYNAMIC VALUES FROM YOUR PLATFORM OR CMS.
+*  LEARN WHY DEFINING THESE VARIABLES IS IMPORTANT: https://disqus.com/admin/universalcode/#configuration-variables*/
+/*
+var disqus_config = function () {
+this.page.url = PAGE_URL;  // Replace PAGE_URL with your page's canonical URL variable
+this.page.identifier = PAGE_IDENTIFIER; // Replace PAGE_IDENTIFIER with your page's unique identifier variable
+};
+*/
+        (function() { // DON'T EDIT BELOW THIS LINE
+            var d = document, s = d.createElement('script');
+            s.src = '//jenihk.disqus.com/embed.js';
+            s.setAttribute('data-timestamp', +new Date());
+            (d.head || d.body).appendChild(s);
+        })();
+    </script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+-->
+            </div>
+        </div>
+    </div>
+
+    <hr>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                    <ul class="list-inline text-center">
+                        <li>
+                            <a href="http://weibo.com/1992014191/profile?rightmod=1&wvr=6&mod=personinfo&is_all=1">
+                                <span class="fa-stack fa-lg">
+                                    <i class="icon iconfont">&#xe657;</i>
+                                </span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="http://github.com/jenihk">
+                                <span class="fa-stack fa-lg">
+                                    <i class="icon iconfont">&#xe618;</i>
+                                </span>
+                            </a>
+                        </li>
+                    </ul>
+                    <p class="copyright text-muted">Blog powered by <a href="http://getpelican.com">Pelican</a>,
+                which takes great advantage of <a href="http://python.org">Python</a>.</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- jQuery -->
+    <script src="https://blog.jenisec.org/theme/js/jquery.js"></script>
+
+    <!-- Bootstrap Core JavaScript -->
+    <script src="https://blog.jenisec.org/theme/js/bootstrap.min.js"></script>
+
+    <!-- Custom Theme JavaScript -->
+    <script src="https://blog.jenisec.org/theme/js/clean-blog.min.js"></script>
+    
+    <!-- CanvasParticles -->
+    <script src="https://blog.jenisec.org/theme/js/canvas-particle.js"></script>
+
+    
+
+    <script type="text/javascript">
+        CanvasParticle();
+    </script>
+
+    <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-85780345-1']);
+    _gaq.push(['_trackPageview']);
+    (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+    </script>
+<script type="text/javascript">
+    var disqus_shortname = 'jenihk';
+    (function () {
+        var s = document.createElement('script'); s.async = true;
+        s.type = 'text/javascript';
+        s.src = '//' + disqus_shortname + '.disqus.com/count.js';
+        (document.getElementsByTagName('HEAD')[0] || document.getElementsByTagName('BODY')[0]).appendChild(s);
+    }());
+</script>
+</body>
+
+</html>
