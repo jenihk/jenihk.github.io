@@ -122,36 +122,44 @@
 <p>newmail 函数随机生成了一个 8 位的临时密码，将其插入到 dede_pwd_tmp 表后确定传入的 send 变量是否为 N，如果为 N，就将跳转提示加上临时随机密码输出到页面上，利用这个临时密码，攻击者就可以更改任意用户的密码了。</p>
 <p><strong><em>漏洞复现</em></strong></p>
 <p>下面是 user2 用户利用此漏洞修改 user1 用户密码的流程。</p>
-<ol>
+<ul>
 <li>首先在 DedeCMS 搭建的网站上注册两个用户。默认没有安全提示问题。<br>
 用户一： 用户名：user1，密码：user1password<br>
-用户二： 用户名：user2，密码：user2password
-<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/dedecms/dedePm4.png" alt="dedePm4" /></div></p></p></li>
-</ol>
+用户二： 用户名：user2，密码：user2password</li>
+</ul>
+<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/dedecms/dedePm4.png" alt="dedePm4" /></div>
+
+<p></p></p></p>
 <div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/dedecms/dedePm5.png" alt="dedePm5" /></div>
 
 <p></p></p></p>
-<ol>
-<li>这时使用 user2 账户登录，访问 /member/resetpassword.php?dopost=safequestion&amp;safequestion=0.0&amp;id=8。因为 user1 用户的 mid 为 8，所以这里的 id 设置为 8。
-<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/dedecms/dedePm6.png" alt="dedePm6" /></div></p></p></li>
-</ol>
+<ul>
+<li>这时使用 user2 账户登录，访问 /member/resetpassword.php?dopost=safequestion&amp;safequestion=0.0&amp;id=8。因为 user1 用户的 mid 为 8，所以这里的 id 设置为 8。</li>
+</ul>
+<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/dedecms/dedePm6.png" alt="dedePm6" /></div>
+
+<p></p></p></p>
 <div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/dedecms/dedePm7.png" alt="dedePm7" /></div>
 
 <p></p></p></p>
-<ol>
-<li>
-<p>成功得到了临时密码，删除 amp; 转发数据包。
-<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/dedecms/dedePm8.png" alt="dedePm8" /></div></p></p></p>
-</li>
-<li>
-<p>将 user1 用户的密码修改为 00000000。
-<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/dedecms/dedePm9.png" alt="dedePm9" /></div></p></p></p>
-</li>
-<li>
-<p>修改成功后使用用户名 user1、密码 00000000 成功登录。
-<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/dedecms/dedePm10.png" alt="dedePm10" /></div></p></p></p>
-</li>
-</ol>
+<ul>
+<li>成功得到了临时密码，删除 amp; 转发数据包。</li>
+</ul>
+<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/dedecms/dedePm8.png" alt="dedePm8" /></div>
+
+<p></p></p></p>
+<ul>
+<li>将 user1 用户的密码修改为 00000000。</li>
+</ul>
+<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/dedecms/dedePm9.png" alt="dedePm9" /></div>
+
+<p></p></p></p>
+<ul>
+<li>修改成功后使用用户名 user1、密码 00000000 成功登录。</li>
+</ul>
+<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/dedecms/dedePm10.png" alt="dedePm10" /></div>
+
+<p></p></p></p>
 <p><strong><em>参考</em></strong></p>
 <blockquote>
 <p><a href="https://paper.seebug.org/507/">https://paper.seebug.org/507/</a></p>
