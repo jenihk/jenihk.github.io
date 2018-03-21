@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="zh">
+
+<head>
+            <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="description" content="">
+        <meta name="author" content="">
+
+        <title>JenI's Blog</title>
+
+        <link rel="icon" href="https://blog.jenisec.org/theme/images/favicon.ico" type="image/x-icon">  
+        <link rel="shortcut icon" href="https://blog.jenisec.org/theme/images/favicon.ico" type="image/x-icon">  
+
+
+        <link href="https://blog.jenisec.org/theme/css/iconfont.css" rel="stylesheet">
+
+        <!-- Bootstrap Core CSS -->
+        <link href="https://blog.jenisec.org/theme/css/bootstrap.min.css" rel="stylesheet">
+
+        <!-- Custom CSS -->
+        <link href="https://blog.jenisec.org/theme/css/clean-blog.min.css" rel="stylesheet">
+
+        <!-- Code highlight color scheme -->
+            <link href="https://blog.jenisec.org/theme/css/code_blocks/monokai.css" rel="stylesheet">
+
+        <!-- Custom Fonts -->
+        <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.1.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+        <link href='https://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+        <link href='https://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/css'>
+
+        <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+        <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+        <!--[if lt IE 9]>
+            <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+            <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+        <![endif]-->
+
+
+
+
+
+
+			<meta property="og:locale" content="zh">
+		<meta property="og:site_name" content="JenI's Blog">
+
+	<meta property="og:type" content="article">
+	<meta property="article:author" content="">
+	<meta property="og:url" content="https://blog.jenisec.org/security/exim-off-by-one.html">
+	<meta property="og:title" content="Exim 单字节堆溢出漏洞分析">
+	<meta property="og:description" content="">
+	<meta property="og:image" content="https://blog.jenisec.org/../theme/images/posts/exim/cover.png">
+	<meta property="article:published_time" content="2018-03-16 00:00:00+08:00">
+</head>
+
+<body style="background-color: #f8f8f8">
+
+    <!-- Navigation -->
+    <nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+        <div class="container-fluid">
+            <!-- Brand and toggle get grouped for better mobile display -->
+            <div class="navbar-header page-scroll">
+                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <a class="navbar-brand" href="https://blog.jenisec.org/">JenI's Blog</a>
+            </div>
+
+            <!-- Collect the nav links, forms, and other content for toggling -->
+            <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+                <ul class="nav navbar-nav navbar-right">
+                        <li><a href="https://blog.jenisec.org/category/ji-qi-xue-xi.html">机器学习</a></li>
+                        <li><a href="https://blog.jenisec.org/category/an-quan.html">安全</a></li>
+                        <li><a href="https://blog.jenisec.org/category/xi-tong.html">系统</a></li>
+                        <li><a href="https://blog.jenisec.org/category/ri-chang.html">日常</a></li>
+
+                </ul>
+            </div>
+            <!-- /.navbar-collapse -->
+        </div>
+        <!-- /.container -->
+    </nav>
+
+    <!-- Page Header -->
+        <header class="intro-header" style="background-image: url('../theme/images/posts/exim/cover.png')">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                    <div class="post-heading">
+                        <h1>Exim 单字节堆溢出漏洞分析</h1>
+                        <span class="meta">Posted by
+                                <a href="https://blog.jenisec.org/author/jeni.html">JenI</a>
+                             on 2018-03-16 00:00:00+08:00
+                        </span>
+                        
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1" style="background-color: #f8f8f8;position: relative;">
+    <!-- Post Content -->
+    <article style="background-color: #f8f8f8;position: relative;">
+        <p><strong><em>前言</em></strong></p>
+<p>Exim是一个MTA(Mail_Transfer_Agent，邮件传输代理)服务器软件，负责邮件的路由，转发和投递。Exim被作者设计成可运行于绝大多数的类UNIX系统上，包括了Solaris、AIX、Linux等。2 月 5 日，DEVCORE 团队的安全研究员 Meh 向 exim-security 邮件组披露了 Exim 存在一处缓冲区溢出漏洞，编号为 CVE-2018-6789，成功利用可导致远程代码执行。</p>
+<p><strong><em>漏洞分析</em></strong></p>
+<p>漏洞存在于 /src/base64.c 文件的 b64decode 函数。</p>
+<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/exim/exim-off-by-one-1.png" alt="exim-off-by-one-1" /></div>
+
+<p>通常情况下，对一段长度为 n 的字符串进行 base64 编码后，长度为 ⌈n/3⌉*4，⌈⌉ 代表上取整，因此，Exim 在使用上图中的函数对 base64 编码的字符串解码时，会为解码后的 base64 数据分配 3*(len/4)+1 字节的缓冲区长度。但是，如果输入的无效 base64 字符串长度为 4n+3 的话，Exim 则会为其分配 3n+1 字节但占用 3n+2 字节的缓冲区长度。这里会导致一个字节堆溢出。假如将 base64 字符串控制为一个合适的长度，溢出的一字节可能就会覆盖一些关键数据，再因为其可控性，也使得远程代码执行成为可能。</p>
+<p>具体来说，这个 off-by-one 漏洞是由于 Linux 下堆内存验证机制的不完善导致的。目前的 Linux 使用的是基于 ptmalloc 的堆管理器。ptmalloc 是 glibc 默认的内存管理器，常用的 malloc 和 free 就是由 ptmalloc 内存管理器提供的基础内存分配函数。ptmalloc 中，堆块被分为 fastbin、unsort bin、small bin、large bin 四种。同时，堆块还有 allocated、freed 两种状态，前者为正在使用的堆块，后者为空闲的堆块。下图为一个正在使用的堆块，其中 A、M、P 三个位置为标志位。这里只需要关注 P 位就好，这个位确定了前一个块是否处于使用状态(在 ptmalloc 中一个块是否使用是由下一个块进行记录的)。p=0 时，表示前一个堆块为空闲，p=1 时，表示前一个堆块正在被使用。
+<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/exim/exim-off-by-one-2.png" alt="exim-off-by-one-2" /></div></p>
+<p>成功利用 off-by-one 漏洞可以改写下一堆块的 size 域，再通过一些其他操作，使目标堆块重新分配到攻击者控制的新的堆块中，这样就可以对目标堆块进行读写操作。下面是对 off-by-one overwrite allocated 漏洞原理的简单介绍：</p>
+<p>假设现在存在如下三个堆块，其中 A 堆块是发生 off-by-one 的堆块，B 和 C 是 allocated 状态的堆块。C 堆块为我们想要进行读写操作的堆块。
+<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/exim/exim-off-by-one-3.png" alt="exim-off-by-one-3" /></div></p>
+<p>首先利用程序的内存分配函数构造上图中的内存布局，然后通过 off-by-one 对 B 堆块的 size 域进行改写，需要注意的是 P 位需要为 1，不然会触发 unlink 导致程序中止或崩溃，修改后 size 域需要将 C 堆块大小也包含进去。接着使用 free 函数将 B 堆块释放，之后再分配 B+C 大小的块就可以简介实现对 C 堆块的读写了。</p>
+<p>回到 Exim，Exim 使用了自定义的函数对内存进行动态分配，函数 store_malloc() 和 store_free() 直接调用了 glibc 中的 malloc() 和 free()，正常情况下，分配的堆块结构如下图所示：
+<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/exim/exim-off-by-one-4.png" alt="exim-off-by-one-4" /></div></p>
+<p>0-0x10 块的第一个字节内存储了完整堆块的元数据。元数据包括前一个块的大小、当前块的大小和之前提到的几个标志位。</p>
+<p>在 Exim 中，大部分被释放的堆块会被放入 unsorted bins 这个双向列表中，unsorted bins 是 bins 的一个缓冲区。当用户释放的内存大于 max_fast 或者高速缓冲区内合并后的堆块都会进入 unsorted bin 上。为了避免碎片化，glibc 会根据堆块的标志位进行维护，存在相邻的已被释放的堆块时，glibc 会将它们合并到一个更大的堆块。对于每个分配请求，glibc 都会以 FIFO（先进先出）顺序检查这些块，并重新使用这些块。</p>
+<p>Exim 还有几个用来排列堆数据的函数。这些函数中会通过 store_get()、store_release()、store_extend() 和 store_reset() 对自己的链表结构进行维护。
+<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/exim/exim-off-by-one-5.png" alt="exim-off-by-one-5" /></div></p>
+<p>上图中每个 storeblocks 存储块至少有 0x2000 字节，其内存结构如下图所示：
+<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/exim/exim-off-by-one-6.png" alt="exim-off-by-one-6" /></div></p>
+<p>下面是一次完整的攻击步骤：</p>
+<p>为了完成攻击，需要构造一个合适的内存布局，类似于之前提到过的 A、B、C 三个堆块布局。</p>
+<ul>
+<li>
+<p>首先发送一个带有大主机名(huge hostname)的 EHLO 消息，对于每一个 EHLO 命令，Exim 将主机名的指针存储在 sender_host_name 中。主机名分别是：旧名字：store_free()、新名字：store_malloc()。此时会在缓冲区内留下一个堆块，长度为三个存储块的长度，即 0x6060。</p>
+</li>
+<li>
+<p>然后发送一个无法识别的字符串到 Exim，Exim 对于无法识别的、不可打印的命令，会调用 store_get() 分配一个缓冲区用来将其转换为可打印字符。缓冲区内储存了错误信息。</p>
+</li>
+<li>
+<p>再次发送 EHLO 消息以获得第二个存储块。由于 EHLO 命令完成后调用了 smtp_reset，所以第二步中存储错误信息的堆块被释放。</p>
+</li>
+</ul>
+<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/exim/exim-off-by-one-7.png" alt="exim-off-by-one-7" /></div>
+
+<ul>
+<li>
+<p>此时发送一个 AUTH 命令来发送特殊的 base64 数据。AUTH 是个身份验证过程，Exim 在此过程中使用 base64 编码域客户端进行通信。编码和解码的数据都会存储在 sore_get() 的缓冲区内，也就是图 3 中 1 标识的堆块。特殊的 base64 数据导致了 off-by-one，因此下一个堆块的第一个字节被改写，也就是图 3 中 2 标识的堆块。</p>
+</li>
+<li>
+<p>由于图 3 中所示的第二个堆块中 size 域被改写为了 0x20f1，所以第三个堆块的开始部分已经被更改到了第二个堆块内。因此，为了让它伪装成正常的堆块以通过 glibc 的检查，这里需要发送另一个 base64 字符串，因为它需要空字节和不可打印字符来伪造块大小。</p>
+</li>
+<li>
+<p>这时，发送一个新的 EHLO 消息来释放掉旧的主机名。但是正常的 EHLO 消息在成功之后会调用 smtp_reset，这可能会导致程序中止或崩溃。为了避免这种情况，这里发送一个无效的主机名称，如 a+。</p>
+</li>
+</ul>
+<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/exim/exim-off-by-one-8.png" alt="exim-off-by-one-8" /></div>
+
+<ul>
+<li>如图 6 所示，这时可以使用 AUTH 进行检索并覆盖部分重叠的存储块。这里将指向原始的下一个存储块的指针修改为指向一个包含 ACL 的存储块。ACL 字符串是通过一组全局指针来指向的，如：</li>
+</ul>
+<div class="highlight"><pre><span></span>uschar *acl_smtp_auth;
+uschar *acl_smtp_data;
+uschar *acl_smtp_etrn;
+uschar *acl_smtp_expn;
+uschar *acl_smtp_helo;
+uschar *acl_smtp_mail;
+uschar *acl_smtp_quit;
+uschar *acl_smtp_rcpt
+</pre></div>
+
+
+<p>这些指针在 exim 进程开始时初始化，根据配置进行设置。例如，如果 configure 中有一行代码：acl_smtp_mail = acl_check_mail，则指针 acl_smtp_mail 指向字符串 acl_check_mail。无论何时使用 MAIL FROM，Exim 执行 ACL 检查，都需要首先扩展 acl_check_mail。 在扩展时，Exim 在遇到 $ {run {cmd}}时会尝试执行命令，所以只要控制了 ACL 字符串，就可以实现代码执行。</p>
+<ul>
+<li>
+<p>现在的 ACL 存储块已经成功的加入到了堆块列表中，如果 smtp_reset() 被触发，这个 ACL 存储块就会被释放。然后可以通过分配多个堆块再次恢复这个 ACL 存储块。</p>
+</li>
+<li>
+<p>最后，将包含 ACL 字符串的整个堆块覆盖，发送 EHLO，MAIL，RCPT 等命令来触发 ACL 检查，一旦尝试到了配置中定义的 acl，就可以实现远程代码执行。</p>
+</li>
+</ul>
+<p><strong><em>参考</em></strong></p>
+<blockquote>
+<p><a href="https://devco.re/blog/2018/03/06/exim-off-by-one-RCE-exploiting-CVE-2018-6789-en/">https://devco.re/blog/2018/03/06/exim-off-by-one-RCE-exploiting-CVE-2018-6789-en/</a>
+<a href="http://blog.csdn.net/initphp/article/details/50833036">http://blog.csdn.net/initphp/article/details/50833036</a></p>
+</blockquote>
+        <hr />
+        <p>作者:JenI&#160; &#160; &#160; &#160;转载请注明出处，谢谢</p>
+    </article>
+
+    <hr>
+
+        <div class="comments">
+            <h2>Comments !</h2>
+            <div id="disqus_thread"></div>
+            <script type="text/javascript">
+                var disqus_shortname = 'jenihk';
+                var disqus_identifier = 'security/exim-off-by-one.html';
+                var disqus_url = 'https://blog.jenisec.org/security/exim-off-by-one.html';
+                (function() {
+                    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+                    dsq.src = '//jenihk.disqus.com/embed.js';
+                    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+                })();
+            </script>
+            <noscript>Please enable JavaScript to view the comments.</noscript>
+        </div>
+ <!--                   
+    <div id="disqus_thread"></div>
+    <script>
+
+/**
+*  RECOMMENDED CONFIGURATION VARIABLES: EDIT AND UNCOMMENT THE SECTION BELOW TO INSERT DYNAMIC VALUES FROM YOUR PLATFORM OR CMS.
+*  LEARN WHY DEFINING THESE VARIABLES IS IMPORTANT: https://disqus.com/admin/universalcode/#configuration-variables*/
+/*
+var disqus_config = function () {
+this.page.url = PAGE_URL;  // Replace PAGE_URL with your page's canonical URL variable
+this.page.identifier = PAGE_IDENTIFIER; // Replace PAGE_IDENTIFIER with your page's unique identifier variable
+};
+*/
+        (function() { // DON'T EDIT BELOW THIS LINE
+            var d = document, s = d.createElement('script');
+            s.src = '//jenihk.disqus.com/embed.js';
+            s.setAttribute('data-timestamp', +new Date());
+            (d.head || d.body).appendChild(s);
+        })();
+    </script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+-->
+            </div>
+        </div>
+    </div>
+
+    <hr>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                    <ul class="list-inline text-center">
+                        <li>
+                            <a href="http://weibo.com/1992014191/profile?rightmod=1&wvr=6&mod=personinfo&is_all=1">
+                                <span class="fa-stack fa-lg">
+                                    <i class="icon iconfont">&#xe657;</i>
+                                </span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="http://github.com/jenihk">
+                                <span class="fa-stack fa-lg">
+                                    <i class="icon iconfont">&#xe618;</i>
+                                </span>
+                            </a>
+                        </li>
+                    </ul>
+                    <p class="copyright text-muted">Blog powered by <a href="http://getpelican.com">Pelican</a>,
+                which takes great advantage of <a href="http://python.org">Python</a>.</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- jQuery -->
+    <script src="https://blog.jenisec.org/theme/js/jquery.js"></script>
+
+    <!-- Bootstrap Core JavaScript -->
+    <script src="https://blog.jenisec.org/theme/js/bootstrap.min.js"></script>
+
+    <!-- Custom Theme JavaScript -->
+    <script src="https://blog.jenisec.org/theme/js/clean-blog.min.js"></script>
+    
+    <!-- CanvasParticles -->
+    <script src="https://blog.jenisec.org/theme/js/canvas-particle.js"></script>
+
+    
+
+    <script type="text/javascript">
+        CanvasParticle();
+    </script>
+
+    <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-85780345-1']);
+    _gaq.push(['_trackPageview']);
+    (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+    </script>
+<script type="text/javascript">
+    var disqus_shortname = 'jenihk';
+    (function () {
+        var s = document.createElement('script'); s.async = true;
+        s.type = 'text/javascript';
+        s.src = '//' + disqus_shortname + '.disqus.com/count.js';
+        (document.getElementsByTagName('HEAD')[0] || document.getElementsByTagName('BODY')[0]).appendChild(s);
+    }());
+</script>
+</body>
+
+</html>
