@@ -47,11 +47,11 @@
 
 	<meta property="og:type" content="article">
 	<meta property="article:author" content="">
-	<meta property="og:url" content="https://blog.jenisec.org/security/dedeCMS_Pass_Modify.html">
-	<meta property="og:title" content="DedeCMS 前端任意用户密码修改漏洞">
+	<meta property="og:url" content="https://blog.jenisec.org/security/joomla_core_sql_injection.html">
+	<meta property="og:title" content="Joomla Core 内核 SQL 注入漏洞">
 	<meta property="og:description" content="">
-	<meta property="og:image" content="https://blog.jenisec.org/../theme/images/posts/dedecms/cover.png">
-	<meta property="article:published_time" content="2018-01-22 00:00:00+08:00">
+	<meta property="og:image" content="https://blog.jenisec.org/../theme/images/posts/joomla370/joomla370sqlin-cover.png">
+	<meta property="article:published_time" content="2018-04-03 00:00:00+08:00">
 </head>
 
 <body style="background-color: #f8f8f8">
@@ -86,15 +86,15 @@
     </nav>
 
     <!-- Page Header -->
-        <header class="intro-header" style="background-image: url('../theme/images/posts/dedecms/cover.png')">
+        <header class="intro-header" style="background-image: url('../theme/images/posts/joomla370/joomla370sqlin-cover.png')">
         <div class="container">
             <div class="row">
                 <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
                     <div class="post-heading">
-                        <h1>DedeCMS 前端任意用户密码修改漏洞</h1>
+                        <h1>Joomla Core 内核 SQL 注入漏洞</h1>
                         <span class="meta">Posted by
                                 <a href="https://blog.jenisec.org/author/jeni.html">JenI</a>
-                             on 2018-01-22 00:00:00+08:00
+                             on 2018-04-03 00:00:00+08:00
                         </span>
                         
                     </div>
@@ -110,59 +110,30 @@
     <!-- Post Content -->
     <article style="background-color: #f8f8f8;position: relative;">
         <p><strong><em>前言</em></strong></p>
-<p>织梦CMS是集简单、健壮、灵活、开源几大特点的开源内容管理系统，是国内开源CMS的领先品牌，目前程序安装量已达七十万，超过六成的站点正在使用织梦CMS或基于织梦CMS核心开发。最近，织梦CMS最新版被曝存在前端任意用户密码修改漏洞，漏洞分析如下：</p>
+<p>Joomla! 是一套全球知名的内容管理系统，由 PHP 加上 MySQL 数据库所开发的软件系统。近日，Joomla 3.5.0-3.8.5 版本后台管理页面的 User Notes 页面被指出存在 SQL 注入漏洞。</p>
 <p><strong><em>漏洞分析</em></strong></p>
-<p>漏洞出现在会员模块的重设密码功能上，也就是 /member/resetpasswordd.php 中：
-<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/dedecms/dedePm1.png" alt="dedePm1" /></div></p></p></p>
-<p>上面的代码在接收到重设密码请求时，将请求中的 id 值处理后带入数据库进行查询，然后对请求中的 safequestion 和 sefeanswer 字段进行了是否为空的判断，这两个字段为注册账号时填写的安全问题和问题答案，如果用户在注册时没有填写的话，数据库中这两个字段默认为字符串 ’0’。</p>
-<p>为了满足 $row['safequestion'] == $safequestion，就需要将 $safequestion 设置为 ’0’，但是如果 $safequestion 为 ‘0’，就会无法满足 empty($safequestion) 的判断，因此这里需要将 $safequestion 设置为 ‘0.0’。PHP 是一个弱类型语音，两个 == 进行判断时，只要两侧值相等就返回真。这里其实是内部做了类型转换，传入的 ‘0.0’ 会首先被 int() 转换为 0，数据库中取出的字符串 ‘0’ 也会转为整型，此时就满足了 $row['safequestion'] == $safequestion。代码执行到 sn 函数，该函数位于 member/inc/inc_pwd_functions.php 文件中：
-<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/dedecms/dedePm2.png" alt="dedePm2" /></div></p></p></p>
-<p>sn 函数中的 $send 默认值是 Y，但是在上面函数调用处传入了 N。之后进入到 newmail 函数：
-<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/dedecms/dedePm3.png" alt="dedePm3" /></div></p></p></p>
-<p>newmail 函数随机生成了一个 8 位的临时密码，将其插入到 dede_pwd_tmp 表后确定传入的 send 变量是否为 N，如果为 N，就将跳转提示加上临时随机密码输出到页面上，利用这个临时密码，攻击者就可以更改任意用户的密码了。</p>
-<p><strong><em>漏洞复现</em></strong></p>
-<p>下面是 user2 用户利用此漏洞修改 user1 用户密码的流程。</p>
-<ul>
-<li>首先在 DedeCMS 搭建的网站上注册两个用户。默认没有安全提示问题。<br>
-用户一： 用户名：user1，密码：user1password<br>
-用户二： 用户名：user2，密码：user2password</li>
-</ul>
-<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/dedecms/dedePm4.png" alt="dedePm4" /></div>
+<p>根据官方对该漏洞的描述可知在 User Notes 列表视图中存在 SQL 注入漏洞，漏洞是由于 SQL 语句内的变量缺少类型转换而导致的。
+<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/joomla/joomla_core_sqli_1.png" alt="joomla_core_sqli_1" /></div></p>
+<p>在 Joomla 的后台管理页面中，从 User Notes 列表视图页面发起的请求，会交给 ./administrator/components/com_users/models/notes.php 处理，该文件在上次更新时对传入的 filter.category_id 参数进行了 int 类型的强制转换。
+<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/joomla/joomla_core_sqli_2.png" alt="joomla_core_sqli_2" /></div></p>
+<p>具体请求地址为 http://x.x.x.x/administrator/index.php?option=com_users&amp;view=notes
+<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/joomla/joomla_core_sqli_3.png" alt="joomla_core_sqli_3" /></div></p>
+<p>在此页面点击搜索按钮时，进行抓包，在 Post 数据包中可以看到 filter[category_id] 字段
+<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/joomla/joomla_core_sqli_4.png" alt="joomla_core_sqli_4" /></div></p>
+<p>在 filter[category_id] 参数值内添加单引号，页面返回内容包含数据库错误信息，证明确实存在注入。
+<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/joomla/joomla_core_sqli_5.png" alt="joomla_core_sqli_5" /></div></p>
+<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/joomla/joomla_core_sqli_6.png" alt="joomla_core_sqli_6" /></div>
 
-<p></p></p></p>
-<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/dedecms/dedePm5.png" alt="dedePm5" /></div>
+<p>将数据包保存至文本文档，利用 -r 参数将数据包传入 sqlmap 进行注入尝试</p>
+<div class="highlight"><pre><span></span>sqlmap -r request_header.txt -p filter[category_id]
+</pre></div>
 
-<p></p></p></p>
-<ul>
-<li>这时使用 user2 账户登录，访问 /member/resetpassword.php?dopost=safequestion&amp;safequestion=0.0&amp;id=8。因为 user1 用户的 mid 为 8，所以这里的 id 设置为 8。</li>
-</ul>
-<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/dedecms/dedePm6.png" alt="dedePm6" /></div>
 
-<p></p></p></p>
-<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/dedecms/dedePm7.png" alt="dedePm7" /></div>
-
-<p></p></p></p>
-<ul>
-<li>成功得到了临时密码，删除 amp; 转发数据包。</li>
-</ul>
-<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/dedecms/dedePm8.png" alt="dedePm8" /></div>
-
-<p></p></p></p>
-<ul>
-<li>将 user1 用户的密码修改为 00000000。</li>
-</ul>
-<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/dedecms/dedePm9.png" alt="dedePm9" /></div>
-
-<p></p></p></p>
-<ul>
-<li>修改成功后使用用户名 user1、密码 00000000 成功登录。</li>
-</ul>
-<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/dedecms/dedePm10.png" alt="dedePm10" /></div>
-
-<p></p></p></p>
+<p>得到以下结果：
+<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/joomla/joomla_core_sqli_7.png" alt="joomla_core_sqli_7" /></div></p>
 <p><strong><em>参考</em></strong></p>
 <blockquote>
-<p><a href="https://paper.seebug.org/507/">https://paper.seebug.org/507/</a></p>
+<p><a href="http://blog.nsfocus.net/cve-2018-804-analysis/">http://blog.nsfocus.net/cve-2018-804-analysis/</a></p>
 </blockquote>
         <hr />
         <p>作者:&#160; &#160;JenI&#160; &#160;转载请注明出处，谢谢</p>
@@ -175,8 +146,8 @@
             <div id="disqus_thread"></div>
             <script type="text/javascript">
                 var disqus_shortname = 'jenihk';
-                var disqus_identifier = 'security/dedeCMS_Pass_Modify.html';
-                var disqus_url = 'https://blog.jenisec.org/security/dedeCMS_Pass_Modify.html';
+                var disqus_identifier = 'security/joomla_core_sql_injection.html';
+                var disqus_url = 'https://blog.jenisec.org/security/joomla_core_sql_injection.html';
                 (function() {
                     var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
                     dsq.src = '//jenihk.disqus.com/embed.js';
