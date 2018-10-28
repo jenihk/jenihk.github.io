@@ -125,14 +125,14 @@
 <p>我下载了 1.12.0 版本的 Nginx，对漏洞的产生进行了简单的分析。</p>
 <p><strong><em>漏洞分析</em></strong></p>
 <p>漏洞存在于 nginx-1.12.0/src/http/modules/ngx_http_range_filter_module.c 文件，文件内的 ngx_http_range_parse 函数负责解析 header 中的 Range 字段内容。函数的部分内容如下：
-<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/nginx/nginx-int-overflow-1.png" alt="nginx-int-overflow-1" /></div></p>
+<div align="center"><img class="img-responsive" src="http://jenisec.nos-eastchina1.126.net/nginx/nginx-int-overflow-1.png" alt="nginx-int-overflow-1" /></div></p>
 <p>if 代码块对 Range 格式为 start-end 时的请求进行处理，其中 cutoff 和 cutlim 两个值保证了从 Range 字段取到的 start 值和 end 值始终为正数，这种情况下无法控制 start 为负值，所以我们需要使 if 条件为假，从而进入 else 语句，if 的条件是指针 p 不为 "-" ，所以 Range 使用 -end 格式就可以进入 else 代码块。此时的 suffix 被赋值为 1，程序向下执行：
-<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/nginx/nginx-int-overflow-2.png" alt="nginx-int-overflow-2" /></div></p>
+<div align="center"><img class="img-responsive" src="http://jenisec.nos-eastchina1.126.net/nginx/nginx-int-overflow-2.png" alt="nginx-int-overflow-2" /></div></p>
 <p>这里先说明一下，图片里的 content_length 并不是缓存文件的完整长度，而且服务器返回给我们的不包含缓存文件头的文件长度，我们这里称它为"正常文件长度"，之后会提到的完整的缓存文件长度我们称为"缓存文件长度"</p>
 <p>suffix 为真时，Range 的 start 等于正常文件长度减去 end 的值，end 值为正常文件长度减去 1 。如果此时 end 值要比正常文件长度数值大的话，就可以将 start 解析为负值。与 Range 相关的还有一个 size 值，它是每段 Range 相加后的总长度：
-<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/nginx/nginx-int-overflow-3.png" alt="nginx-int-overflow-3" /></div></p>
+<div align="center"><img class="img-responsive" src="http://jenisec.nos-eastchina1.126.net/nginx/nginx-int-overflow-3.png" alt="nginx-int-overflow-3" /></div></p>
 <p>在满足 start 比 end 小的条件时，size 就等于每段 Range 的长度之和。得到 size 的大小后会进行入下判断：
-<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/nginx/nginx-int-overflow-4.png" alt="nginx-int-overflow-4" /></div></p>
+<div align="center"><img class="img-responsive" src="http://jenisec.nos-eastchina1.126.net/nginx/nginx-int-overflow-4.png" alt="nginx-int-overflow-4" /></div></p>
 <p>可以看到当 size 比 正常文件长度大时，服务器便不再对缓存文件进行分段操作，而是直接返回原始的缓存文件。</p>
 <p>知道了程序的逻辑关系，就可以想办法绕过了。首先，为了使服务器返回原始的缓存文件，我们需要让 size 值满足大于正常文件长度的条件，但是如果一个 Range 比缓存文件长度大，又会使得读取字节超出文件范围，造成读取失败。所以这里需要设置两个 Range 值，第一个值用来控制读取文件的字节数在缓存文件长度范围内，第二个值用来保证 Range 的总长度大于正常文件的总长度。这样就成功绕过过滤器的限制，读取到缓存文件的头部。</p>
 <p><strong><em>环境搭建</em></strong></p>
@@ -176,7 +176,7 @@ nginx
 
 
 <p>设置 Nginx 服务器反向代理百度，开启缓存功能，具体配置如下：
-<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/nginx/nginx-int-overflow-5.png" alt="nginx-int-overflow-5" /></div></p>
+<div align="center"><img class="img-responsive" src="http://jenisec.nos-eastchina1.126.net/nginx/nginx-int-overflow-5.png" alt="nginx-int-overflow-5" /></div></p>
 <p>proxy_cache_key 用来指定生成的key的字段内容，用以区分缓存文件，这部分内容会在之后我们利用漏洞时被泄露。proxy_cache_path 设置了缓存文件的路径和参数。proxy_cache_valid 用来指定不同状态码下的缓存时间。server 代码块设置了代理的内容，并对响应头进行了一些设置。add_header X-Proxy-Cache 表示在响应头里添加一条 X-Proxy-Cache ，用以区分是否命中缓存，它一共有 5 种状态，MISS 表示未命中，请求被传送到后端；HIT 表示缓存命中；EXPIRED 表示缓存已经过期请求被传送到后端；UPDATING 表示正在更新缓存，将使用旧的应答；STALE 表示后端将得到过期的应答。</p>
 <p>配置文件修改后，让 Nginx 重新加载配置</p>
 <div class="highlight"><pre><span></span>nginx -s reload
@@ -184,11 +184,11 @@ nginx
 
 
 <p>环境搭建完成，验证下是否可用。使用另一台虚拟机访问，获取响应头信息。
-<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/nginx/nginx-int-overflow-6.png" alt="nginx-int-overflow-6" /></div></p>
+<div align="center"><img class="img-responsive" src="http://jenisec.nos-eastchina1.126.net/nginx/nginx-int-overflow-6.png" alt="nginx-int-overflow-6" /></div></p>
 <p><strong><em>漏洞复现</em></strong></p>
 <p>根据之前的分析可知，我们需要两个 Range ，一小一大，小的 Range 需要满足小于缓存文件长度，大于正常文件长度的条件，而大的 Range 需要足够大。根据上面的图片可知，服务器返回的正常文件长度为 7877 ，假设我们想要额外读取缓存文件头部 600 字节，第一段 Range 就需要设置为 -7877-600 ，也就是 -8477。第二段 Range 既然要足够大，那我们就用 Range 可设置的最大值减去 第一段 Range 大小，这样两段 Range 相加得到的 size 依然是最大值，也就必然超过了正常文件长度。Range 可接受的数值为 64 位整型，最大为 0x8000000000000000 ，换成 10 进制是 9223372036854776000 ，减去 8477 等于 9223372036854767523，也就是第二段 Range 长度。</p>
 <p>设置 Range 参数后再次请求缓存文件
-<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/nginx/nginx-int-overflow-7.png" alt="nginx-int-overflow-7" /></div></p>
+<div align="center"><img class="img-responsive" src="http://jenisec.nos-eastchina1.126.net/nginx/nginx-int-overflow-7.png" alt="nginx-int-overflow-7" /></div></p>
 <p>可以看到成功读取了缓存文件头部</p>
 <p><strong><em>漏洞利用POC</em></strong></p>
 <div class="highlight"><pre><span></span><span class="c1"># -*- coding=utf-8 -*-</span>
@@ -274,7 +274,7 @@ nginx
 
 
 <p>效果图：
-<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/nginx/nginx-int-overflow-8.png" alt="nginx-int-overflow-8" /></div></p>
+<div align="center"><img class="img-responsive" src="http://jenisec.nos-eastchina1.126.net/nginx/nginx-int-overflow-8.png" alt="nginx-int-overflow-8" /></div></p>
         <hr />
         <p>作者:&#160; &#160;JenI&#160; &#160;转载请注明出处，谢谢</p>
     </article>

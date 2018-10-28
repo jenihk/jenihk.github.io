@@ -305,7 +305,7 @@ mysql&gt;use smshack;
 mysql&gt;source /home/jeni/GsmSniffer/gsmsniff-master/gsmhack/demo/sms.sql
 </pre></p>
 <p>这时对文件的修改也基本完成了，尝试使用浏览器打开网站首页，访问的返回结果应该如下图所示</p>
-<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/sms/sniff1.png" alt="sniff1" /></div>
+<div align="center"><img class="img-responsive" src="http://jenisec.nos-eastchina1.126.net/sms/sniff1.png" alt="sniff1" /></div>
 
 <p>这是什么鬼，左侧没有终端，右侧显示也不正常，说好的数据和蝴蝶呢．没关系，一次性成功也不现实，让我们来找找原因</p>
 <p>首先，网站可以解析php,说明web服务器搭建的没问题,那不显示说明是与数据库的连接问题，但我们命令行登陆mysql，可以查看到表，那又是为什么不能正常显示呢，其实仔细看一下源码就知道怎么回事了，源码中php连接数据库时使用的是mysql_connect()函数，也就是php调用mysql.so,但是php7废弃了这个拓展，所以源码中连接数据库的部分需要自己使用mysqli和pdo_mysql方法改写，因为文件比较少，所以可以自己改写，那假如是个整站cms呢，自己改写岂不是要累死？又想使用php高版本来提升服务器效率，又想保持老的源码可以使用，怎么做呢？这里提供一种在php7中重新使用mysql.so拓展的方法</p>

@@ -112,37 +112,37 @@
         <p><strong><em>前言</em></strong></p>
 <p>WordPress是一种使用PHP语言开发的博客平台，用户可以在支持PHP和MySQL数据库的服务器上架设属于自己的网站。也可以把 WordPress当作一个内容管理系统（CMS）来使用。WordPress功能强大、扩展性强，这主要得益于其插件众多，易于扩充功能，基本上一个完整网站该有的功能，通过其第三方插件都能实现所有功能。</p>
 <p>昨天，Ripstech 网站公布了 wordpress 建站系统的一个任意文件删除漏洞，影响目前为止的所有版本，包括最新的 4.9.6 版本。Ripstech 表示漏洞在 2017 年 11 月被发现，提交给 WordPress 安全团队后，该团队回应预计需要 6 个月时间进行修复，但至今仍然没有给出解决方案，于是便将漏洞细节公开。</p>
-<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/WordPress/wordpress-file-delete-1.png" alt="wordpress-file-delete-1" /></div>
+<div align="center"><img class="img-responsive" src="http://jenisec.nos-eastchina1.126.net/WordPress/wordpress-file-delete-1.png" alt="wordpress-file-delete-1" /></div>
 
 <p><strong><em>漏洞分析</em></strong></p>
 <p>漏洞出现在/wp-admin/post.php文件，文件在处理action为editattachment的操作时，会以POST方式接收请求中的thumb参数值，这个值在未经过任何检查的情况下，交由wp_update_attachment_metadata()函数存入数据库。</p>
-<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/WordPress/wordpress-file-delete-2.png" alt="wordpress-file-delete-2" /></div>
+<div align="center"><img class="img-responsive" src="http://jenisec.nos-eastchina1.126.net/WordPress/wordpress-file-delete-2.png" alt="wordpress-file-delete-2" /></div>
 
 <p>而/wp-includes/post.php文件中的wp_delete_attachment函数从数据库调用thumb这个图片属性的时候，同样没有做任何的过滤，直接将$meta['thumb']内容带入@unlink：</p>
-<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/WordPress/wordpress-file-delete-3.png" alt="wordpress-file-delete-3" /></div>
+<div align="center"><img class="img-responsive" src="http://jenisec.nos-eastchina1.126.net/WordPress/wordpress-file-delete-3.png" alt="wordpress-file-delete-3" /></div>
 
 <p>由于这里的$meta['thumb']可控，所以只要在请求中指定thumb的值就可以实现任意文件删除。</p>
 <p><strong><em>漏洞复现</em></strong></p>
 <p>首先搭建Wordpress环境，版本为4.9.6。</p>
-<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/WordPress/wordpress-file-delete-4.png" alt="wordpress-file-delete-4" /></div>
+<div align="center"><img class="img-responsive" src="http://jenisec.nos-eastchina1.126.net/WordPress/wordpress-file-delete-4.png" alt="wordpress-file-delete-4" /></div>
 
 <p>在媒体中上传一张图片。</p>
-<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/WordPress/wordpress-file-delete-5.png" alt="wordpress-file-delete-5" /></div>
+<div align="center"><img class="img-responsive" src="http://jenisec.nos-eastchina1.126.net/WordPress/wordpress-file-delete-5.png" alt="wordpress-file-delete-5" /></div>
 
 <p>点击edit进行编辑。</p>
-<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/WordPress/wordpress-file-delete-6.png" alt="wordpress-file-delete-6" /></div>
+<div align="center"><img class="img-responsive" src="http://jenisec.nos-eastchina1.126.net/WordPress/wordpress-file-delete-6.png" alt="wordpress-file-delete-6" /></div>
 
 <p>点击更新向服务器发起POST请求，此处将数据包进行拦截。</p>
-<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/WordPress/wordpress-file-delete-7.png" alt="wordpress-file-delete-7" /></div>
+<div align="center"><img class="img-responsive" src="http://jenisec.nos-eastchina1.126.net/WordPress/wordpress-file-delete-7.png" alt="wordpress-file-delete-7" /></div>
 
 <p>请求地址改为/wordpress/wp-admin/post.php?post=5，请求的data内容删除掉除_wpnonce外的其他参数，添加参数action为editattachment，参数thumb为../../../../wp-config.php，这时这张图片存到数据库的thumb信息就指向了网站根目录下的wp-config.php文件。</p>
-<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/WordPress/wordpress-file-delete-8.png" alt="wordpress-file-delete-8" /></div>
+<div align="center"><img class="img-responsive" src="http://jenisec.nos-eastchina1.126.net/WordPress/wordpress-file-delete-8.png" alt="wordpress-file-delete-8" /></div>
 
 <p>转发数据包，然后点击永久删除图片按钮。</p>
-<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/WordPress/wordpress-file-delete-9.png" alt="wordpress-file-delete-9" /></div>
+<div align="center"><img class="img-responsive" src="http://jenisec.nos-eastchina1.126.net/WordPress/wordpress-file-delete-9.png" alt="wordpress-file-delete-9" /></div>
 
 <p>此时成功删除了之前指定好的wp-config.php文件，网站因为没有了配置文件从而跳转到安装界面。</p>
-<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/WordPress/wordpress-file-delete-10.png" alt="wordpress-file-delete-10" /></div>
+<div align="center"><img class="img-responsive" src="http://jenisec.nos-eastchina1.126.net/WordPress/wordpress-file-delete-10.png" alt="wordpress-file-delete-10" /></div>
 
 <p><strong><em>参考</em></strong></p>
 <blockquote>

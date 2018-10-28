@@ -116,25 +116,25 @@
 <p>下面是针对 CVE-2017-10271 的漏洞分析。</p>
 <p><strong><em>漏洞分析</em></strong></p>
 <p>漏洞的利用点在 wls-wsat 这个 war 文件提供的 web service 服务上，根据文件内的 web.xml 内容可以看到一共存在八个可攻击点：分别为 CoordinatorPortType，CoordinatorPortType11，RegistrationPortTypeRPC，RegistrationPortTypeRPC11，ParticipantPortType，ParticipantPortType11，RegistrationRequesterPortType，RegistrationRequesterPortType11。
-<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/weblogic/weblogic-rce-1.png" alt="weblogic-rce-1" /></div></p>
+<div align="center"><img class="img-responsive" src="http://jenisec.nos-eastchina1.126.net/weblogic/weblogic-rce-1.png" alt="weblogic-rce-1" /></div></p>
 <p>这些 servlet 接受客户端传来的 XML 格式的 POST 数据包，然后将数据包交由 weblogic.jar 中的 WorkContextServerTube 类进行处理，该类位于 weblogic.wsee.jaxws.workcontext 中。</p>
 <p>WorkContextServerTube 类使用 processRequest 方法对 POST 数据包中的 XML 数据进行解析：
-<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/weblogic/weblogic-rce-2.png" alt="weblogic-rce-2" /></div></p>
+<div align="center"><img class="img-responsive" src="http://jenisec.nos-eastchina1.126.net/weblogic/weblogic-rce-2.png" alt="weblogic-rce-2" /></div></p>
 <p>localHeader1 变量为 XML 数据中 &lt;work:WorkContext&gt;…&lt;/work:WorkContext&gt; 标签内的内容。该部分内容被传入到 readHeaderOld 函数中，该函数源码如下：
-<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/weblogic/weblogic-rce-3.png" alt="weblogic-rce-3" /></div></p>
+<div align="center"><img class="img-responsive" src="http://jenisec.nos-eastchina1.126.net/weblogic/weblogic-rce-3.png" alt="weblogic-rce-3" /></div></p>
 <p>此时 ByteArrayInputStream(localByteArrayOutputStream.toByteArray()) 为可执行的 XML 内容，该内容被传递到 WorkContextXmlInputAdapter() 类的 XMLDecoder. readObject() 方法，从而导致反序列过程中的代码执行。</p>
 <p><strong><em>漏洞验证</em></strong></p>
 <p>搭建 WebLogic Server，确认其可以被正常访问。
-<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/weblogic/weblogic-rce-4.png" alt="weblogic-rce-4" /></div></p>
+<div align="center"><img class="img-responsive" src="http://jenisec.nos-eastchina1.126.net/weblogic/weblogic-rce-4.png" alt="weblogic-rce-4" /></div></p>
 <p>将浏览器代理到 BurpSuite，访问 /wls-wsat/CoordinatorPortType 页面，修改数据包为 POST 数据包，Content-type 为 text/xml，POST 数据填充为漏洞利用 POC，如下：
-<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/weblogic/weblogic-rce-5.png" alt="weblogic-rce-5" /></div></p>
+<div align="center"><img class="img-responsive" src="http://jenisec.nos-eastchina1.126.net/weblogic/weblogic-rce-5.png" alt="weblogic-rce-5" /></div></p>
 <p>发送数据包，服务器成功弹出计算器。
-<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/weblogic/weblogic-rce-6.png" alt="weblogic-rce-6" /></div></p>
+<div align="center"><img class="img-responsive" src="http://jenisec.nos-eastchina1.126.net/weblogic/weblogic-rce-6.png" alt="weblogic-rce-6" /></div></p>
 <p><strong><em>漏洞验证 POC</em></strong></p>
 <p>在脚本中修改 identifier 变量值为 <a href="http://ceye.io/profile">http://ceye.io/profile</a> 页面的 identifier(需注册账号)，脚本执行结束后在 <a href="http://ceye.io/records/dns">http://ceye.io/records/dns</a> 页面查看结果。</p>
 <p>使用方法： python weblogic-rce.py ip:port</p>
 <p>如果存在如下图所示结果，说明存在漏洞。
-<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/weblogic/weblogic-rce-7.png" alt="weblogic-rce-7" /></div></p>
+<div align="center"><img class="img-responsive" src="http://jenisec.nos-eastchina1.126.net/weblogic/weblogic-rce-7.png" alt="weblogic-rce-7" /></div></p>
 <div class="highlight"><pre><span></span><span class="c1"># coding:utf-8</span>
 
 <span class="kn">import</span> <span class="nn">requests</span>

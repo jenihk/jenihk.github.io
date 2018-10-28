@@ -113,16 +113,16 @@
 <p>Joomla! 是一套全球知名的内容管理系统，由 PHP 加上 MySQL 数据库所开发的软件系统。近日，Joomla 3.5.0-3.8.5 版本后台管理页面的 User Notes 页面被指出存在 SQL 注入漏洞。</p>
 <p><strong><em>漏洞分析</em></strong></p>
 <p>根据官方对该漏洞的描述可知在 User Notes 列表视图中存在 SQL 注入漏洞，漏洞是由于 SQL 语句内的变量缺少类型转换而导致的。
-<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/joomla/joomla_core_sqli_1.png" alt="joomla_core_sqli_1" /></div></p>
+<div align="center"><img class="img-responsive" src="http://jenisec.nos-eastchina1.126.net/joomla/joomla_core_sqli_1.png" alt="joomla_core_sqli_1" /></div></p>
 <p>在 Joomla 的后台管理页面中，从 User Notes 列表视图页面发起的请求，会交给 ./administrator/components/com_users/models/notes.php 处理，该文件在上次更新时对传入的 filter.category_id 参数进行了 int 类型的强制转换。
-<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/joomla/joomla_core_sqli_2.png" alt="joomla_core_sqli_2" /></div></p>
+<div align="center"><img class="img-responsive" src="http://jenisec.nos-eastchina1.126.net/joomla/joomla_core_sqli_2.png" alt="joomla_core_sqli_2" /></div></p>
 <p>具体请求地址为 http://x.x.x.x/administrator/index.php?option=com_users&amp;view=notes
-<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/joomla/joomla_core_sqli_3.png" alt="joomla_core_sqli_3" /></div></p>
+<div align="center"><img class="img-responsive" src="http://jenisec.nos-eastchina1.126.net/joomla/joomla_core_sqli_3.png" alt="joomla_core_sqli_3" /></div></p>
 <p>在此页面点击搜索按钮时，进行抓包，在 Post 数据包中可以看到 filter[category_id] 字段
-<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/joomla/joomla_core_sqli_4.png" alt="joomla_core_sqli_4" /></div></p>
+<div align="center"><img class="img-responsive" src="http://jenisec.nos-eastchina1.126.net/joomla/joomla_core_sqli_4.png" alt="joomla_core_sqli_4" /></div></p>
 <p>在 filter[category_id] 参数值内添加单引号，页面返回内容包含数据库错误信息，证明确实存在注入。
-<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/joomla/joomla_core_sqli_5.png" alt="joomla_core_sqli_5" /></div></p>
-<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/joomla/joomla_core_sqli_6.png" alt="joomla_core_sqli_6" /></div>
+<div align="center"><img class="img-responsive" src="http://jenisec.nos-eastchina1.126.net/joomla/joomla_core_sqli_5.png" alt="joomla_core_sqli_5" /></div></p>
+<div align="center"><img class="img-responsive" src="http://jenisec.nos-eastchina1.126.net/joomla/joomla_core_sqli_6.png" alt="joomla_core_sqli_6" /></div>
 
 <p>将数据包保存至文本文档，利用 -r 参数将数据包传入 sqlmap 进行注入尝试</p>
 <div class="highlight"><pre><span></span>sqlmap -r request_header.txt -p filter[category_id]
@@ -130,7 +130,7 @@
 
 
 <p>得到以下结果：
-<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/joomla/joomla_core_sqli_7.png" alt="joomla_core_sqli_7" /></div></p>
+<div align="center"><img class="img-responsive" src="http://jenisec.nos-eastchina1.126.net/joomla/joomla_core_sqli_7.png" alt="joomla_core_sqli_7" /></div></p>
 <p><strong><em>参考</em></strong></p>
 <blockquote>
 <p><a href="http://blog.nsfocus.net/cve-2018-804-analysis/">http://blog.nsfocus.net/cve-2018-804-analysis/</a></p>

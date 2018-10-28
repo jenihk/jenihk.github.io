@@ -115,15 +115,15 @@
 <p><strong><em>复现过程</em></strong></p>
 <p>漏洞的相关信息可以在这里查看：<a href="https://wwws.nightwatchcybersecurity.com/2017/05/09/multiple-vulnerabilities-in-asus-routers/">nightwatchcybersecurity</a></p>
 <p>我进行漏洞复现的路由器型号为 ASUS RT-N56U ，这货是长这个样子的：</p>
-<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/asus/asus-router-csrf-1.png" alt="asus-router-csrf-1" /></div>
+<div align="center"><img class="img-responsive" src="http://jenisec.nos-eastchina1.126.net/asus/asus-router-csrf-1.png" alt="asus-router-csrf-1" /></div>
 
 <p>连好线后我用浏览器访问了路由器的首页，地址为 http://192.168.1.1 ，使用默认的用户名密码登陆(admin:admin)，这也是这个 CSRF 漏洞利用的前提，换句话说，我们想要利用这个漏洞，就需要知道路由器的管理地址和用户名密码。一般来说大部分家用路由器在默认设置并且没有刷过第三方固件的情况下， 管理地址为 http://192.168.1.1 ，密码都是一些常见的弱密码，像什么 admin、123456 这种。</p>
 <p>肯定有人会问：我都知道管理地址和登陆用户名密码了我还伪造个屁请求啊，直接登进去改不好吗？</p>
 <p>试想这样一个场景，我在我家里使用这个路由器上网，网就是最常见的宽带或者光纤，没有公网 IP 。你知道我路由器都是默认设置，然后你在你家想修改我家的路由器密码，你怎么办，不在一个局域网，你也就没办法访问我内网的设备了，这个漏洞就应用在这种场景。你在网上搭建一个恶意的网站，然后诱使我去使用访问你的网站，然后我路由器密码就被改了。听起来是不是很厉害的样子？但其实依然没什么卵用，因为路由器可以还原初始设置，我一旦发现密码被改了，还原一下，你就白忙活了。</p>
-<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/asus/asus-router-csrf-2.png" alt="asus-router-csrf-2" /></div>
+<div align="center"><img class="img-responsive" src="http://jenisec.nos-eastchina1.126.net/asus/asus-router-csrf-2.png" alt="asus-router-csrf-2" /></div>
 
 <p>言归正传，下面的这副图就是帅气的华硕路由器的管理界面。</p>
-<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/asus/asus-router-csrf-3.png" alt="asus-router-csrf-3" /></div>
+<div align="center"><img class="img-responsive" src="http://jenisec.nos-eastchina1.126.net/asus/asus-router-csrf-3.png" alt="asus-router-csrf-3" /></div>
 
 <p>打开 burpsuite 进行抓包，在系统管理页面尝试修改登录密码，抓取到的数据包如下：
 <pre>
@@ -142,24 +142,24 @@ Content-Length: 670</p>
 <p>productid=RT-N56U&amp;current_page=Advanced_System_Content.asp&amp;next_page=Advanced_System_Content.asp&amp;modified=0&amp;flag=&amp;action_mode=apply&amp;action_wait=5&amp;action_script=restart_time&amp;first_time=&amp;preferred_lang=CN&amp;firmver=3.0.0.4&amp;time_zone_dst=0&amp;time_zone=CCT-8&amp;time_zone_dstoff=&amp;http_passwd=admin&amp;http_clientlist=&amp;http_username=admin&amp;http_passwd2=admin&amp;v_password2=admin&amp;btn_ez_radiotoggle=0&amp;log_ipaddr=&amp;time_zone_select=CCT-8&amp;dst_start_m=3&amp;dst_start_w=2&amp;dst_start_d=0&amp;dst_start_h=2&amp;dst_end_m=10&amp;dst_end_w=2&amp;dst_end_d=0&amp;dst_end_h=2&amp;ntp_server0=pool.ntp.org&amp;telnetd_enable=0&amp;http_enable=0&amp;https_lanport=&amp;misc_http_x=0&amp;http_autologout=30&amp;http_client=0&amp;http_client_ip_x_0=&amp;FAQ_input=
 </pre></p>
 <p>从数据包中可以看到，修改登录密码的请求会向 start_apply.htm 页面以 POST 方式传入许多参数，其中 http_passwd、http_username、http_passwd2、v_password2 等参数为用户名和即将被修改的密码。得到了所有参数，接下来就可以构造恶意的 FORM 表单了，表单中除了上面的这些参数，还需要加上 HTTP 基本认证，也就是让我们构造的恶意表单在发送请求时可以绕过登录验证，这一点可以从文首给出的漏洞详情里看到：</p>
-<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/asus/asus-router-csrf-4.png" alt="asus-router-csrf-4" /></div>
+<div align="center"><img class="img-responsive" src="http://jenisec.nos-eastchina1.126.net/asus/asus-router-csrf-4.png" alt="asus-router-csrf-4" /></div>
 
 <p>接下来根据所有需要的参数构造恶意的 HTML 页面，这里需要说一下，并不是上面所有的参数都需要写到我们的表单中，因为服务器在处理我们的请求时有可能只处理部分参数，所以可以自己多尝试下，有时候可能仅仅几个参数就可以完成 CSRF ，但是这里我还是把所有参数都写到了表单里，至于原因......没错，因为懒......</p>
-<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/asus/asus-router-csrf-5.png" alt="asus-router-csrf-5" /></div>
+<div align="center"><img class="img-responsive" src="http://jenisec.nos-eastchina1.126.net/asus/asus-router-csrf-5.png" alt="asus-router-csrf-5" /></div>
 
 <p>上面的 HTML 页面包含了请求包中的所有参数，也添加了登陆验证，同时我们使用 js 自动提交表单到 http://192.168.1.1/start_apply.htm 页面，从而完成将路由器密码被修改为 123123 的操作，通常情况下，攻击者在构造这种恶意页面时会让你的浏览器提交请求后跳转到一个正常的页面，从而尽量不引起你的注意。这里攻击者和被攻击者都是我自己，我就不骗自己了，能验证出漏洞就行。</p>
 <p>我把这个包含了恶意请求的网页放到我的 web 服务器上，地址为 http://www.jenisec.org/asus.html ,使其可以通过互联网访问到，效果如下：</p>
-<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/asus/asus-router-csrf-6.png" alt="asus-router-csrf-6" /></div>
+<div align="center"><img class="img-responsive" src="http://jenisec.nos-eastchina1.126.net/asus/asus-router-csrf-6.png" alt="asus-router-csrf-6" /></div>
 
 <p>然后我将这个地址发给另一个我。</p>
 <p>此时的我身份变为呆萌的被攻击者，我连接上 ASUS 路由器创建的无线网，然后访问我发送给我的地址 http://www.jenisec.org/asus.html ,然后浏览器将修改请求发送给了路由器，效果图如下：</p>
-<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/asus/asus-router-csrf-7.png" alt="asus-router-csrf-7" /></div>
+<div align="center"><img class="img-responsive" src="http://jenisec.nos-eastchina1.126.net/asus/asus-router-csrf-7.png" alt="asus-router-csrf-7" /></div>
 
 <p>这时使用密码 admin 已经无法登陆了，使用 123123 试试</p>
-<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/asus/asus-router-csrf-8.png" alt="asus-router-csrf-8" /></div>
+<div align="center"><img class="img-responsive" src="http://jenisec.nos-eastchina1.126.net/asus/asus-router-csrf-8.png" alt="asus-router-csrf-8" /></div>
 
 <p>成功登陆</p>
-<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/asus/asus-router-csrf-9.png" alt="asus-router-csrf-9" /></div>
+<div align="center"><img class="img-responsive" src="http://jenisec.nos-eastchina1.126.net/asus/asus-router-csrf-9.png" alt="asus-router-csrf-9" /></div>
 
 <p><strong><em>最后</em></strong></p>
 <p>通常这种被动攻击需要结合一些社工技巧，如何诱使目标点击自己构造的恶意页面是攻击过程中最为关键的一步。</p>

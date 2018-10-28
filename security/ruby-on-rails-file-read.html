@@ -113,42 +113,42 @@
 <p>Ruby on Rails 是一个基于MVC架构的开源WEB框架，使用Ruby编写，意在使WEB应用的开发、部署、维护变得简单。自 2004 年出现之后，Rails 迅速成为动态 Web 应用开发领域功能最强大、最受欢迎的框架之一。近日，Ruby on Rails 被发现存在目录穿越和任意文件读取漏洞，攻击者无需认证即可读取服务器上的任意文件内容。</p>
 <p><strong><em>漏洞分析</em></strong></p>
 <p>漏洞出现在 Sprockets 插件中，Sprockets 用来解决 JavaScript 文件的依赖，它检查引入的 js 文件，通过整理合并以提升 rails 的性能。当用户对服务器上的 js 发起请求后，会触发 Sprockets 对这个 js 的检查，代码位于 lib/sprockets/server.rb 内：</p>
-<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/rails/ruby-on-rails-file-read-1.png" alt="ruby-on-rails-file-read-1" /></div>
+<div align="center"><img class="img-responsive" src="http://jenisec.nos-eastchina1.126.net/rails/ruby-on-rails-file-read-1.png" alt="ruby-on-rails-file-read-1" /></div>
 
 <p>解析请求中的文件路径后，赋值给 path，然后调用 forbidden_request 函数对 path 进行检查：</p>
-<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/rails/ruby-on-rails-file-read-2.png" alt="ruby-on-rails-file-read-2" /></div>
+<div align="center"><img class="img-responsive" src="http://jenisec.nos-eastchina1.126.net/rails/ruby-on-rails-file-read-2.png" alt="ruby-on-rails-file-read-2" /></div>
 
 <p>forbidden_request 函数判断了 path 中是否包含 “..”，以防止发生目录穿越漏洞。如果 path 中包含 ”..”，服务器会返回 forbidden，如果不含有 ”..”，代码向下执行，path 被传递到了 find_asset 函数，find_asset 函数位于 /lib/sprockets/base.rb 中：</p>
-<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/rails/ruby-on-rails-file-read-3.png" alt="ruby-on-rails-file-read-3" /></div>
+<div align="center"><img class="img-responsive" src="http://jenisec.nos-eastchina1.126.net/rails/ruby-on-rails-file-read-3.png" alt="ruby-on-rails-file-read-3" /></div>
 
 <p>Path 经过 url 解码之后传入 load 函数：</p>
-<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/rails/ruby-on-rails-file-read-4.png" alt="ruby-on-rails-file-read-4" /></div>
+<div align="center"><img class="img-responsive" src="http://jenisec.nos-eastchina1.126.net/rails/ruby-on-rails-file-read-4.png" alt="ruby-on-rails-file-read-4" /></div>
 
 <p>uri 被传入到 UnloadedAsset.new 中</p>
-<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/rails/ruby-on-rails-file-read-5.png" alt="ruby-on-rails-file-read-5" /></div>
+<div align="center"><img class="img-responsive" src="http://jenisec.nos-eastchina1.126.net/rails/ruby-on-rails-file-read-5.png" alt="ruby-on-rails-file-read-5" /></div>
 
 <p>UnloadedAsset 中调用了 URIUtils.parse_asset_uri 方法，</p>
-<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/rails/ruby-on-rails-file-read-6.png" alt="ruby-on-rails-file-read-6" /></div>
+<div align="center"><img class="img-responsive" src="http://jenisec.nos-eastchina1.126.net/rails/ruby-on-rails-file-read-6.png" alt="ruby-on-rails-file-read-6" /></div>
 
-<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/rails/ruby-on-rails-file-read-7.png" alt="ruby-on-rails-file-read-7" /></div>
+<div align="center"><img class="img-responsive" src="http://jenisec.nos-eastchina1.126.net/rails/ruby-on-rails-file-read-7.png" alt="ruby-on-rails-file-read-7" /></div>
 
-<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/rails/ruby-on-rails-file-read-8.png" alt="ruby-on-rails-file-read-8" /></div>
+<div align="center"><img class="img-responsive" src="http://jenisec.nos-eastchina1.126.net/rails/ruby-on-rails-file-read-8.png" alt="ruby-on-rails-file-read-8" /></div>
 
 <p>其中 parse_asset_uri 调用 split_file_uri 对 path 进行了第二次 url 解码，然后返回最终的路径，处理后的 path 接下来被传递到 load 函数中的 load_from_unloaded 中</p>
-<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/rails/ruby-on-rails-file-read-9.png" alt="ruby-on-rails-file-read-9" /></div>
+<div align="center"><img class="img-responsive" src="http://jenisec.nos-eastchina1.126.net/rails/ruby-on-rails-file-read-9.png" alt="ruby-on-rails-file-read-9" /></div>
 
 <p>load_from_unloaded 使用 paths_split 对传入的 path 进行判断，判断其是否在合法的目录里。</p>
-<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/rails/ruby-on-rails-file-read-10.png" alt="ruby-on-rails-file-read-10" /></div>
+<div align="center"><img class="img-responsive" src="http://jenisec.nos-eastchina1.126.net/rails/ruby-on-rails-file-read-10.png" alt="ruby-on-rails-file-read-10" /></div>
 
-<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/rails/ruby-on-rails-file-read-11.png" alt="ruby-on-rails-file-read-11" /></div>
+<div align="center"><img class="img-responsive" src="http://jenisec.nos-eastchina1.126.net/rails/ruby-on-rails-file-read-11.png" alt="ruby-on-rails-file-read-11" /></div>
 
 <p>判断结束后，如果通过了检查，便会继续执行 load_from_unloaded 函数后面的文件读取操作。因此只要构造出能通过以上一系列检查的请求，就可以读取服务器上的任意文件。</p>
 <p><strong><em>漏洞复现</em></strong></p>
 <p>搭建好 rails 环境。</p>
-<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/rails/ruby-on-rails-file-read-12.png" alt="ruby-on-rails-file-read-12" /></div>
+<div align="center"><img class="img-responsive" src="http://jenisec.nos-eastchina1.126.net/rails/ruby-on-rails-file-read-12.png" alt="ruby-on-rails-file-read-12" /></div>
 
 <p>构建恶意的请求，因为检查流程中会对 path 中的 ”..” 进行判断，但由于检查流程中会对 path 进行两次 url 解码，因此可以先对两个 ”.” 中的其中一个 . 进行两次 url 编码。Payload 构造完成后，发起请求：</p>
-<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/rails/ruby-on-rails-file-read-13.png" alt="ruby-on-rails-file-read-13" /></div>
+<div align="center"><img class="img-responsive" src="http://jenisec.nos-eastchina1.126.net/rails/ruby-on-rails-file-read-13.png" alt="ruby-on-rails-file-read-13" /></div>
 
 <p>成功读取 windows 系统中 C:/Windows/win.ini 文件。</p>
 <p><strong><em>参考</em></strong></p>

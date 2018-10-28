@@ -117,10 +117,10 @@
 <p>首先准备了一个虚拟机（我使用的系统：Kali-linux-2016.2-amd64），本来打算找个服务器版本的系统做实验，但是手头没有下载好的镜像，教室网速又比较慢，所以就直接用了个之前下载的系统，系统虽然比较新，但是不影响实验，毕竟号称全版本通杀嘛，只要系统内核还没更新到最新，就应该可以利用。</p>
 <p>以 root 用户登录，然后在 /tmp 目录下放入 开源在 Github 上的POC，POC的下载地址在这里：<a href="https://github.com/dirtycow/dirtycow.github.io/blob/master/dirtyc0w.c">下载POC</a></p>
 <p>然后执行以下操作</p>
-<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/dirtycow/dirtycow-1.png" alt="dirtycow-1" /></div>
+<div align="center"><img class="img-responsive" src="http://jenisec.nos-eastchina1.126.net/dirtycow/dirtycow-1.png" alt="dirtycow-1" /></div>
 
 <p>模拟入侵行为，切换到一个普通用户有权限操作的目录，创建一个 test 文件，内容为 1234567890 ，只给普通用户读的权限。然后切换到普通用户身份，尝试操作 test 文件，可以读取，但无写入权限。接下来利用漏洞：</p>
-<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/dirtycow/dirtycow-2.png" alt="dirtycow-2" /></div>
+<div align="center"><img class="img-responsive" src="http://jenisec.nos-eastchina1.126.net/dirtycow/dirtycow-2.png" alt="dirtycow-2" /></div>
 
 <p>这时发现我们成功的使用 00000 覆盖写入了 test 文件的前五位数字，test 文件内容由 1234567890 变为了 0000067890,原本 jeni 用户是没有权限修改 test 文件的，但是利用脏牛漏洞权限成功被提升。试想，我们使用同样的方法修改 /etc/passwd 文件，将 jeni 用户的 uid 改为 0 ，那么 jeni 是不是就拥有 root 权限了呢？</p>
 <p>这里提供几种网上看到的其他的利用姿势（来源：<a href="http://m.bobao.360.cn/learning/detail/3123.html">安全客</a>）：</p>
@@ -287,10 +287,10 @@ int main(int argc,char *argv[]) {
 }
 </pre></p>
 <p>然后执行</p>
-<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/dirtycow/dirtycow-3.png" alt="dirtycow-3" /></div>
+<div align="center"><img class="img-responsive" src="http://jenisec.nos-eastchina1.126.net/dirtycow/dirtycow-3.png" alt="dirtycow-3" /></div>
 
 <p>最后效果如下：这样确实让 jeni 用户获得了一个 root 权限的shell，但是简单的执行几条命令后，虚拟机就挂了，不知道具体原因，网上说可能是 race condition 的原因。</p>
-<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/dirtycow/dirtycow-4.png" alt="dirtycow-4" /></div>
+<div align="center"><img class="img-responsive" src="http://jenisec.nos-eastchina1.126.net/dirtycow/dirtycow-4.png" alt="dirtycow-4" /></div>
         <hr />
         <p>作者:&#160; &#160;JenI&#160; &#160;转载请注明出处，谢谢</p>
     </article>

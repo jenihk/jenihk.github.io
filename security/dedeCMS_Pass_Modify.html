@@ -113,12 +113,12 @@
 <p>织梦CMS是集简单、健壮、灵活、开源几大特点的开源内容管理系统，是国内开源CMS的领先品牌，目前程序安装量已达七十万，超过六成的站点正在使用织梦CMS或基于织梦CMS核心开发。最近，织梦CMS最新版被曝存在前端任意用户密码修改漏洞，漏洞分析如下：</p>
 <p><strong><em>漏洞分析</em></strong></p>
 <p>漏洞出现在会员模块的重设密码功能上，也就是 /member/resetpasswordd.php 中：
-<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/dedecms/dedePm1.png" alt="dedePm1" /></div></p></p></p>
+<div align="center"><img class="img-responsive" src="http://jenisec.nos-eastchina1.126.net/dedecms/dedePm1.png" alt="dedePm1" /></div></p></p></p>
 <p>上面的代码在接收到重设密码请求时，将请求中的 id 值处理后带入数据库进行查询，然后对请求中的 safequestion 和 sefeanswer 字段进行了是否为空的判断，这两个字段为注册账号时填写的安全问题和问题答案，如果用户在注册时没有填写的话，数据库中这两个字段默认为字符串 ’0’。</p>
 <p>为了满足 $row['safequestion'] == $safequestion，就需要将 $safequestion 设置为 ’0’，但是如果 $safequestion 为 ‘0’，就会无法满足 empty($safequestion) 的判断，因此这里需要将 $safequestion 设置为 ‘0.0’。PHP 是一个弱类型语音，两个 == 进行判断时，只要两侧值相等就返回真。这里其实是内部做了类型转换，传入的 ‘0.0’ 会首先被 int() 转换为 0，数据库中取出的字符串 ‘0’ 也会转为整型，此时就满足了 $row['safequestion'] == $safequestion。代码执行到 sn 函数，该函数位于 member/inc/inc_pwd_functions.php 文件中：
-<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/dedecms/dedePm2.png" alt="dedePm2" /></div></p></p></p>
+<div align="center"><img class="img-responsive" src="http://jenisec.nos-eastchina1.126.net/dedecms/dedePm2.png" alt="dedePm2" /></div></p></p></p>
 <p>sn 函数中的 $send 默认值是 Y，但是在上面函数调用处传入了 N。之后进入到 newmail 函数：
-<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/dedecms/dedePm3.png" alt="dedePm3" /></div></p></p></p>
+<div align="center"><img class="img-responsive" src="http://jenisec.nos-eastchina1.126.net/dedecms/dedePm3.png" alt="dedePm3" /></div></p></p></p>
 <p>newmail 函数随机生成了一个 8 位的临时密码，将其插入到 dede_pwd_tmp 表后确定传入的 send 变量是否为 N，如果为 N，就将跳转提示加上临时随机密码输出到页面上，利用这个临时密码，攻击者就可以更改任意用户的密码了。</p>
 <p><strong><em>漏洞复现</em></strong></p>
 <p>下面是 user2 用户利用此漏洞修改 user1 用户密码的流程。</p>
@@ -127,37 +127,37 @@
 用户一： 用户名：user1，密码：user1password<br>
 用户二： 用户名：user2，密码：user2password</li>
 </ul>
-<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/dedecms/dedePm4.png" alt="dedePm4" /></div>
+<div align="center"><img class="img-responsive" src="http://jenisec.nos-eastchina1.126.net/dedecms/dedePm4.png" alt="dedePm4" /></div>
 
 <p></p></p></p>
-<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/dedecms/dedePm5.png" alt="dedePm5" /></div>
+<div align="center"><img class="img-responsive" src="http://jenisec.nos-eastchina1.126.net/dedecms/dedePm5.png" alt="dedePm5" /></div>
 
 <p></p></p></p>
 <ul>
 <li>这时使用 user2 账户登录，访问 /member/resetpassword.php?dopost=safequestion&amp;safequestion=0.0&amp;id=8。因为 user1 用户的 mid 为 8，所以这里的 id 设置为 8。</li>
 </ul>
-<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/dedecms/dedePm6.png" alt="dedePm6" /></div>
+<div align="center"><img class="img-responsive" src="http://jenisec.nos-eastchina1.126.net/dedecms/dedePm6.png" alt="dedePm6" /></div>
 
 <p></p></p></p>
-<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/dedecms/dedePm7.png" alt="dedePm7" /></div>
+<div align="center"><img class="img-responsive" src="http://jenisec.nos-eastchina1.126.net/dedecms/dedePm7.png" alt="dedePm7" /></div>
 
 <p></p></p></p>
 <ul>
 <li>成功得到了临时密码，删除 amp; 转发数据包。</li>
 </ul>
-<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/dedecms/dedePm8.png" alt="dedePm8" /></div>
+<div align="center"><img class="img-responsive" src="http://jenisec.nos-eastchina1.126.net/dedecms/dedePm8.png" alt="dedePm8" /></div>
 
 <p></p></p></p>
 <ul>
 <li>将 user1 用户的密码修改为 00000000。</li>
 </ul>
-<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/dedecms/dedePm9.png" alt="dedePm9" /></div>
+<div align="center"><img class="img-responsive" src="http://jenisec.nos-eastchina1.126.net/dedecms/dedePm9.png" alt="dedePm9" /></div>
 
 <p></p></p></p>
 <ul>
 <li>修改成功后使用用户名 user1、密码 00000000 成功登录。</li>
 </ul>
-<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/dedecms/dedePm10.png" alt="dedePm10" /></div>
+<div align="center"><img class="img-responsive" src="http://jenisec.nos-eastchina1.126.net/dedecms/dedePm10.png" alt="dedePm10" /></div>
 
 <p></p></p></p>
 <p><strong><em>参考</em></strong></p>

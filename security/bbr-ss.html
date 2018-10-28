@@ -141,14 +141,14 @@ CentOS Linux release 7.4.1708 (Core)
 </pre></div>
 
 
-<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/ss/elrepo.png" alt="elrepo" /></div>
+<div align="center"><img class="img-responsive" src="http://jenisec.nos-eastchina1.126.net/ss/elrepo.png" alt="elrepo" /></div>
 
 <p>查看当前已安装的内核</p>
 <div class="highlight"><pre><span></span>egrep ^menuentry /etc/grub2.cfg | cut -f 2 -d \&#39;
 </pre></div>
 
 
-<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/ss/menuentry_grub2.png" alt="menuentry_grub2" /></div>
+<div align="center"><img class="img-responsive" src="http://jenisec.nos-eastchina1.126.net/ss/menuentry_grub2.png" alt="menuentry_grub2" /></div>
 
 <p>从中找到新安装的内核，确定新内核的序号，序号如上图所示，从 0 开始计算。</p>
 <p>更新 grub 的配置文件，并重启系统，下面的第一条命令后面的数字就是新内核的序号，我这里是 0</p>
@@ -158,7 +158,7 @@ reboot
 
 
 <p>此时系统会默认使用新的内核，如下图所示
-<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/ss/start.png" alt="start" /></div></p>
+<div align="center"><img class="img-responsive" src="http://jenisec.nos-eastchina1.126.net/ss/start.png" alt="start" /></div></p>
 <p>但是这幅图正常情况下我们并看不到，所以在开机之后我们需要使用 uname -r 命令确定当前的内核版本。</p>
 <div class="highlight"><pre><span></span>[root@CentOS7 ~]# uname -r
 4.15.0-1.el7.elrepo.x86_64
@@ -224,7 +224,7 @@ firewall-cmd --zone=public --add-port=9999/tcp --permanent
 
 
 <p>到这里使用 SS 客户端进行连接应该就可以了。下图为 YouTube 1080P 视频测试图
-<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/ss/youtube.gif" alt="youtube" /></div></p>
+<div align="center"><img class="img-responsive" src="http://jenisec.nos-eastchina1.126.net/ss/youtube.gif" alt="youtube" /></div></p>
 <p>如果对速度不太满意，也可以参考 Shadowsocks 官方的优化方法</p>
 <blockquote>
 <p><a href="https://github.com/shadowsocks/shadowsocks/wiki/Optimizing-Shadowsocks">https://github.com/shadowsocks/shadowsocks/wiki/Optimizing-Shadowsocks</a></p>

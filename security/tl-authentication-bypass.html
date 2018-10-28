@@ -118,19 +118,19 @@
 <p>在对 TL-WR840N 和 TL-WR841N 的 CGI 进行请求时，请求头中加入 Referer: http://xx.xx.xx.xx/mainFrame.htm 即可绕过认证(xx.xx.xx.xx换成路由器IP)，直接进行路由器操作。</p>
 <p><strong><em>漏洞复现</em></strong></p>
 <p>路由器的 cgi/ 目录下存在 conf.bin 文件，该文件内保存了路由器的相关配置。首先尝试直接对该文件进行请求，状态码为 403：</p>
-<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/TP-Link/tl-authentication-bypass-1.png" alt="tl-authentication-bypass-1" /></div>
+<div align="center"><img class="img-responsive" src="http://jenisec.nos-eastchina1.126.net/TP-Link/tl-authentication-bypass-1.png" alt="tl-authentication-bypass-1" /></div>
 
 <p>然后在请求头中加入 Referer 字段，再次请求 conf.bin 文件：</p>
-<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/TP-Link/tl-authentication-bypass-2.png" alt="tl-authentication-bypass-2" /></div>
+<div align="center"><img class="img-responsive" src="http://jenisec.nos-eastchina1.126.net/TP-Link/tl-authentication-bypass-2.png" alt="tl-authentication-bypass-2" /></div>
 
 <p>成功读取了该文件。接着将该文件下载下来，并使用相应的工具可以查看路由器的配置。</p>
-<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/TP-Link/tl-authentication-bypass-3.png" alt="tl-authentication-bypass-3" /></div>
+<div align="center"><img class="img-responsive" src="http://jenisec.nos-eastchina1.126.net/TP-Link/tl-authentication-bypass-3.png" alt="tl-authentication-bypass-3" /></div>
 
 <p>比如管理员的密码(特定版本可见)，无线网的密码等信息。</p>
-<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/TP-Link/tl-authentication-bypass-4.png" alt="tl-authentication-bypass-4" /></div>
+<div align="center"><img class="img-responsive" src="http://jenisec.nos-eastchina1.126.net/TP-Link/tl-authentication-bypass-4.png" alt="tl-authentication-bypass-4" /></div>
 
 <p>通过得到的信息可以尝试通过浏览器登录路由器。</p>
-<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/TP-Link/tl-authentication-bypass-5.png" alt="tl-authentication-bypass-5" /></div>
+<div align="center"><img class="img-responsive" src="http://jenisec.nos-eastchina1.126.net/TP-Link/tl-authentication-bypass-5.png" alt="tl-authentication-bypass-5" /></div>
 
 <p>如果无法从配置文件中获得管理员的相关信息，依旧可以通过 CGI 来操作路由器，例如在路由器上配置端口转发、重启路由器、开启访客网络、更改无线网密码等，示例如下：</p>
 <p>配置端口转发(23端口)</p>

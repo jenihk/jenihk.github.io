@@ -119,27 +119,27 @@
 <ul>
 <li>本地搭建漏洞测试环境</li>
 </ul>
-<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/struts2/s2-046-1.png" alt="s2-046-1" /></div>
+<div align="center"><img class="img-responsive" src="http://jenisec.nos-eastchina1.126.net/struts2/s2-046-1.png" alt="s2-046-1" /></div>
 
 <ul>
 <li>漏洞验证成功</li>
 </ul>
-<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/struts2/s2-046-2.png" alt="s2-046-2" /></div>
+<div align="center"><img class="img-responsive" src="http://jenisec.nos-eastchina1.126.net/struts2/s2-046-2.png" alt="s2-046-2" /></div>
 
 <p><strong><em>漏洞分析</em></strong></p>
 <p>S2-046存在两个触发点: Content-Length 的长度值超长和 Content-Disposition 的 filename 存在空字节。</p>
 <p>第一个触发点在 JakartaStreamMultiPartRequest 类中，超长的 content-length 引发异常，异常交由 processUpload 函数处理，导致漏洞触发。</p>
-<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/struts2/s2-046-3.png" alt="s2-046-3" /></div>
+<div align="center"><img class="img-responsive" src="http://jenisec.nos-eastchina1.126.net/struts2/s2-046-3.png" alt="s2-046-3" /></div>
 
 <p>其中问题存在于 LOG.warn("Skipped stream '#0', request maximum size (#1) exceeded.", itemStream.getName(), maxSize) 语句中，Content-Disposition 的 filename 存在空字节，引发的异常信息被传入 addFileSkippedError 函数，之后 fileName 内容被 buildErrorMessage 处理。</p>
-<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/struts2/s2-046-4.png" alt="s2-046-4" /></div>
+<div align="center"><img class="img-responsive" src="http://jenisec.nos-eastchina1.126.net/struts2/s2-046-4.png" alt="s2-046-4" /></div>
 
 <p>之后和 s2-045 相同，异常信息传递到 LocalizedTextUtil.findText 函数，根据官方对该函数的介绍，异常消息被传入 TextParseUtil.ParsedValueEvaluator 对象的 evaluate 方法中，从而导致代码执行。</p>
 <p>第二个触发点在 streams.class 中，在对 filename 进行检查时，如果 filename 存在问题，也会引发异常。</p>
-<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/struts2/s2-046-5.png" alt="s2-046-5" /></div>
+<div align="center"><img class="img-responsive" src="http://jenisec.nos-eastchina1.126.net/struts2/s2-046-5.png" alt="s2-046-5" /></div>
 
 <p>异常信息最终进入 JakartaStreamMultiPartRequest 类，之后依旧交由 buildErrorMessage 处理，从而触发漏洞。</p>
-<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/struts2/s2-046-6.png" alt="s2-046-6" /></div>
+<div align="center"><img class="img-responsive" src="http://jenisec.nos-eastchina1.126.net/struts2/s2-046-6.png" alt="s2-046-6" /></div>
 
 <p><strong><em>漏洞POC(bash版)</em></strong></p>
 <div class="highlight"><pre><span></span><span class="nt">url</span><span class="o">=$</span><span class="nt">1</span>

@@ -113,23 +113,23 @@
 <p>Exim是一个MTA(Mail_Transfer_Agent，邮件传输代理)服务器软件，负责邮件的路由，转发和投递。Exim被作者设计成可运行于绝大多数的类UNIX系统上，包括了Solaris、AIX、Linux等。2 月 5 日，DEVCORE 团队的安全研究员 Meh 向 exim-security 邮件组披露了 Exim 存在一处缓冲区溢出漏洞，编号为 CVE-2018-6789，成功利用可导致远程代码执行。</p>
 <p><strong><em>漏洞分析</em></strong></p>
 <p>漏洞存在于 /src/base64.c 文件的 b64decode 函数。</p>
-<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/exim/exim-off-by-one-1.png" alt="exim-off-by-one-1" /></div>
+<div align="center"><img class="img-responsive" src="http://jenisec.nos-eastchina1.126.net/exim/exim-off-by-one-1.png" alt="exim-off-by-one-1" /></div>
 
 <p>通常情况下，对一段长度为 n 的字符串进行 base64 编码后，长度为 ⌈n/3⌉*4，⌈⌉ 代表上取整，因此，Exim 在使用上图中的函数对 base64 编码的字符串解码时，会为解码后的 base64 数据分配 3*(len/4)+1 字节的缓冲区长度。但是，如果输入的无效 base64 字符串长度为 4n+3 的话，Exim 则会为其分配 3n+1 字节但占用 3n+2 字节的缓冲区长度。这里会导致一个字节堆溢出。假如将 base64 字符串控制为一个合适的长度，溢出的一字节可能就会覆盖一些关键数据，再因为其可控性，也使得远程代码执行成为可能。</p>
 <p>具体来说，这个 off-by-one 漏洞是由于 Linux 下堆内存验证机制的不完善导致的。目前的 Linux 使用的是基于 ptmalloc 的堆管理器。ptmalloc 是 glibc 默认的内存管理器，常用的 malloc 和 free 就是由 ptmalloc 内存管理器提供的基础内存分配函数。ptmalloc 中，堆块被分为 fastbin、unsort bin、small bin、large bin 四种。同时，堆块还有 allocated、freed 两种状态，前者为正在使用的堆块，后者为空闲的堆块。下图为一个正在使用的堆块，其中 A、M、P 三个位置为标志位。这里只需要关注 P 位就好，这个位确定了前一个块是否处于使用状态(在 ptmalloc 中一个块是否使用是由下一个块进行记录的)。p=0 时，表示前一个堆块为空闲，p=1 时，表示前一个堆块正在被使用。
-<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/exim/exim-off-by-one-2.png" alt="exim-off-by-one-2" /></div></p>
+<div align="center"><img class="img-responsive" src="http://jenisec.nos-eastchina1.126.net/exim/exim-off-by-one-2.png" alt="exim-off-by-one-2" /></div></p>
 <p>成功利用 off-by-one 漏洞可以改写下一堆块的 size 域，再通过一些其他操作，使目标堆块重新分配到攻击者控制的新的堆块中，这样就可以对目标堆块进行读写操作。下面是对 off-by-one overwrite allocated 漏洞原理的简单介绍：</p>
 <p>假设现在存在如下三个堆块，其中 A 堆块是发生 off-by-one 的堆块，B 和 C 是 allocated 状态的堆块。C 堆块为我们想要进行读写操作的堆块。
-<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/exim/exim-off-by-one-3.png" alt="exim-off-by-one-3" /></div></p>
+<div align="center"><img class="img-responsive" src="http://jenisec.nos-eastchina1.126.net/exim/exim-off-by-one-3.png" alt="exim-off-by-one-3" /></div></p>
 <p>首先利用程序的内存分配函数构造上图中的内存布局，然后通过 off-by-one 对 B 堆块的 size 域进行改写，需要注意的是 P 位需要为 1，不然会触发 unlink 导致程序中止或崩溃，修改后 size 域需要将 C 堆块大小也包含进去。接着使用 free 函数将 B 堆块释放，之后再分配 B+C 大小的块就可以简介实现对 C 堆块的读写了。</p>
 <p>回到 Exim，Exim 使用了自定义的函数对内存进行动态分配，函数 store_malloc() 和 store_free() 直接调用了 glibc 中的 malloc() 和 free()，正常情况下，分配的堆块结构如下图所示：
-<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/exim/exim-off-by-one-4.png" alt="exim-off-by-one-4" /></div></p>
+<div align="center"><img class="img-responsive" src="http://jenisec.nos-eastchina1.126.net/exim/exim-off-by-one-4.png" alt="exim-off-by-one-4" /></div></p>
 <p>0-0x10 块的第一个字节内存储了完整堆块的元数据。元数据包括前一个块的大小、当前块的大小和之前提到的几个标志位。</p>
 <p>在 Exim 中，大部分被释放的堆块会被放入 unsorted bins 这个双向列表中，unsorted bins 是 bins 的一个缓冲区。当用户释放的内存大于 max_fast 或者高速缓冲区内合并后的堆块都会进入 unsorted bin 上。为了避免碎片化，glibc 会根据堆块的标志位进行维护，存在相邻的已被释放的堆块时，glibc 会将它们合并到一个更大的堆块。对于每个分配请求，glibc 都会以 FIFO（先进先出）顺序检查这些块，并重新使用这些块。</p>
 <p>Exim 还有几个用来排列堆数据的函数。这些函数中会通过 store_get()、store_release()、store_extend() 和 store_reset() 对自己的链表结构进行维护。
-<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/exim/exim-off-by-one-5.png" alt="exim-off-by-one-5" /></div></p>
+<div align="center"><img class="img-responsive" src="http://jenisec.nos-eastchina1.126.net/exim/exim-off-by-one-5.png" alt="exim-off-by-one-5" /></div></p>
 <p>上图中每个 storeblocks 存储块至少有 0x2000 字节，其内存结构如下图所示：
-<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/exim/exim-off-by-one-6.png" alt="exim-off-by-one-6" /></div></p>
+<div align="center"><img class="img-responsive" src="http://jenisec.nos-eastchina1.126.net/exim/exim-off-by-one-6.png" alt="exim-off-by-one-6" /></div></p>
 <p>下面是一次完整的攻击步骤：</p>
 <p>为了完成攻击，需要构造一个合适的内存布局，类似于之前提到过的 A、B、C 三个堆块布局。</p>
 <ul>
@@ -143,7 +143,7 @@
 <p>再次发送 EHLO 消息以获得第二个存储块。由于 EHLO 命令完成后调用了 smtp_reset，所以第二步中存储错误信息的堆块被释放。</p>
 </li>
 </ul>
-<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/exim/exim-off-by-one-7.png" alt="exim-off-by-one-7" /></div>
+<div align="center"><img class="img-responsive" src="http://jenisec.nos-eastchina1.126.net/exim/exim-off-by-one-7.png" alt="exim-off-by-one-7" /></div>
 
 <ul>
 <li>
@@ -156,7 +156,7 @@
 <p>这时，发送一个新的 EHLO 消息来释放掉旧的主机名。但是正常的 EHLO 消息在成功之后会调用 smtp_reset，这可能会导致程序中止或崩溃。为了避免这种情况，这里发送一个无效的主机名称，如 a+。</p>
 </li>
 </ul>
-<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/exim/exim-off-by-one-8.png" alt="exim-off-by-one-8" /></div>
+<div align="center"><img class="img-responsive" src="http://jenisec.nos-eastchina1.126.net/exim/exim-off-by-one-8.png" alt="exim-off-by-one-8" /></div>
 
 <ul>
 <li>如图 6 所示，这时可以使用 AUTH 进行检索并覆盖部分重叠的存储块。这里将指向原始的下一个存储块的指针修改为指向一个包含 ACL 的存储块。ACL 字符串是通过一组全局指针来指向的，如：</li>

@@ -121,27 +121,27 @@
 <p>下面是对漏洞的简要分析</p>
 <p><strong><em>漏洞一</em></strong></p>
 <p>正常情况下，当用户在D-Link路由器中修改设置时，设置将会以XML格式发送到hedwig.cgi，hedwig.cgi接收到XML格式的设置请求后，调用fatlady.php用于对设置进行验证，然后再对pigwidgeon.cgi进行请求，pigwidgeon.cgi用来应用新设置，如果新的设置是有效的，则对设置的服务进行重启。
-<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/dlink/dlinkRce-1.png" alt="dlinkRce-1" /></div></p>
+<div align="center"><img class="img-responsive" src="http://jenisec.nos-eastchina1.126.net/dlink/dlinkRce-1.png" alt="dlinkRce-1" /></div></p>
 <p>fatlady.php 文件内的 $service 变量直接从接收到的 XML 中获取，所以通过控制请求 XML 中的 service 就可以加载任何带有 .php 拓展的文件，比如，控制 $target 变量指向 /htdocs/webinc/getcfg/DEVICE.ACCOUNT.xml.php 文件即可读取用户的用户名密码。</p>
 <p>由于 $target 变量会在 $service 前后拼接路径和后缀，所以在上传 XML 数据时需要将 service 指向的文件路径前加上 ../../../，最终传入路由器的XML如下：
-<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/dlink/dlinkRce-2.png" alt="dlinkRce-2" /></div></p>
+<div align="center"><img class="img-responsive" src="http://jenisec.nos-eastchina1.126.net/dlink/dlinkRce-2.png" alt="dlinkRce-2" /></div></p>
 <p>hedwig.cgi 在接收 XML 数据时未进行身份验证，所以无需认证便可以请求 hedwig.cgi 和 pigwidgeon.cgi。</p>
 <p>将 XML 数据发送到 hedwig.cgi，设置请求中的 Content-Type 为 text/xml，成功获取路由器的管理用户名密码，如下图所示：
-<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/dlink/dlinkRce-3.png" alt="dlinkRce-3" /></div></p>
+<div align="center"><img class="img-responsive" src="http://jenisec.nos-eastchina1.126.net/dlink/dlinkRce-3.png" alt="dlinkRce-3" /></div></p>
 <p>得到用户名密码后成功登陆，如下图：
-<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/dlink/dlinkRce-4.png" alt="dlinkRce-4" /></div></p>
+<div align="center"><img class="img-responsive" src="http://jenisec.nos-eastchina1.126.net/dlink/dlinkRce-4.png" alt="dlinkRce-4" /></div></p>
 <p>登陆到管理页面以后，可以通过 NTP 服务器进行 shell 命令注入
-<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/dlink/dlinkRce-5.png" alt="dlinkRce-5" /></div></p>
+<div align="center"><img class="img-responsive" src="http://jenisec.nos-eastchina1.126.net/dlink/dlinkRce-5.png" alt="dlinkRce-5" /></div></p>
 <p>根据代码得知，要成功注入命令，需要设置 $enable 和 $enablev6 为 1，所以 XML 内容如下：
-<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/dlink/dlinkRce-6.png" alt="dlinkRce-6" /></div></p>
+<div align="center"><img class="img-responsive" src="http://jenisec.nos-eastchina1.126.net/dlink/dlinkRce-6.png" alt="dlinkRce-6" /></div></p>
 <p>设置 $enable 和 $enablev6 为 1，在 server 中设置要执行的命令：配置防火墙并在 12345 端口启动一个 telnetd 服务。构造好 XML后 POST 到 hedwig.cgi，成功后返回结果会显示 OK，如下图所示：
-<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/dlink/dlinkRce-7.png" alt="dlinkRce-7" /></div></p>
+<div align="center"><img class="img-responsive" src="http://jenisec.nos-eastchina1.126.net/dlink/dlinkRce-7.png" alt="dlinkRce-7" /></div></p>
 <p>此时通过 telnet 探测目标路由器的 12345 端口是关闭状态。
-<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/dlink/dlinkRce-8.png" alt="dlinkRce-8" /></div></p>
+<div align="center"><img class="img-responsive" src="http://jenisec.nos-eastchina1.126.net/dlink/dlinkRce-8.png" alt="dlinkRce-8" /></div></p>
 <p>通过 pigwidgeon.cgi 使设置生效，设置生效的同时命令也被执行了。
-<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/dlink/dlinkRce-9.png" alt="dlinkRce-9" /></div></p>
+<div align="center"><img class="img-responsive" src="http://jenisec.nos-eastchina1.126.net/dlink/dlinkRce-9.png" alt="dlinkRce-9" /></div></p>
 <p>再使用 telnet 探测目标端口，发现目标端口成功开放。
-<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/dlink/dlinkRce-10.png" alt="dlinkRce-10" /></div></p>
+<div align="center"><img class="img-responsive" src="http://jenisec.nos-eastchina1.126.net/dlink/dlinkRce-10.png" alt="dlinkRce-10" /></div></p>
 <p><strong><em>漏洞POC(Python3)</em></strong></p>
 <div class="highlight"><pre><span></span><span class="c1"># pylint: disable=C0103</span>
 <span class="c1">#</span>
@@ -297,7 +297,7 @@
 
 <p><strong><em>漏洞二</em></strong></p>
 <p>D-Link 还存在任意文件读取漏洞。通过设置 $AUTHORIZED_GROUP 全局变量可以绕过安全检查，读取文件。
-<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/dlink/dlinkRce-11.png" alt="dlinkRce-11" /></div></p>
+<div align="center"><img class="img-responsive" src="http://jenisec.nos-eastchina1.126.net/dlink/dlinkRce-11.png" alt="dlinkRce-11" /></div></p>
 <p><strong><em>漏洞POC</em></strong></p>
 <div class="highlight"><pre><span></span>$ curl -d <span class="s2">&quot;SERVICES=DEVICE.ACCOUNT&amp;x=y%0aAUTHORIZED_GROUP=1&quot;</span> <span class="s2">&quot;http://IP/getcfg.php&quot;</span>
 </pre></div>

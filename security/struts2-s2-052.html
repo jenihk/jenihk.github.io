@@ -116,25 +116,25 @@
 <p>我下载了 2.5.12 的 struts2，找到 struts2-rest-plugin ，对 S2-052 漏洞进行了简单的分析。</p>
 <p><strong><em>漏洞分析</em></strong></p>
 <p>根据官方的漏洞介绍，Struts REST 插件在处理 xml 格式的数据时未进行任何过滤，因此在对 xml 格式的数据包进行反序列化时导致命令执行。
-<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/struts2/s2-052-1.png" alt="s2-052-1" /></div></p>
+<div align="center"><img class="img-responsive" src="http://jenisec.nos-eastchina1.126.net/struts2/s2-052-1.png" alt="s2-052-1" /></div></p>
 <p>在 REST 插件的 struts-plugin.xml 中可以看到如下内容：
-<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/struts2/s2-052-2.png" alt="s2-052-2" /></div></p>
+<div align="center"><img class="img-responsive" src="http://jenisec.nos-eastchina1.126.net/struts2/s2-052-2.png" alt="s2-052-2" /></div></p>
 <p>文件内配置了很多的 bean，这些 bean 根据请求中的 Content-type 的不同，将请求中的数据分发给指定的子类。上图中标出的内容表示将 Content-type 为 xml 的数据交给 XStreamHandler 处理。</p>
 <p>当服务器接收到来自用户的请求时，会被 ContentTypeInterceptor 类拦截，进入 intercept 方法：
-<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/struts2/s2-052-3.png" alt="s2-052-3" /></div></p>
+<div align="center"><img class="img-responsive" src="http://jenisec.nos-eastchina1.126.net/struts2/s2-052-3.png" alt="s2-052-3" /></div></p>
 <p>ContentTypeInterceptor 类对请求中的 content 类型进行了判断，再根据类型的不同，选择不同的 handler，调用该 handler 的 toObject() 方法对数据进行下一步处理。</p>
 <p>如果这里用户请求中的 Content-type 为 xml 类型，XStreamHandler 类的 toObject() 方法被调用。
-<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/struts2/s2-052-4.png" alt="s2-052-4" /></div></p>
+<div align="center"><img class="img-responsive" src="http://jenisec.nos-eastchina1.126.net/struts2/s2-052-4.png" alt="s2-052-4" /></div></p>
 <p>toObject() 方法会调用 xstream 的 fromXML() 方法，fromXML() 方法用于将传入的 XML 字符串反向序列化为 JavaBean 对象。请求中的 xml 数据在经过 fromXML() 方法后导致实例化的恶意对象被执行，也就导致了恶意代码被执行。</p>
 <p><strong><em>漏洞复现</em></strong></p>
 <p>首先在已搭建的 tomcat 上部署 struts2-rest-showcase 应用。
-<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/struts2/s2-052-5.png" alt="s2-052-5" /></div></p>
+<div align="center"><img class="img-responsive" src="http://jenisec.nos-eastchina1.126.net/struts2/s2-052-5.png" alt="s2-052-5" /></div></p>
 <p>通过浏览器访问 web 应用。
-<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/struts2/s2-052-6.png" alt="s2-052-6" /></div></p>
+<div align="center"><img class="img-responsive" src="http://jenisec.nos-eastchina1.126.net/struts2/s2-052-6.png" alt="s2-052-6" /></div></p>
 <p>再次请求时修改数据包的 Content-type 为 xml，请求类型为 post，post 的数据改为我们构造好的 payload。其中执行的命令是向c盘的根目录写文件。
-<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/struts2/s2-052-7.png" alt="s2-052-7" /></div></p>
+<div align="center"><img class="img-responsive" src="http://jenisec.nos-eastchina1.126.net/struts2/s2-052-7.png" alt="s2-052-7" /></div></p>
 <p>请求发送后，页面返回 500 错误，在服务器上查看 c 盘根目录，发现文件成功被写入：
-<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/struts2/s2-052-8.png" alt="s2-052-8" /></div></p>
+<div align="center"><img class="img-responsive" src="http://jenisec.nos-eastchina1.126.net/struts2/s2-052-8.png" alt="s2-052-8" /></div></p>
 <p><strong><em>漏洞 POC</em></strong></p>
 <p>在编写漏洞 POC 的时候发现了一些需要注意的地方，我分别对 Windows 和 Linux 搭建的漏洞环境进行了测试，执行了如下命令：</p>
 <div class="highlight"><pre><span></span><span class="n">Windows</span><span class="o">:</span>   <span class="n">c</span><span class="o">:\</span><span class="n">windows</span><span class="o">\</span><span class="n">system32</span><span class="o">\</span><span class="n">cmd</span><span class="o">.</span><span class="na">exe</span> <span class="o">/</span><span class="n">c</span> <span class="n">echo</span> <span class="o">%</span><span class="n">s</span><span class="o">&gt;</span> <span class="n">xxx</span><span class="o">.</span><span class="na">txt</span>
@@ -145,9 +145,9 @@
 <p>发现在 Windows 上，命令执行目录是 Tomcat 的安装目录，比如 C:\Program Files\Apache Software Foundation\Tomcat 8.5，而 Linux 上，命令执行目录是系统的根目录 /。因此针对 Linux 的 payload 需要猜测 Tomcat 的安装目录。</p>
 <div style="color:red">POC 会向 ./webapps/docs/(针对 windows) 或 /usr/share/tomcat8/webapps/docs/(针对 Linux) 目录上传一个 15 位随机文件名的 txt 文件。</div>
 
-<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/struts2/s2-052-9.png" alt="s2-052-9" /></div>
+<div align="center"><img class="img-responsive" src="http://jenisec.nos-eastchina1.126.net/struts2/s2-052-9.png" alt="s2-052-9" /></div>
 
-<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/struts2/s2-052-10.png" alt="s2-052-10" /></div>
+<div align="center"><img class="img-responsive" src="http://jenisec.nos-eastchina1.126.net/struts2/s2-052-10.png" alt="s2-052-10" /></div>
 
 <div class="highlight"><pre><span></span><span class="c1"># -*- coding:utf-8 -*-</span>
 

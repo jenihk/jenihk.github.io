@@ -114,22 +114,22 @@
 <p>PHPCMS V9（后面简称V9）采用 PHP5+MYSQL 做为技术基础进行开发。V9 采用 OOP（面向对象编程）+ MVC 设计模式,进行基础运行框架搭建。近两天，V9 被爆出存在 SQL 注入，据说这个漏洞从去年年底开始就被黑产界利用，直到最近才公布出来，网上给出了 POC ，直接看脚本也看不出什么，于是下了套源码结合着 POC 做了个简单的分析。</p>
 <p><strong><em>漏洞复现</em></strong></p>
 <p>根据网上给出的poc，验证结果如下：</p>
-<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/phpcms/phpcms-1.png" alt="phpcms-1" /></div>
+<div align="center"><img class="img-responsive" src="http://jenisec.nos-eastchina1.126.net/phpcms/phpcms-1.png" alt="phpcms-1" /></div>
 
 <p>可以看到通过注入成功获得了数据库的相关信息和数据库内数据。</p>
 <p><strong><em>漏洞分析</em></strong></p>
 <p>通过查看 poc 源码可以发现，注入点出现在 /index.php?m=content&amp;c=down&amp;a_k= 页面，但是在此之前，脚本曾多次请求 /index.php?m=attachment&amp;c=attachments&amp;a=swfupload_json&amp;aid=1&amp;src=%26id= 页面，所以初步推断问题应该与 /phpcms/modules/attachment 目录下的 attachments.php 文件内的 swfupload_json 函数有关。</p>
-<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/phpcms/phpcms-2.png" alt="phpcms-2" /></div>
+<div align="center"><img class="img-responsive" src="http://jenisec.nos-eastchina1.126.net/phpcms/phpcms-2.png" alt="phpcms-2" /></div>
 
 <p>通过源码可知，swfupload_json() 函数首先以 get 方式接收传入的参数，将 aid、src、filename 等参数经 json 编码后设置为 cookie 的值，而 cookie 的键则为 system.php 文件中 cookie_pre 与 json_str 拼接后的内容。键值对经 set_cookie() 函数编码后作为 cookie 的值。其中关键的地点在 $arr['src'] = safe_replace(trim($_GET['src'])); 一句，这里使用 safe_replace 函数对 src 参数传入内容进行处理，我们看下 safe_replace 函数的定义。</p>
-<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/phpcms/phpcms-3.png" alt="phpcms-3" /></div>
+<div align="center"><img class="img-responsive" src="http://jenisec.nos-eastchina1.126.net/phpcms/phpcms-3.png" alt="phpcms-3" /></div>
 
 <p>可以看到 safe_replace 函数对字符串中的特殊字符进行了替换删除操作，但是由于该函数只执行了一次，所以只需对 payload 进行适当的改变就可以绕过过滤，举例来说，假设，我们传入的 payload 为 %27and%20，经过 safe_replace 函数处理后，传入数据库的内容为 and%20，%27 被删除了，但假如我们将 payload 改写为% *27an*d%20，经 safe_replace 函数处理一次后，删除了其中的*，传入数据库的内容就变为了 %27and%20，这样就绕过了安全函数的过滤。
 到这里我们成功让 payload 绕过过滤，cookie 值成功传入到 set_cookie 函数中，下面为 set_cookie 函数定义:</p>
-<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/phpcms/phpcms-4.png" alt="phpcms-4" /></div>
+<div align="center"><img class="img-responsive" src="http://jenisec.nos-eastchina1.126.net/phpcms/phpcms-4.png" alt="phpcms-4" /></div>
 
 <p>可以看到函数内部对传入数组的操作，其中调用了 sys_auth 函数，并且传入 ENCODE 加密参数，实现了对 cookie 的加密，这里之所以要进行加密，是因为之后访问的 /index.php?m=content&amp;c=down&amp;a_k= 页面中 a_k 参数内容会通过 sys_auth 函数解密一次，但由于 system.php 中 auth_key 的值是未知的，所以我们无法直接本地对 cookie 加密，只能通过 /index.php?m=attachment&amp;c=attachments&amp;a=swfupload_json&amp;aid=1&amp;src=%26id= 页面将我们的 payload 传入服务器，再将返回的 cookie 作为加密后的 payload 传入 /index.php?m=content&amp;c=down&amp;a_k= 页面，交由 down.php 页面进行解密，解密后的参数未经校验便传入数据库，因此造成注入，这也是 poc 中每次执行 sql 语句时，都需要先 将 payload 传入服务器加密的原因。下面是 down.php 中 init 函数的定义:</p>
-<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/phpcms/phpcms-5.png" alt="phpcms-5" /></div>
+<div align="center"><img class="img-responsive" src="http://jenisec.nos-eastchina1.126.net/phpcms/phpcms-5.png" alt="phpcms-5" /></div>
 
 <p>down.php 页面通过 get 方式获取 ’a_k’ 的值，也就是我们传入的经 auth_key 加密后的 payload，然后调用 auth_key 进行解密操作，解密后使用 parse_str 函数将解密后的字符串解析为变量并解码。最后在 $rs = $this-&gt;db-&gt;get_one(array('id'=&gt;$id));一句作为 $id 被传入数据库，从而导致 sql 语句执行。</p>
 <p><strong><em>漏洞POC</em></strong></p>

@@ -115,7 +115,7 @@
 <p>我下载了 MetInfo5.3.5 版本的建站源码，对这个注入漏洞进行了简单的分析复现。</p>
 <p><strong><em>漏洞分析</em></strong></p>
 <p>漏洞出现在 /include/global.func.php 文件的 jump_pseudo 函数，函数部分源码如下：
-<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/metinfo/metinfo-sqlin-1.png" alt="metinfo-sqlin-1" /></div></p>
+<div align="center"><img class="img-responsive" src="http://jenisec.nos-eastchina1.126.net/metinfo/metinfo-sqlin-1.png" alt="metinfo-sqlin-1" /></div></p>
 <p>上图中标记出了漏洞触发过程中比较关键的几步。$_SERVER[HTTP_X_REWRITE_URL] 将请求 header 中的 X_REWRITE_URL 字段取出赋值给 $pseudo_url，之后使用斜线对 $pseudo_url 变量进行分割，然后将该数组中的倒数第二个元素赋值给  $dir_dirname 变量，最后将 $dir_dirname 变量拼接到 SQL 语句，传入数据库。所以只要将 $dir_dirname 变量控制为合理的 SQL 语句，就会导致注入。</p>
 <p>通过分析逻辑关系可以看出，如果想要执行 $query="select * from $met_column where foldername='$dir_dirname' and lang='$lang' and (classtype='1' or releclass!='0') order by id asc"，需要满足几个条件：</p>
 <ol>
@@ -143,11 +143,11 @@
 </ol>
 <p><strong><em>漏洞复现</em></strong></p>
 <p>首先安装 metinfo，除了数据库用户名密码外，一切默认即可，安装成功后首页如下：
-<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/metinfo/metinfo-sqlin-2.png" alt="metinfo-sqlin-2" /></div></p>
+<div align="center"><img class="img-responsive" src="http://jenisec.nos-eastchina1.126.net/metinfo/metinfo-sqlin-2.png" alt="metinfo-sqlin-2" /></div></p>
 <p>在后台管理页面开启伪静态化：
-<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/metinfo/metinfo-sqlin-3.png" alt="metinfo-sqlin-3" /></div></p>
+<div align="center"><img class="img-responsive" src="http://jenisec.nos-eastchina1.126.net/metinfo/metinfo-sqlin-3.png" alt="metinfo-sqlin-3" /></div></p>
 <p>再次访问首页时抓取数据包，根据上面的分析，设置恶意的 X-Rewrite-Url 字段内容：
-<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/metinfo/metinfo-sqlin-4.png" alt="metinfo-sqlin-4" /></div></p>
+<div align="center"><img class="img-responsive" src="http://jenisec.nos-eastchina1.126.net/metinfo/metinfo-sqlin-4.png" alt="metinfo-sqlin-4" /></div></p>
 <p>成功通过注入 SQL 语句查询到管理员的密码。</p>
 <p><strong><em>参考</em></strong></p>
 <blockquote>

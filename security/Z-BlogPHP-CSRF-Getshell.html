@@ -114,11 +114,11 @@
 <p>近日，Z-BlogPHP_1_5_1_Zero 及以下版本被指出可被 Getshell，攻击者通过一个 CSRF 漏洞(CVE-2018-8893) 结合 CVE-2018-9153 漏洞可执行任意 PHP 代码。</p>
 <p><strong><em>漏洞分析</em></strong></p>
 <p>漏洞出现在 /zb_users/plugin/AppCentre/plugin_edit.php 文件内，该文件在处理 POST 请求时，首先对传入的 appid 进行了正则判断，由于表达式匹配了 3-30 字符，并要求以数字字母或下划线开头，因此只要前三个字符满足就可以通过检查。</p>
-<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/z-blog/zblogphp-csrf-getshell_1.png" alt="zblogphp-csrf-getshell_1" /></div>
+<div align="center"><img class="img-responsive" src="http://jenisec.nos-eastchina1.126.net/z-blog/zblogphp-csrf-getshell_1.png" alt="zblogphp-csrf-getshell_1" /></div>
 
 <p>接下来的代码内包含了两处 file_put_contents 文件写入操作，他们分别获取了 tpl/main.html 和 tpl/include.php 的文件内容，使用前面获取的 $app-&gt;id 值替换 &lt;%appid%&gt; 之后，再执行文件写入操作。这个过程中由于 $app-&gt;id 可控，所以通过构造恶意的 $app-&gt;id 值，可以执行 PHP 代码，最终导致 Getshell。两个文件写入的位置虽略有不同，但原理都相同，都是将恶意的 PHP 代码包含在传入的 $app-&gt;id 中，通过 CSRF 触发代码执行，所以接下来只对 tpl/main.php 这个模板文件进行分析。</p>
 <p>/tpl/main.php 文件内代码如下：</p>
-<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/z-blog/zblogphp-csrf-getshell_2.png" alt="zblogphp-csrf-getshell_2" /></div>
+<div align="center"><img class="img-responsive" src="http://jenisec.nos-eastchina1.126.net/z-blog/zblogphp-csrf-getshell_2.png" alt="zblogphp-csrf-getshell_2" /></div>
 
 <p>文件中有两处 &lt;%appid%&gt; 被替换为了 $app-&gt;id，这里在构造 $app-&gt;id 值时，可以通过使用 ?&gt; 对 php 代码进行闭合来保证恶意 php 代码的完整性。写入的恶意 php 代码会在管理员访问这个页面时被触发，所以需要控制一下传入的 app_path 参数值，将代码插入到一个管理员可以点击进入的页面，如某个已有插件的某个文件内。</p>
 <p><strong><em>漏洞复现</em></strong></p>
@@ -133,26 +133,26 @@
 </pre></div>
 
 
-<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/z-blog/zblogphp-csrf-getshell_3.png" alt="zblogphp-csrf-getshell_3" /></div>
+<div align="center"><img class="img-responsive" src="http://jenisec.nos-eastchina1.126.net/z-blog/zblogphp-csrf-getshell_3.png" alt="zblogphp-csrf-getshell_3" /></div>
 
 <p>之所以选择 ../Totoro/main.php 这个文件是因为 Totoro 插件内的 main.php 文件在后台管理页面有可以直接访问的位置：</p>
-<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/z-blog/zblogphp-csrf-getshell_4.png" alt="zblogphp-csrf-getshell_4" /></div>
+<div align="center"><img class="img-responsive" src="http://jenisec.nos-eastchina1.126.net/z-blog/zblogphp-csrf-getshell_4.png" alt="zblogphp-csrf-getshell_4" /></div>
 
 <p>诱使网站管理员访问攻击者构造的恶意页面。点击后，会跳转到如下页面：</p>
-<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/z-blog/zblogphp-csrf-getshell_5.png" alt="zblogphp-csrf-getshell_5" /></div>
+<div align="center"><img class="img-responsive" src="http://jenisec.nos-eastchina1.126.net/z-blog/zblogphp-csrf-getshell_5.png" alt="zblogphp-csrf-getshell_5" /></div>
 
 <p>此时恶意的 php 代码已经被插入到了 Totoro/main.php 文件内：</p>
-<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/z-blog/zblogphp-csrf-getshell_6.png" alt="zblogphp-csrf-getshell_6" /></div>
+<div align="center"><img class="img-responsive" src="http://jenisec.nos-eastchina1.126.net/z-blog/zblogphp-csrf-getshell_6.png" alt="zblogphp-csrf-getshell_6" /></div>
 
 <p>这时如果管理员点击了评论管理页面的 Totoro 设置按钮，就会执行攻击者插入到 Totoro/main.php 内的 php 代码，也就是会在 Totoro 目录下写入一句话木马。</p>
-<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/z-blog/zblogphp-csrf-getshell_7.png" alt="zblogphp-csrf-getshell_7" /></div>
+<div align="center"><img class="img-responsive" src="http://jenisec.nos-eastchina1.126.net/z-blog/zblogphp-csrf-getshell_7.png" alt="zblogphp-csrf-getshell_7" /></div>
 
-<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/z-blog/zblogphp-csrf-getshell_8.png" alt="zblogphp-csrf-getshell_8" /></div>
+<div align="center"><img class="img-responsive" src="http://jenisec.nos-eastchina1.126.net/z-blog/zblogphp-csrf-getshell_8.png" alt="zblogphp-csrf-getshell_8" /></div>
 
 <p>一句话木马写入成功后，可通过木马执行命令：</p>
-<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/z-blog/zblogphp-csrf-getshell_9.png" alt="zblogphp-csrf-getshell_9" /></div>
+<div align="center"><img class="img-responsive" src="http://jenisec.nos-eastchina1.126.net/z-blog/zblogphp-csrf-getshell_9.png" alt="zblogphp-csrf-getshell_9" /></div>
 
-<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/z-blog/zblogphp-csrf-getshell_10.png" alt="zblogphp-csrf-getshell_10" /></div>
+<div align="center"><img class="img-responsive" src="http://jenisec.nos-eastchina1.126.net/z-blog/zblogphp-csrf-getshell_10.png" alt="zblogphp-csrf-getshell_10" /></div>
 
 <p><strong><em>参考</em></strong></p>
 <blockquote>

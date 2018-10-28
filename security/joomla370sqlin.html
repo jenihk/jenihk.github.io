@@ -120,7 +120,7 @@
 
 <p><strong><em>漏洞复现</em></strong></p>
 <p>首先搭建漏洞靶场环境。</p>
-<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/joomla/joomla370-1.png" alt="joomla370-1" /></div>
+<div align="center"><img class="img-responsive" src="http://jenisec.nos-eastchina1.126.net/joomla/joomla370-1.png" alt="joomla370-1" /></div>
 
 <p>按照要求进行初始设置后，我们对index页面做如下请求：</p>
 <div class="highlight"><pre><span></span>/index.php?option=com_fields&amp;view=fields&amp;layout=modal&amp;list[fullordering]=updatexml(1,concat(0x3e,user()),0)
@@ -128,35 +128,35 @@
 
 
 <p>此时成功引发数据库报错，如下:</p>
-<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/joomla/joomla370-2.png" alt="joomla370-2" /></div>
+<div align="center"><img class="img-responsive" src="http://jenisec.nos-eastchina1.126.net/joomla/joomla370-2.png" alt="joomla370-2" /></div>
 
 <p><strong><em>漏洞分析</em></strong></p>
 <p>0.根据 POC 可知，漏洞出现在 com_fields 组件，在 Joomla 3.7.0 版本的 com_fields 组件中，其控制器函数如下：</p>
-<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/joomla/joomla370-3.png" alt="joomla370-3" /></div>
+<div align="center"><img class="img-responsive" src="http://jenisec.nos-eastchina1.126.net/joomla/joomla370-3.png" alt="joomla370-3" /></div>
 
 <p>1.当请求中参数 view 为 fields 并且 layout 为 modal 时，会从 JPATH_ADMINISTRATOR 中加载 com_fields，管理员的 com_fields 组件中 models/field.php 文件内有一个 getListQuery 函数，关键代码如下：</p>
-<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/joomla/joomla370-4.png" alt="joomla370-4" /></div>
+<div align="center"><img class="img-responsive" src="http://jenisec.nos-eastchina1.126.net/joomla/joomla370-4.png" alt="joomla370-4" /></div>
 
 <p>2.程序通过 getState 函数获取到 list.fullordering，将内容赋值给 listOrdering 变量，该变量经过 $db-&gt;escape 函数处理后传入到 $query-&gt;order 函数中。首先来看下 escape 函数：</p>
-<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/joomla/joomla370-5.png" alt="joomla370-5" /></div>
+<div align="center"><img class="img-responsive" src="http://jenisec.nos-eastchina1.126.net/joomla/joomla370-5.png" alt="joomla370-5" /></div>
 
 <p>3.mysql_real_escape_string 为 PHP 的一个转义函数，转义下面的一些特殊字符，可以看到，除了对单引号双引号等常见特殊字符进行了转义，并没有对更多的字符进行过滤。</p>
-<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/joomla/joomla370-6.png" alt="joomla370-6" /></div>
+<div align="center"><img class="img-responsive" src="http://jenisec.nos-eastchina1.126.net/joomla/joomla370-6.png" alt="joomla370-6" /></div>
 
 <p>4.而经过 mysql_real_escape_string() 转义的字符串传入到 $query-&gt;order 函数，该函数也没有对传入的内容做更多的过滤就将字符串拼接到 order by 后带入了数据库进行查询。再回到 2 看看如何对 list.fullordering 进行控制。list.fullordering 会在视图的 display 中进行设置：</p>
-<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/joomla/joomla370-7.png" alt="joomla370-7" /></div>
+<div align="center"><img class="img-responsive" src="http://jenisec.nos-eastchina1.126.net/joomla/joomla370-7.png" alt="joomla370-7" /></div>
 
 <p>5.state 调用了 get 函数，该函数定义如下：</p>
-<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/joomla/joomla370-8.png" alt="joomla370-8" /></div>
+<div align="center"><img class="img-responsive" src="http://jenisec.nos-eastchina1.126.net/joomla/joomla370-8.png" alt="joomla370-8" /></div>
 
 <p>6.在416行处可以看到 $method 为 get 与传入的 $property 拼接后的内容，根据上一张图可知传入的实参为 State，拼接后为 getState，getState 作为方法被调用，下图为 getState 函数定义：</p>
-<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/joomla/joomla370-9.png" alt="joomla370-9" /></div>
+<div align="center"><img class="img-responsive" src="http://jenisec.nos-eastchina1.126.net/joomla/joomla370-9.png" alt="joomla370-9" /></div>
 
 <p>7.此处调用了 populateState() 函数，我们看下该函数的定义。</p>
-<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/joomla/joomla370-10.png" alt="joomla370-10" /></div>
+<div align="center"><img class="img-responsive" src="http://jenisec.nos-eastchina1.126.net/joomla/joomla370-10.png" alt="joomla370-10" /></div>
 
 <p>8.这里调用了父类的 populateState 方法，父类在 /libraries/legacy/model/list.php 文件中定义：</p>
-<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/joomla/joomla370-11.png" alt="joomla370-11" /></div>
+<div align="center"><img class="img-responsive" src="http://jenisec.nos-eastchina1.126.net/joomla/joomla370-11.png" alt="joomla370-11" /></div>
 
 <p>9.其中程序通过 $app-&gt;getUserStateFromRequest 获取一个 list，list 被赋值给 $list，这时再看我们的注入语句：</p>
 <div class="highlight"><pre><span></span>/index.php?option=com_fields&amp;view=fields&amp;layout=modal&amp;list[fullordering]=updatexml(1,concat(0x3e,user()),0)  

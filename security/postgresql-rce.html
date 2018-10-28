@@ -114,7 +114,7 @@
 <p>近日，PostgreSQL 9.3 版本至 10 版本中被爆出存在安全漏洞。攻击者可利用该漏洞以超级用户的权限执行代码。</p>
 <p><strong><em>漏洞分析</em></strong></p>
 <p>在 PostgreSQL 中，存在一个 schema 的概念，每个数据库都可以创建多个 schema，每个 schema 下面又可以创建多个对象，对象可以是表、视图、函数、序列等。
-<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/PostgreSQL/PostgreSQL-schema.png" alt="PostgreSQL-schema" /></div></p>
+<div align="center"><img class="img-responsive" src="http://jenisec.nos-eastchina1.126.net/PostgreSQL/PostgreSQL-schema.png" alt="PostgreSQL-schema" /></div></p>
 <p>每个数据库在创建完成后，都会存在一个叫 public 的 schema，在不做其他操作或者设定的情况下，诸如查询等操作都是在这个 public 中进行查询。</p>
 <p>除了超级用户外，普通用户只能操作自己创建的对象，而由于有些对象是赋予给 public 角色默认权限的，因此在对象建立之后，所有人都有此对象的权限。这种情况下就会有一个重名对象的问题。PostgreSQL 使用 search_path 来处理这种情况。search_path 类似于 linux 中的 path 环境变量，用户在查询重名表中的数据时，PostgreSQL 会采取首先适配原则，第一个找到的表将被使用，对于名为 $user 的 schema，将使用 SESSION_USER 对应的表。除了这两种适配方式外，PostgreSQL 还有另外一个特性，如果 pg_catalog 不在 path 中，PostgreSQL 则会最先查找它，如果在 path 中，则按照 path 中的顺序查找。正是由于这个特性，导致了代码执行漏洞。</p>
 <p>在系统 schema pg_catalog 中，定义了大量的内置函数，每个函数接受的参数都有固定类型，正常情况下，如果将函数无法处理的数据类型作为参数传递给函数，则会导致函数抛出异常，但是 PostgreSQL 支持自定义函数，如果定义了 pg_catalog 中的同名函数，并让此函数接受原函数无法处理的数据类型，那么根据 PostgreSQL 的设计流程，在原函数遇到无法处理的数据时，则会执行攻击者自定义的函数。</p>
@@ -132,7 +132,7 @@
 </pre></div>
 
 
-<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/PostgreSQL/PostgreSQL-rce-1.png" alt="PostgreSQL-rce-1" /></div>
+<div align="center"><img class="img-responsive" src="http://jenisec.nos-eastchina1.126.net/PostgreSQL/PostgreSQL-rce-1.png" alt="PostgreSQL-rce-1" /></div>
 
 <p>首先使用 user1 用户在 testdb 数据库内创建 testtb 表，并将值的类型设置为 varchar，这样如果使用 upper() 函数对 testtb 表内数据进行转换时，由于数据类型问题，就会执行到稍后自定义的同名函数。</p>
 <div class="highlight"><pre><span></span>&gt; psql -U user1 -d testdb
@@ -141,7 +141,7 @@
 </pre></div>
 
 
-<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/PostgreSQL/PostgreSQL-rce-2.png" alt="PostgreSQL-rce-2" /></div>
+<div align="center"><img class="img-responsive" src="http://jenisec.nos-eastchina1.126.net/PostgreSQL/PostgreSQL-rce-2.png" alt="PostgreSQL-rce-2" /></div>
 
 <p>表成功创建完成后，创建自定义函数，函数内执行大写转换操作，并将 user1 修改为管理员。</p>
 <div class="highlight"><pre><span></span>    CREATE FUNCTION public.upper(varchar) RETURNS TEXT AS $$
@@ -151,7 +151,7 @@
 </pre></div>
 
 
-<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/PostgreSQL/PostgreSQL-rce-3.png" alt="PostgreSQL-rce-3" /></div>
+<div align="center"><img class="img-responsive" src="http://jenisec.nos-eastchina1.126.net/PostgreSQL/PostgreSQL-rce-3.png" alt="PostgreSQL-rce-3" /></div>
 
 <p>之后让 postgres 用户使用 upper() 函数对 testtb 表内的值进行大写转换，即可完成对 user1 用户的提权。</p>
 <div class="highlight"><pre><span></span>    SELECT upper(contents) crom testtb;
@@ -159,7 +159,7 @@
 </pre></div>
 
 
-<div align="center"><img class="img-responsive" src="http://og1ifa4lj.bkt.clouddn.com/PostgreSQL/PostgreSQL-rce-4.png" alt="PostgreSQL-rce-4" /></div>
+<div align="center"><img class="img-responsive" src="http://jenisec.nos-eastchina1.126.net/PostgreSQL/PostgreSQL-rce-4.png" alt="PostgreSQL-rce-4" /></div>
 
 <p><strong><em>参考</em></strong></p>
 <blockquote>

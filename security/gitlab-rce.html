@@ -47,11 +47,11 @@
 
 	<meta property="og:type" content="article">
 	<meta property="article:author" content="">
-	<meta property="og:url" content="https://blog.jenisec.org/security/drupal_acl_pass.html">
-	<meta property="og:title" content="Drupal 8.4.x 访问控制绕过漏洞">
+	<meta property="og:url" content="https://blog.jenisec.org/security/gitlab-rce.html">
+	<meta property="og:title" content="Gitlab 远程命令执行漏洞">
 	<meta property="og:description" content="">
-	<meta property="og:image" content="https://blog.jenisec.org/../theme/images/posts/drupal/cover.png">
-	<meta property="article:published_time" content="2018-04-08 00:00:00+08:00">
+	<meta property="og:image" content="https://blog.jenisec.org/../theme/images/posts/gitlab/cover.png">
+	<meta property="article:published_time" content="2018-09-20 00:00:00+08:00">
 </head>
 
 <body style="background-color: #f8f8f8">
@@ -86,15 +86,15 @@
     </nav>
 
     <!-- Page Header -->
-        <header class="intro-header" style="background-image: url('../theme/images/posts/drupal/cover.png')">
+        <header class="intro-header" style="background-image: url('../theme/images/posts/gitlab/cover.png')">
         <div class="container">
             <div class="row">
                 <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
                     <div class="post-heading">
-                        <h1>Drupal 8.4.x 访问控制绕过漏洞</h1>
+                        <h1>Gitlab 远程命令执行漏洞</h1>
                         <span class="meta">Posted by
                                 <a href="https://blog.jenisec.org/author/jeni.html">JenI</a>
-                             on 2018-04-08 00:00:00+08:00
+                             on 2018-09-20 00:00:00+08:00
                         </span>
                         
                     </div>
@@ -110,30 +110,45 @@
     <!-- Post Content -->
     <article style="background-color: #f8f8f8;position: relative;">
         <p><strong><em>前言</em></strong></p>
-<p>Drupal是使用PHP语言编写的开源内容管理框架（CMF），它由内容管理系统（CMS）和PHP开发框架（Framework）共同构成。连续多年荣获全球最佳CMS大奖，是基于PHP语言最著名的WEB应用程序。近期，著名的Drupal CMS网站爆出 7 个漏洞，在 Drupal 8.4.5 之前的 8.4.x 存在一个严重的访问控制绕过漏洞（CVE-2017-6926），具有发表评论权限的用户可以查看他们无权访问的文章评论，并且还可以回复该评论。</p>
+<p>GitLab是利用Ruby_on_Rails的一个开源的版本管理系统，实现一个自托管的Git项目仓库，可通过Web界面进行访问公开的或者私人项目。它拥有与Github类似的功能，能够浏览源代码，管理缺陷和注释。可以管理团队对仓库的访问，它非常易于浏览提交过的版本并提供一个文件历史库。团队成员可以利用内置的简单聊天程序(Wall)进行交流。它还提供一个代码片段收集功能可以轻松实现代码复用，便于日后有需要的时候进行查找。</p>
+<p>近日，8.9.0 及以下版本的 GitLab 被发现存在远程代码执行漏洞，攻击者利用漏洞可以远程控制 Gitlab 服务器，执行恶意的命令。</p>
 <p><strong><em>漏洞分析</em></strong></p>
-<p>漏洞出现在 /core/modules/comment/src/Controller/CommentController.php 文件内，此文件为 Drupal 的评论控制器，其中 replyFormAccess 函数在处理 entity 实体时没有对 entity 实体的权限进行判断，造成了用户可以访问本来没有权限查看的评论页面，并可以对评论进行回复，从而导致了越权的发生。这里需要注意的是此漏洞中的 entity 实体并不是指文章的评论，而是文章本身。
-<div align="center"><img class="img-responsive" src="http://jenisec.nos-eastchina1.126.net/drupal/drupal_acl_pass_1.png" alt="drupal_acl_pass_1" /></div></p>
-<p>使用一个简单的实例来说明漏洞。假设 admin 用户公开发表了一篇文章，并作了评论，如下：
-<div align="center"><img class="img-responsive" src="http://jenisec.nos-eastchina1.126.net/drupal/drupal_acl_pass_2.png" alt="drupal_acl_pass_2" /></div></p>
-<p>此时访问 http://127.0.0.1/drupal/comment/reply/node/1/comment/1 可以对 Hello World 这篇文章的第一个评论进行回复，其中 node 后面的 1 代表第一篇文章，comment 后的 1 代表第 1 条评论。
-<div align="center"><img class="img-responsive" src="http://jenisec.nos-eastchina1.126.net/drupal/drupal_acl_pass_3.png" alt="drupal_acl_pass_3" /></div></p>
-<p>使用 admin 用户将这篇文章的 Published 状态去掉。
-<div align="center"><img class="img-responsive" src="http://jenisec.nos-eastchina1.126.net/drupal/drupal_acl_pass_4.png" alt="drupal_acl_pass_4" /></div></p>
-<p>然后使用 attacker 用户(具有评论权限)登录，访问 node 页面时是看不到 Hello World 这篇文章的，因为它被 admin 用户隐藏了。
-<div align="center"><img class="img-responsive" src="http://jenisec.nos-eastchina1.126.net/drupal/drupal_acl_pass_5.png" alt="drupal_acl_pass_5" /></div></p>
-<p>这时尝试直接访问 http://127.0.0.1/drupal/comment/reply/node/1/comment/1，发现可以访问，尝试评论：
-<div align="center"><img class="img-responsive" src="http://jenisec.nos-eastchina1.126.net/drupal/drupal_acl_pass_6.png" alt="drupal_acl_pass_6" /></div></p>
-<p>评论后会跳转到 http://127.0.0.1/drupal/node/1#comment-2 页面，由于该页面被隐藏，所以会返回 Access denied，但同时会提示 Your comment has been posted。
-<div align="center"><img class="img-responsive" src="http://jenisec.nos-eastchina1.126.net/drupal/drupal_acl_pass_7.png" alt="drupal_acl_pass_7" /></div></p>
-<p>这时使用 admin 用户登录，查看 Hello World 文章的评论，发现 attacker 用户在无法查看文章的情况下成功回复了第一条评论。
-<div align="center"><img class="img-responsive" src="http://jenisec.nos-eastchina1.126.net/drupal/drupal_acl_pass_8.png" alt="drupal_acl_pass_8" /></div></p>
-<p>Drupal 在 2 月份的 commit 中修复了这一漏洞，在原来的基础上针对 entity 实体进行了权限判断：
-<div align="center"><img class="img-responsive" src="http://jenisec.nos-eastchina1.126.net/drupal/drupal_acl_pass_9.png" alt="drupal_acl_pass_9" /></div></p>
-<p>allowedIf 函数返回 True 或 False。当一个普通用户无法查看某一篇文章时，allowedIf 函数对 $entity-&gt;access(‘view’); 的判断结果则为 False，此时这个用户则无法查看文章评论。补丁代码相当于在用户回复某篇文章的评论之前判断了其是否有权限访问这篇文章。</p>
+<p>漏洞出现在 file_import.rb 文件，当用户通过 Gitlab 的前端页面导入一个项目时，会调用此文件内的 import 函数：</p>
+<div align="center"><img class="img-responsive" src="http://jenisec.nos-eastchina1.126.net/gitlab/gitlab-rce-1.png" alt="gitlab-rce-1" /></div>
+
+<p>其中 remove_symlinks 用于检测导入文件中是否存在符号链接，如果有，则进行删除操作：</p>
+<div align="center"><img class="img-responsive" src="http://jenisec.nos-eastchina1.126.net/gitlab/gitlab-rce-2.png" alt="gitlab-rce-2" /></div>
+
+<p>remove_symlinks 函数内部使用 extracted_files 列出了解压出来的所有文件：</p>
+<div align="center"><img class="img-responsive" src="http://jenisec.nos-eastchina1.126.net/gitlab/gitlab-rce-3.png" alt="gitlab-rce-3" /></div>
+
+<p>%r{.*/\.{1,2}$} 实现了对文件名的匹配，由于 ruby 中，$ 符用于匹配一行的结尾，也就是说，当文件名中含有换行符时，上面的代码并不能匹配出文件名。所以通过创建一个以 \n 为开头的符号链接文件就可以绕过匹配，从而避免了被 extracted_files 列出。</p>
+<p>利用上述方法绕过检测后，会在 Gitlab 的 uploads 文件夹内创建项目文件夹，其中包含了指向另一个文件夹的符号链接文件，因此，向符号链接写入恶意文件，恶意文件就会被写入到其指向的文件夹。</p>
+<p><strong><em>漏洞复现</em></strong></p>
+<p>搭建好 Gitlab 的环境：</p>
+<div align="center"><img class="img-responsive" src="http://jenisec.nos-eastchina1.126.net/gitlab/gitlab-rce-4.png" alt="gitlab-rce-4" /></div>
+
+<p>使用 <a href="https://xzfile.aliyuncs.com/upload/affix/20180829131201-100285ec-ab4a-1.zip">POC</a> 构造可以绕过检测的符号链接文件，制作恶意的压缩包。step1.tar.gz 用于创建符号链接文件，step2.tar.gz 用于向符号链接指向的文件夹传入提前生成好的 ssh 公钥。</p>
+<div align="center"><img class="img-responsive" src="http://jenisec.nos-eastchina1.126.net/gitlab/gitlab-rce-5.png" alt="gitlab-rce-5" /></div>
+
+<p>通过 WEB 页面导入第一个压缩包：</p>
+<div align="center"><img class="img-responsive" src="http://jenisec.nos-eastchina1.126.net/gitlab/gitlab-rce-6.png" alt="gitlab-rce-6" /></div>
+
+<p>此时服务器上的 /var/opt/gitlab/gitlab-rails/uploads/Tom/ 目录下已经有了刚刚导入的项目了，其中.\nevil 链接到了 /var/opt/gitlab：</p>
+<div align="center"><img class="img-responsive" src="http://jenisec.nos-eastchina1.126.net/gitlab/gitlab-rce-7.png" alt="gitlab-rce-7" /></div>
+
+<p>这时从 WEB 页面删除掉刚刚导入的 test 项目(项目文件不会被删除)，导入同项目名的第二个压缩包，此压缩包内包含攻击者的 ssh 公钥。</p>
+<div align="center"><img class="img-responsive" src="http://jenisec.nos-eastchina1.126.net/gitlab/gitlab-rce-8.png" alt="gitlab-rce-8" /></div>
+
+<p>第二个压缩包被解压时，会尝试往目录 \nevil 里写入 .ssh/authorized_keys，而由于上一步的符号链接\nevil指向了 /var/opt/gitlab/.ssh/authorized_keys，因此，ssh 公钥会被写入到 /var/opt/gitlab/.ssh/authorized_keys 文件。</p>
+<div align="center"><img class="img-responsive" src="http://jenisec.nos-eastchina1.126.net/gitlab/gitlab-rce-9.png" alt="gitlab-rce-9" /></div>
+
+<p>这时使用写入公钥对应的私钥对 gitlab 服务器进行 ssh 链接就可以以 git 用户身份远程登陆服务器了：</p>
+<div align="center"><img class="img-responsive" src="http://jenisec.nos-eastchina1.126.net/gitlab/gitlab-rce-10.png" alt="gitlab-rce-10" /></div>
+
 <p><strong><em>参考</em></strong></p>
 <blockquote>
-<p><a href="http://blog.nsfocus.net/drupal8-cve-2017-6926/">http://blog.nsfocus.net/drupal8-cve-2017-6926/</a></p>
+<p><a href="https://xz.aliyun.com/t/2661">https://xz.aliyun.com/t/2661</a></p>
 </blockquote>
         <hr />
         <p>作者:&#160; &#160;JenI&#160; &#160;转载请注明出处，谢谢</p>
@@ -146,8 +161,8 @@
             <div id="disqus_thread"></div>
             <script type="text/javascript">
                 var disqus_shortname = 'jenihk';
-                var disqus_identifier = 'security/drupal_acl_pass.html';
-                var disqus_url = 'https://blog.jenisec.org/security/drupal_acl_pass.html';
+                var disqus_identifier = 'security/gitlab-rce.html';
+                var disqus_url = 'https://blog.jenisec.org/security/gitlab-rce.html';
                 (function() {
                     var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
                     dsq.src = '//jenihk.disqus.com/embed.js';
