@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="zh">
+
+<head>
+            <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="description" content="">
+        <meta name="author" content="">
+
+        <title>JenI's Blog</title>
+
+        <link rel="icon" href="https://blog.jenisec.org/theme/images/favicon.ico" type="image/x-icon">  
+        <link rel="shortcut icon" href="https://blog.jenisec.org/theme/images/favicon.ico" type="image/x-icon">  
+
+
+        <link href="https://blog.jenisec.org/theme/css/iconfont.css" rel="stylesheet">
+
+        <!-- Bootstrap Core CSS -->
+        <link href="https://blog.jenisec.org/theme/css/bootstrap.min.css" rel="stylesheet">
+
+        <!-- Custom CSS -->
+        <link href="https://blog.jenisec.org/theme/css/clean-blog.min.css" rel="stylesheet">
+
+        <!-- Code highlight color scheme -->
+            <link href="https://blog.jenisec.org/theme/css/code_blocks/monokai.css" rel="stylesheet">
+
+        <!-- Custom Fonts -->
+        <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.1.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+        <link href='https://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+        <link href='https://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/css'>
+
+        <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+        <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+        <!--[if lt IE 9]>
+            <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+            <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+        <![endif]-->
+
+
+
+
+        <meta name="tags" contents="安全" />
+
+
+			<meta property="og:locale" content="zh">
+		<meta property="og:site_name" content="JenI's Blog">
+
+	<meta property="og:type" content="article">
+	<meta property="article:author" content="">
+	<meta property="og:url" content="https://blog.jenisec.org/security/pcshare-compile.html">
+	<meta property="og:title" content="PcShare 最终版本(企业定做版)编译流程">
+	<meta property="og:description" content="">
+	<meta property="og:image" content="https://blog.jenisec.org/../theme/images/posts/pcshare/cover.png">
+	<meta property="article:published_time" content="2018-10-13 00:00:00+08:00">
+</head>
+
+<body style="background-color: #f8f8f8">
+
+    <!-- Navigation -->
+    <nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+        <div class="container-fluid">
+            <!-- Brand and toggle get grouped for better mobile display -->
+            <div class="navbar-header page-scroll">
+                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <a class="navbar-brand" href="https://blog.jenisec.org/">JenI's Blog</a>
+            </div>
+
+            <!-- Collect the nav links, forms, and other content for toggling -->
+            <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+                <ul class="nav navbar-nav navbar-right">
+                        <li><a href="https://blog.jenisec.org/category/ji-qi-xue-xi.html">机器学习</a></li>
+                        <li><a href="https://blog.jenisec.org/category/an-quan.html">安全</a></li>
+                        <li><a href="https://blog.jenisec.org/category/xi-tong.html">系统</a></li>
+                        <li><a href="https://blog.jenisec.org/category/ri-chang.html">日常</a></li>
+
+                </ul>
+            </div>
+            <!-- /.navbar-collapse -->
+        </div>
+        <!-- /.container -->
+    </nav>
+
+    <!-- Page Header -->
+        <header class="intro-header" style="background-image: url('../theme/images/posts/pcshare/cover.png')">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                    <div class="post-heading">
+                        <h1>PcShare 最终版本(企业定做版)编译流程</h1>
+                        <span class="meta">Posted by
+                                <a href="https://blog.jenisec.org/author/jeni.html">JenI</a>
+                             on 2018-10-13 00:00:00+08:00
+                        </span>
+                        
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1" style="background-color: #f8f8f8;position: relative;">
+    <!-- Post Content -->
+    <article style="background-color: #f8f8f8;position: relative;">
+        <p><strong><em>前言</em></strong></p>
+<p>PcShare是一款功能强大的远程管理软件，可以在内网、外网任意位置随意管理远程主机，有超强的隐藏和自我修复等功能。2014年，作者(网名无可非议)转去研究 Linux 下的 rootkit 相关技术，便开源了 PcShare 最终版本的源码供网友学习。</p>
+<p>最终版本的源码很早之前我就下了一份放在电脑里，但是因为一直没用到，也就没仔细研究，正巧最近有朋友需要用编译后的程序在虚拟机做实验，但是编译环境有一点问题，编译总是不通过，于是我就帮他编译了一下。过程也是充满了坎坷，毕竟没有接触过开发，所以查了很多资料才编译成功，这里记录一下，希望能帮到有同样问题的人，过程中使用的文件直接复制文件名谷歌就可以了，一般都可以下载的到，这里就不提供了，如果实在找不到，也可以邮件联系我.</p>
+<blockquote>
+<p>邮箱: admin@jenisec.org</p>
+</blockquote>
+<div style="color:red">注：本文只用作技术交流，编译后的软件也仅供学习测试使用，请勿将其用于非法用途</div>
+
+<p><strong><em>编译环境搭建</em></strong></p>
+<p>作者在源码包中提到了 PcShare 是在 VC6.0 + 最新SDK + SP6 + 界面库 + 特定资源的环境下编译的，为了尽量减少问题，先把环境问题搞定。</p>
+<p>首先虚拟机安装操作系统和 VMtools，我这里使用了专业版 XP with SP3:</p>
+<blockquote>
+<p>系统镜像：zh-hans_windows_xp_professional_with_service_pack_3_x86_cd_vl_x14-74070<br>
+安装序列号：FCKGW-RHQQ2-YXRKT-8TG6W-2B7Q8<br>
+批量许可证：MRX3F-47B9T-2487J-KWKMF-RPWBY</p>
+</blockquote>
+<div align="center"><img class="img-responsive" src="http://jenisec.nos-eastchina1.126.net/pcshare/pcshare-compile-1.png" alt="pcshare-compile-1" /></div>
+
+<p>虚拟机安装完成后挂载 VC++6.0 的镜像文件，安装英文版 VC++6.0</p>
+<div align="center"><img class="img-responsive" src="http://jenisec.nos-eastchina1.126.net/pcshare/pcshare-compile-2.png" alt="pcshare-compile-2" /></div>
+
+<p>打开安装程序后一路下一步，直到程序安装完毕。之后会提示安装 MSDN，直接下一步跳过就可以了。安装结束后，将 VC++6.0.with.SP6.ISO 镜像内的 /VC6EN/VC98/MFC/LIB/UAFXCW.LIB 文件复制到 C:/Program Files/Microsoft Visual Studio/VC98/Lib 内</p>
+<div align="center"><img class="img-responsive" src="http://jenisec.nos-eastchina1.126.net/pcshare/pcshare-compile-3.png" alt="pcshare-compile-3" /></div>
+
+<p>安装 DirectX9，解压 directX9.0b.zip，运行 dx90bsdk.exe，点击 Unzip，按默认设置完成资源文件的安装。安装完成后进入 C:/DXSDK/Samples/C++/DirectShow/BaseClasses 目录，双击 baseclasses.dsw 文件，使用 Visual C++ 编译 DirectShow 的标准链接库(进入 Visual C++ 后点击 build 按钮)</p>
+<div align="center"><img class="img-responsive" src="http://jenisec.nos-eastchina1.126.net/pcshare/pcshare-compile-4.png" alt="pcshare-compile-4" /></div>
+
+<p>然后在 Visual C++ 链接库内加入新的目录。点击菜单 Tools =&gt; Options =&gt; Directory，在 Include files 内添加：</p>
+<div class="highlight"><pre><span></span>C:\DXSDK\Include
+C:\DXSDK\Samples\C++\DirectShow\BaseClasses
+</pre></div>
+
+
+<div align="center"><img class="img-responsive" src="http://jenisec.nos-eastchina1.126.net/pcshare/pcshare-compile-5.png" alt="pcshare-compile-5" /></div>
+
+<p>在 Library files 内添加：</p>
+<div class="highlight"><pre><span></span>C:\DXSDK\Lib
+C:\DXSDK\Samples\C++\DirectShow\BaseClasses\Debug_Unicode
+</pre></div>
+
+
+<div align="center"><img class="img-responsive" src="http://jenisec.nos-eastchina1.126.net/pcshare/pcshare-compile-6.png" alt="pcshare-compile-6" /></div>
+
+<p>安装 Xtreme Toolkit Pro v9.60。解压 PCSHARE最终版本源代码.zip，将 PCSHARE最终版本源代码/界面资源/[XTreme.Toolkit.9.6.MFC].Xtreme.Toolkit.Pro.v9.60 文件夹复制到 C 盘根目录。切换到 C:/[XTreme.Toolkit.9.6.MFC].Xtreme.Toolkit.Pro.v9.60 后，修改 xtreme.reg 内容为：</p>
+<div class="highlight"><pre><span></span>REGEDIT4
+[HKEY_CURRENT_USER\Software\Codejock Software\Xtreme Toolkit Pro v9.60]
+&quot;Installation Directory&quot;=&quot;C:\\[XTreme.Toolkit.9.6.MFC].Xtreme.Toolkit.Pro.v9.60&quot;
+</pre></div>
+
+
+<p>运行 xtreme.reg 导入注册表项后运行 Deploy.exe，Unicode Support 选 Both，其余全选。</p>
+<div align="center"><img class="img-responsive" src="http://jenisec.nos-eastchina1.126.net/pcshare/pcshare-compile-7.png" alt="pcshare-compile-7" /></div>
+
+<p>这里如果终端报错</p>
+<div class="highlight"><pre><span></span>fatal error LNK1104: cannot open file &quot;mfc42u.lib&quot;
+</pre></div>
+
+
+<p>是因为默认安装的 VC 缺少对 Unicode 的支持，将 VC++6.0.with.SP6.ISO 镜像内 /VC6EN/VC98/MFC/LIB 下的所有文件复制到 C:/Program Files/Microsoft Visual Studio/VC98/MFC/Lib 内，提示重复覆盖或跳过都可以，/VC6EN/VC98/DEBUG/mfc42ud.dll 文件复制到 C:/WINDOWS/system32 内，然后重新运行 Deploy.exe。等待编译完成后 XTreme.Toolkit.9.6.MFC 应该已经被添加到了 VC 的链接库里了。</p>
+<div align="center"><img class="img-responsive" src="http://jenisec.nos-eastchina1.126.net/pcshare/pcshare-compile-8.png" alt="pcshare-compile-8" /></div>
+
+<p>虚拟机挂载 Windows XP SP2 SDK For VC6.iso ，安装 SDK。安装完成后在 VC 里添加链接库。在 Executable files 里添加：</p>
+<div class="highlight"><pre><span></span>C:\PROGRAM FILES\MICROSOFT PLATFORM SDK FOR WINDOWS XP SP2\BIN
+C:\PROGRAM FILES\MICROSOFT PLATFORM SDK FOR WINDOWS XP SP2\BIN\WINNT
+</pre></div>
+
+
+<div align="center"><img class="img-responsive" src="http://jenisec.nos-eastchina1.126.net/pcshare/pcshare-compile-9.png" alt="pcshare-compile-9" /></div>
+
+<p>在 Include files 里添加：</p>
+<div class="highlight"><pre><span></span>C:\PROGRAM FILES\MICROSOFT PLATFORM SDK FOR WINDOWS XP SP2\INCLUDE
+</pre></div>
+
+
+<div align="center"><img class="img-responsive" src="http://jenisec.nos-eastchina1.126.net/pcshare/pcshare-compile-10.png" alt="pcshare-compile-10" /></div>
+
+<p>在 Library files 里添加：</p>
+<div class="highlight"><pre><span></span>C:\PROGRAM FILES\MICROSOFT PLATFORM SDK FOR WINDOWS XP SP2\LIB
+</pre></div>
+
+
+<div align="center"><img class="img-responsive" src="http://jenisec.nos-eastchina1.126.net/pcshare/pcshare-compile-11.png" alt="pcshare-compile-11" /></div>
+
+<p>PCSHARE最终版本源代码/界面资源/tool/QQWry 复制到 PCSHARE 最终版本源代码/企业定做/PcShare/res/ 下</p>
+<div align="center"><img class="img-responsive" src="http://jenisec.nos-eastchina1.126.net/pcshare/pcshare-compile-12.png" alt="pcshare-compile-12" /></div>
+
+<p>修改 PCSHARE最终版本源代码/企业定做/PcShare/PcShare.rc ,959 行改为：</p>
+<div class="highlight"><pre><span></span>IPDATA                  MOD     DISCARDABLE     &quot;res\\QQWry.dat&quot;
+</pre></div>
+
+
+<div align="center"><img class="img-responsive" src="http://jenisec.nos-eastchina1.126.net/pcshare/pcshare-compile-13.png" alt="pcshare-compile-13" /></div>
+
+<p>打开 PCSHARE最终版本源代码/企业定做/PcShare/PcShare.dsw 项目文件，修改 MyGlobalFuc.cpp 文件:</p>
+<div class="highlight"><pre><span></span>//查看是否为文件
+TCHAR* pFind = StrRChr(m_Path, NULL, _T(&#39;\\&#39;)); // 添加这句
+pr = StrChr(ps, _T(&#39;\\&#39;)); // 在这句代码上面添加
+</pre></div>
+
+
+<div align="center"><img class="img-responsive" src="http://jenisec.nos-eastchina1.126.net/pcshare/pcshare-compile-14.png" alt="pcshare-compile-14" /></div>
+
+<p>打开 VC 的 Project =&gt; Setting 选项，将 General 改为 Use MFC in a Static Library。</p>
+<div align="center"><img class="img-responsive" src="http://jenisec.nos-eastchina1.126.net/pcshare/pcshare-compile-15.png" alt="pcshare-compile-15" /></div>
+
+<p>点击 Build 开始编译，编译完成后会在 PCSHARE最终版本源代码/企业定做/bin 下生成 PcShare.exe。</p>
+<p>打开 PCSHARE最终版本源代码/企业定做/PcLKey/PcLKey.dsw 项目文件，修改 MyFunc.h，注释掉视频监控模块：</p>
+<div class="highlight"><pre><span></span>//#include &lt;streams.h&gt;
+</pre></div>
+
+
+<p>点击 Build 开始编译，编译完成后会在 PCSHARE最终版本源代码/企业定做/bin/update 下生成 PcLkey.dll。</p>
+<p>打开 PCSHARE最终版本源代码\企业定做\PcMain/PcMain.dsw 项目文件，修改 MyFunc.h，注释掉视频监控模块(需注释两处)：</p>
+<div class="highlight"><pre><span></span>//#include &lt;streams.h&gt;
+</pre></div>
+
+
+<p>修改 MyVideoTrans.h, 注释掉以下两行</p>
+<div class="highlight"><pre><span></span>//CComQIPtr&lt; IVideoWindow, &amp;IID_IVideoWindow &gt; pWindow;
+//CComQIPtr&lt; IMediaControl, &amp;IID_IMediaControl &gt; pControl;
+</pre></div>
+
+
+<p>修改 MyVideoTrans.cpp，以下三个函数内的代码全部注释，只保留返回值：</p>
+<div class="highlight"><pre><span></span>1. BOOL CMyVideoTrans::SetFormat(ICaptureGraphBuilder2* pBuilder, IBaseFilter* pCap, long lWidth, long lHeight, WORD iColorBit, __int64 iRate)
+2. HRESULT CMyVideoTrans::InitStillGraph(int x, int y)
+3. BOOL GetDefaultCapDevice( IBaseFilter ** ppCap )
+</pre></div>
+
+
+<p>修改后三个函数代码大致如下：</p>
+<div class="highlight"><pre><span></span>BOOL CMyVideoTrans::SetFormat(ICaptureGraphBuilder2* pBuilder, IBaseFilter* pCap, long lWidth, long lHeight, WORD iColorBit, __int64 iRate)   
+{
+    return TRUE;
+}
+
+HRESULT CMyVideoTrans::InitStillGraph(int x, int y)
+{
+    return 0;
+}
+
+BOOL GetDefaultCapDevice( IBaseFilter ** ppCap )
+{
+    return TRUE;
+}
+</pre></div>
+
+
+<p>点击 Build 开始编译，编译完成后会在 PCSHARE最终版本源代码/企业定做/bin/update 下生成 PcMain.dll。</p>
+<p>分别打开 PCSHARE最终版本源代码/企业定做/PcMake/PcMake.dsw 和 PCSHARE最终版本源代码/企业定做/PcStart/PcStart.dsw 进行编译。</p>
+<p>至此就完成了对 PcShare 的编译，测试下是否可用：</p>
+<div align="center"><img class="img-responsive" src="http://jenisec.nos-eastchina1.126.net/pcshare/pcshare-compile-16.png" alt="pcshare-compile-16" /></div>
+
+<p>同网段机器运行客户端后成功上线</p>
+<p><strong><em>参考</em></strong></p>
+<blockquote>
+<p>https://www.tenglongw.com/thread-668-1-1.html
+https://blog.csdn.net/joeblackzqq/article/details/10944005
+https://blog.csdn.net/xxrhuanhuan/article/details/7646695</p>
+</blockquote>
+        <hr />
+        <p>作者:&#160; &#160;JenI&#160; &#160;转载请注明出处，谢谢</p>
+    </article>
+
+    <hr>
+
+        <div class="comments">
+            <h2>Comments !</h2>
+            <div id="disqus_thread"></div>
+            <script type="text/javascript">
+                var disqus_shortname = 'jenihk';
+                var disqus_identifier = 'security/pcshare-compile.html';
+                var disqus_url = 'https://blog.jenisec.org/security/pcshare-compile.html';
+                (function() {
+                    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+                    dsq.src = '//jenihk.disqus.com/embed.js';
+                    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+                })();
+            </script>
+            <noscript>Please enable JavaScript to view the comments.</noscript>
+        </div>
+ <!--                   
+    <div id="disqus_thread"></div>
+    <script>
+
+/**
+*  RECOMMENDED CONFIGURATION VARIABLES: EDIT AND UNCOMMENT THE SECTION BELOW TO INSERT DYNAMIC VALUES FROM YOUR PLATFORM OR CMS.
+*  LEARN WHY DEFINING THESE VARIABLES IS IMPORTANT: https://disqus.com/admin/universalcode/#configuration-variables*/
+/*
+var disqus_config = function () {
+this.page.url = PAGE_URL;  // Replace PAGE_URL with your page's canonical URL variable
+this.page.identifier = PAGE_IDENTIFIER; // Replace PAGE_IDENTIFIER with your page's unique identifier variable
+};
+*/
+        (function() { // DON'T EDIT BELOW THIS LINE
+            var d = document, s = d.createElement('script');
+            s.src = '//jenihk.disqus.com/embed.js';
+            s.setAttribute('data-timestamp', +new Date());
+            (d.head || d.body).appendChild(s);
+        })();
+    </script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+-->
+            </div>
+        </div>
+    </div>
+
+    <hr>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                    <ul class="list-inline text-center">
+                        <li>
+                            <a href="http://weibo.com/1992014191/profile?rightmod=1&wvr=6&mod=personinfo&is_all=1">
+                                <span class="fa-stack fa-lg">
+                                    <i class="icon iconfont">&#xe657;</i>
+                                </span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="http://github.com/jenihk">
+                                <span class="fa-stack fa-lg">
+                                    <i class="icon iconfont">&#xe618;</i>
+                                </span>
+                            </a>
+                        </li>
+                    </ul>
+                    <p class="copyright text-muted">Blog powered by <a href="http://getpelican.com">Pelican</a>,
+                which takes great advantage of <a href="http://python.org">Python</a>.</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- jQuery -->
+    <script src="https://blog.jenisec.org/theme/js/jquery.js"></script>
+
+    <!-- Bootstrap Core JavaScript -->
+    <script src="https://blog.jenisec.org/theme/js/bootstrap.min.js"></script>
+
+    <!-- Custom Theme JavaScript -->
+    <script src="https://blog.jenisec.org/theme/js/clean-blog.min.js"></script>
+    
+    <!-- CanvasParticles -->
+    <script src="https://blog.jenisec.org/theme/js/canvas-particle.js"></script>
+
+    
+
+    <script type="text/javascript">
+        CanvasParticle();
+    </script>
+
+    <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-85780345-1']);
+    _gaq.push(['_trackPageview']);
+    (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+    </script>
+<script type="text/javascript">
+    var disqus_shortname = 'jenihk';
+    (function () {
+        var s = document.createElement('script'); s.async = true;
+        s.type = 'text/javascript';
+        s.src = '//' + disqus_shortname + '.disqus.com/count.js';
+        (document.getElementsByTagName('HEAD')[0] || document.getElementsByTagName('BODY')[0]).appendChild(s);
+    }());
+</script>
+</body>
+
+</html>

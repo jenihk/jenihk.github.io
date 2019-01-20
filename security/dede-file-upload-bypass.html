@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="zh">
+
+<head>
+            <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="description" content="">
+        <meta name="author" content="">
+
+        <title>JenI's Blog</title>
+
+        <link rel="icon" href="https://blog.jenisec.org/theme/images/favicon.ico" type="image/x-icon">  
+        <link rel="shortcut icon" href="https://blog.jenisec.org/theme/images/favicon.ico" type="image/x-icon">  
+
+
+        <link href="https://blog.jenisec.org/theme/css/iconfont.css" rel="stylesheet">
+
+        <!-- Bootstrap Core CSS -->
+        <link href="https://blog.jenisec.org/theme/css/bootstrap.min.css" rel="stylesheet">
+
+        <!-- Custom CSS -->
+        <link href="https://blog.jenisec.org/theme/css/clean-blog.min.css" rel="stylesheet">
+
+        <!-- Code highlight color scheme -->
+            <link href="https://blog.jenisec.org/theme/css/code_blocks/monokai.css" rel="stylesheet">
+
+        <!-- Custom Fonts -->
+        <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.1.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+        <link href='https://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+        <link href='https://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/css'>
+
+        <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+        <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+        <!--[if lt IE 9]>
+            <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+            <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+        <![endif]-->
+
+
+
+
+        <meta name="tags" contents="安全" />
+        <meta name="tags" contents="上传" />
+
+
+			<meta property="og:locale" content="zh">
+		<meta property="og:site_name" content="JenI's Blog">
+
+	<meta property="og:type" content="article">
+	<meta property="article:author" content="">
+	<meta property="og:url" content="https://blog.jenisec.org/security/dede-file-upload-bypass.html">
+	<meta property="og:title" content="DedeCMS 前台文件上传绕过漏洞">
+	<meta property="og:description" content="">
+	<meta property="og:image" content="https://blog.jenisec.org/../theme/images/posts/dedecms/cover2.png">
+	<meta property="article:published_time" content="2019-01-02 00:00:00+08:00">
+</head>
+
+<body style="background-color: #f8f8f8">
+
+    <!-- Navigation -->
+    <nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+        <div class="container-fluid">
+            <!-- Brand and toggle get grouped for better mobile display -->
+            <div class="navbar-header page-scroll">
+                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <a class="navbar-brand" href="https://blog.jenisec.org/">JenI's Blog</a>
+            </div>
+
+            <!-- Collect the nav links, forms, and other content for toggling -->
+            <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+                <ul class="nav navbar-nav navbar-right">
+                        <li><a href="https://blog.jenisec.org/category/ji-qi-xue-xi.html">机器学习</a></li>
+                        <li><a href="https://blog.jenisec.org/category/an-quan.html">安全</a></li>
+                        <li><a href="https://blog.jenisec.org/category/xi-tong.html">系统</a></li>
+                        <li><a href="https://blog.jenisec.org/category/ri-chang.html">日常</a></li>
+
+                </ul>
+            </div>
+            <!-- /.navbar-collapse -->
+        </div>
+        <!-- /.container -->
+    </nav>
+
+    <!-- Page Header -->
+        <header class="intro-header" style="background-image: url('../theme/images/posts/dedecms/cover2.png')">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                    <div class="post-heading">
+                        <h1>DedeCMS 前台文件上传绕过漏洞</h1>
+                        <span class="meta">Posted by
+                                <a href="https://blog.jenisec.org/author/jeni.html">JenI</a>
+                             on 2019-01-02 00:00:00+08:00
+                        </span>
+                        
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1" style="background-color: #f8f8f8;position: relative;">
+    <!-- Post Content -->
+    <article style="background-color: #f8f8f8;position: relative;">
+        <p><strong><em>前言</em></strong></p>
+<p>织梦CMS是集简单、健壮、灵活、开源几大特点的开源内容管理系统，是国内开源CMS的领先品牌，目前程序安装量已达七十万，超过六成的站点正在使用织梦CMS或基于织梦CMS核心开发。最近，织梦DedeCMS-V5.7-UTF8-SP2版本被曝存在前台文件上传绕过漏洞，漏洞分析如下：</p>
+<p><strong><em>漏洞分析</em></strong></p>
+<p>漏洞出现在 DEDECMS的 会员文章发表页面，在编写详细内容时，页面使用了 CKEditor 编辑器，通过构造特殊的文件名并使用编辑器内的图片上传功能，可以绕过服务器限制，上传木马文件。文件上传到服务器后，交由 /include/dialog/select_images_post.php 文件进行处理：</p>
+<div align="center"><img class="img-responsive" src="http://jenisec.nos-eastchina1.126.net/dedecms/dede-file-upload-bypass-1.png" alt="dede-file-upload-bypass-1" /></div>
+
+<p>select_images_post.php 文件针对上传图片的文件名进行了过滤，通过正则表达式对文件名内的字符进行匹配，删除掉可能存在问题的异常字符，之后，同样使用正则表达式检查了文件的后缀名是否为系统支持的图片格式。服务器也会对图片头进行检查：</p>
+<div align="center"><img class="img-responsive" src="http://jenisec.nos-eastchina1.126.net/dedecms/dede-file-upload-bypass-2.png" alt="dede-file-upload-bypass-2" /></div>
+
+<p>然后判断上传图片的格式是否正确。如果判断通过了，对文件名进行整理：</p>
+<div align="center"><img class="img-responsive" src="http://jenisec.nos-eastchina1.126.net/dedecms/dede-file-upload-bypass-3.png" alt="dede-file-upload-bypass-3" /></div>
+
+<p>这里可以看到 $fs 是将上传文件名按照“.”进行分割后的数组，而下一行代码中 $filename 所拼接的后缀为 $fs 数组中的最后一个元素，拼接后执行上传操作。
+到这里就可以根据以上特点构造特殊文件名进行绕过了。首先需要满足文件名内存在服务器允许的几种图片格式中的某一个，如 jpg，gif，png 等，且文件头为对应格式的文件头，同时需要让最后一个“.”之后的内容为 php，但是后缀为 php 的文件是被禁止上传的，这里可以利用上面提到的对文件名特殊字符进行删除的特性，将 php 改写为 p*hp 或 p?hp 等，这样经过删除操作的文件名后缀就变为了 php。这样就可以绕过限制顺利上传了。</p>
+<p><strong><em>漏洞复现</em></strong></p>
+<p>访问漏洞存在的页面。</p>
+<div align="center"><img class="img-responsive" src="http://jenisec.nos-eastchina1.126.net/dedecms/dede-file-upload-bypass-4.png" alt="dede-file-upload-bypass-4" /></div>
+
+<p>点击上传，选择提前准备好的图片木马：</p>
+<div align="center"><img class="img-responsive" src="http://jenisec.nos-eastchina1.126.net/dedecms/dede-file-upload-bypass-5.png" alt="dede-file-upload-bypass-5" /></div>
+
+<p>浏览器代理改为 Burpsuite 进行抓包，点击上传到服务器，数据包成功被拦截：</p>
+<div align="center"><img class="img-responsive" src="http://jenisec.nos-eastchina1.126.net/dedecms/dede-file-upload-bypass-6.png" alt="dede-file-upload-bypass-6" /></div>
+
+<p>在 Repeater 选项卡进行修改，并检查是否满足上述分析中的上传限制。</p>
+<div align="center"><img class="img-responsive" src="http://jenisec.nos-eastchina1.126.net/dedecms/dede-file-upload-bypass-7.png" alt="dede-file-upload-bypass-7" /></div>
+
+<p>发送数据包之后，在 Response 页面会显示上传地址。</p>
+<div align="center"><img class="img-responsive" src="http://jenisec.nos-eastchina1.126.net/dedecms/dede-file-upload-bypass-8.png" alt="dede-file-upload-bypass-8" /></div>
+
+<p>使用一句话木马连接工具进行连接;</p>
+<div align="center"><img class="img-responsive" src="http://jenisec.nos-eastchina1.126.net/dedecms/dede-file-upload-bypass-9.png" alt="dede-file-upload-bypass-9" /></div>
+
+<p>连接成功。</p>
+<p><strong><em>参考</em></strong></p>
+<blockquote>
+<p>http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2018-20129</p>
+</blockquote>
+        <hr />
+        <p>作者:&#160; &#160;JenI&#160; &#160;转载请注明出处，谢谢</p>
+    </article>
+
+    <hr>
+
+        <div class="comments">
+            <h2>Comments !</h2>
+            <div id="disqus_thread"></div>
+            <script type="text/javascript">
+                var disqus_shortname = 'jenihk';
+                var disqus_identifier = 'security/dede-file-upload-bypass.html';
+                var disqus_url = 'https://blog.jenisec.org/security/dede-file-upload-bypass.html';
+                (function() {
+                    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+                    dsq.src = '//jenihk.disqus.com/embed.js';
+                    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+                })();
+            </script>
+            <noscript>Please enable JavaScript to view the comments.</noscript>
+        </div>
+ <!--                   
+    <div id="disqus_thread"></div>
+    <script>
+
+/**
+*  RECOMMENDED CONFIGURATION VARIABLES: EDIT AND UNCOMMENT THE SECTION BELOW TO INSERT DYNAMIC VALUES FROM YOUR PLATFORM OR CMS.
+*  LEARN WHY DEFINING THESE VARIABLES IS IMPORTANT: https://disqus.com/admin/universalcode/#configuration-variables*/
+/*
+var disqus_config = function () {
+this.page.url = PAGE_URL;  // Replace PAGE_URL with your page's canonical URL variable
+this.page.identifier = PAGE_IDENTIFIER; // Replace PAGE_IDENTIFIER with your page's unique identifier variable
+};
+*/
+        (function() { // DON'T EDIT BELOW THIS LINE
+            var d = document, s = d.createElement('script');
+            s.src = '//jenihk.disqus.com/embed.js';
+            s.setAttribute('data-timestamp', +new Date());
+            (d.head || d.body).appendChild(s);
+        })();
+    </script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+-->
+            </div>
+        </div>
+    </div>
+
+    <hr>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                    <ul class="list-inline text-center">
+                        <li>
+                            <a href="http://weibo.com/1992014191/profile?rightmod=1&wvr=6&mod=personinfo&is_all=1">
+                                <span class="fa-stack fa-lg">
+                                    <i class="icon iconfont">&#xe657;</i>
+                                </span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="http://github.com/jenihk">
+                                <span class="fa-stack fa-lg">
+                                    <i class="icon iconfont">&#xe618;</i>
+                                </span>
+                            </a>
+                        </li>
+                    </ul>
+                    <p class="copyright text-muted">Blog powered by <a href="http://getpelican.com">Pelican</a>,
+                which takes great advantage of <a href="http://python.org">Python</a>.</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- jQuery -->
+    <script src="https://blog.jenisec.org/theme/js/jquery.js"></script>
+
+    <!-- Bootstrap Core JavaScript -->
+    <script src="https://blog.jenisec.org/theme/js/bootstrap.min.js"></script>
+
+    <!-- Custom Theme JavaScript -->
+    <script src="https://blog.jenisec.org/theme/js/clean-blog.min.js"></script>
+    
+    <!-- CanvasParticles -->
+    <script src="https://blog.jenisec.org/theme/js/canvas-particle.js"></script>
+
+    
+
+    <script type="text/javascript">
+        CanvasParticle();
+    </script>
+
+    <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-85780345-1']);
+    _gaq.push(['_trackPageview']);
+    (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+    </script>
+<script type="text/javascript">
+    var disqus_shortname = 'jenihk';
+    (function () {
+        var s = document.createElement('script'); s.async = true;
+        s.type = 'text/javascript';
+        s.src = '//' + disqus_shortname + '.disqus.com/count.js';
+        (document.getElementsByTagName('HEAD')[0] || document.getElementsByTagName('BODY')[0]).appendChild(s);
+    }());
+</script>
+</body>
+
+</html>

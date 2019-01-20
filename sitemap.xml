@@ -5,30 +5,44 @@ xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 
 <url>
 <loc>https://blog.jenisec.org/</loc>
-<lastmod>2018-10-28T11:13:32-00:00</lastmod>
+<lastmod>2019-01-20T11:02:56-00:00</lastmod>
 <changefreq>daily</changefreq>
 <priority>0.5</priority>
 </url>
 
 <url>
 <loc>https://blog.jenisec.org/archives.html</loc>
-<lastmod>2018-10-28T11:13:32-00:00</lastmod>
+<lastmod>2019-01-20T11:02:56-00:00</lastmod>
 <changefreq>daily</changefreq>
 <priority>0.5</priority>
 </url>
 
 <url>
 <loc>https://blog.jenisec.org/tags.html</loc>
-<lastmod>2018-10-28T11:13:32-00:00</lastmod>
+<lastmod>2019-01-20T11:02:56-00:00</lastmod>
 <changefreq>daily</changefreq>
 <priority>0.5</priority>
 </url>
 
 <url>
 <loc>https://blog.jenisec.org/categories.html</loc>
-<lastmod>2018-10-28T11:13:32-00:00</lastmod>
+<lastmod>2019-01-20T11:02:56-00:00</lastmod>
 <changefreq>daily</changefreq>
 <priority>0.5</priority>
+</url>
+
+<url>
+<loc>https://blog.jenisec.org/security/dede-file-upload-bypass.html</loc>
+<lastmod>2019-01-02T00:00:00+08:00</lastmod>
+<changefreq>monthly</changefreq>
+<priority>0.7</priority>
+</url>
+
+<url>
+<loc>https://blog.jenisec.org/security/pcshare-compile.html</loc>
+<lastmod>2018-10-13T00:00:00+08:00</lastmod>
+<changefreq>monthly</changefreq>
+<priority>0.7</priority>
 </url>
 
 <url>
@@ -320,7 +334,7 @@ xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 
 <url>
 <loc>https://blog.jenisec.org/category/an-quan.html</loc>
-<lastmod>2018-09-20T00:00:00+08:06</lastmod>
+<lastmod>2019-01-02T00:00:00+08:06</lastmod>
 <changefreq>daily</changefreq>
 <priority>0.5</priority>
 </url>
@@ -342,6 +356,20 @@ xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 <url>
 <loc>https://blog.jenisec.org/category/xi-tong.html</loc>
 <lastmod>2016-10-21T00:00:00+08:06</lastmod>
+<changefreq>daily</changefreq>
+<priority>0.5</priority>
+</url>
+
+<url>
+<loc>https://blog.jenisec.org/tag/an-quan.html</loc>
+<lastmod>2019-01-02T00:00:00+08:06</lastmod>
+<changefreq>daily</changefreq>
+<priority>0.5</priority>
+</url>
+
+<url>
+<loc>https://blog.jenisec.org/tag/shang-chuan.html</loc>
+<lastmod>2019-01-02T00:00:00+08:06</lastmod>
 <changefreq>daily</changefreq>
 <priority>0.5</priority>
 </url>
@@ -384,13 +412,6 @@ xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 <url>
 <loc>https://blog.jenisec.org/tag/sql-injection.html</loc>
 <lastmod>2017-08-08T00:00:00+08:06</lastmod>
-<changefreq>daily</changefreq>
-<priority>0.5</priority>
-</url>
-
-<url>
-<loc>https://blog.jenisec.org/tag/an-quan.html</loc>
-<lastmod>2017-07-15T00:00:00+08:06</lastmod>
 <changefreq>daily</changefreq>
 <priority>0.5</priority>
 </url>
@@ -467,7 +488,7 @@ xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 
 <url>
 <loc>https://blog.jenisec.org/author/jeni.html</loc>
-<lastmod>2018-09-20T00:00:00+08:06</lastmod>
+<lastmod>2019-01-02T00:00:00+08:06</lastmod>
 <changefreq>daily</changefreq>
 <priority>0.5</priority>
 </url>
