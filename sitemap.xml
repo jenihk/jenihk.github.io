@@ -5,28 +5,28 @@ xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 
 <url>
 <loc>https://blog.jenisec.org/</loc>
-<lastmod>2019-02-24T21:02:48-00:00</lastmod>
+<lastmod>2019-02-24T22:09:38-00:00</lastmod>
 <changefreq>daily</changefreq>
 <priority>0.5</priority>
 </url>
 
 <url>
 <loc>https://blog.jenisec.org/archives.html</loc>
-<lastmod>2019-02-24T21:02:48-00:00</lastmod>
+<lastmod>2019-02-24T22:09:38-00:00</lastmod>
 <changefreq>daily</changefreq>
 <priority>0.5</priority>
 </url>
 
 <url>
 <loc>https://blog.jenisec.org/tags.html</loc>
-<lastmod>2019-02-24T21:02:48-00:00</lastmod>
+<lastmod>2019-02-24T22:09:38-00:00</lastmod>
 <changefreq>daily</changefreq>
 <priority>0.5</priority>
 </url>
 
 <url>
 <loc>https://blog.jenisec.org/categories.html</loc>
-<lastmod>2019-02-24T21:02:48-00:00</lastmod>
+<lastmod>2019-02-24T22:09:38-00:00</lastmod>
 <changefreq>daily</changefreq>
 <priority>0.5</priority>
 </url>
