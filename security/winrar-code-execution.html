@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="zh">
+
+<head>
+            <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="description" content="">
+        <meta name="author" content="">
+
+        <title>JenI's Blog</title>
+
+        <link rel="icon" href="https://blog.jenisec.org/theme/images/favicon.ico" type="image/x-icon">  
+        <link rel="shortcut icon" href="https://blog.jenisec.org/theme/images/favicon.ico" type="image/x-icon">  
+
+
+        <link href="https://blog.jenisec.org/theme/css/iconfont.css" rel="stylesheet">
+
+        <!-- Bootstrap Core CSS -->
+        <link href="https://blog.jenisec.org/theme/css/bootstrap.min.css" rel="stylesheet">
+
+        <!-- Custom CSS -->
+        <link href="https://blog.jenisec.org/theme/css/clean-blog.min.css" rel="stylesheet">
+
+        <!-- Code highlight color scheme -->
+            <link href="https://blog.jenisec.org/theme/css/code_blocks/monokai.css" rel="stylesheet">
+
+        <!-- Custom Fonts -->
+        <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.1.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+        <link href='https://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+        <link href='https://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/css'>
+
+        <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+        <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+        <!--[if lt IE 9]>
+            <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+            <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+        <![endif]-->
+
+
+
+
+
+
+			<meta property="og:locale" content="zh">
+		<meta property="og:site_name" content="JenI's Blog">
+
+	<meta property="og:type" content="article">
+	<meta property="article:author" content="">
+	<meta property="og:url" content="https://blog.jenisec.org/security/winrar-code-execution.html">
+	<meta property="og:title" content="WinRAR 代码执行漏洞">
+	<meta property="og:description" content="">
+	<meta property="og:image" content="https://blog.jenisec.org/../theme/images/posts/winrar/cover.png">
+	<meta property="article:published_time" content="2019-02-23 00:00:00+08:00">
+</head>
+
+<body style="background-color: #f8f8f8">
+
+    <!-- Navigation -->
+    <nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+        <div class="container-fluid">
+            <!-- Brand and toggle get grouped for better mobile display -->
+            <div class="navbar-header page-scroll">
+                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <a class="navbar-brand" href="https://blog.jenisec.org/">JenI's Blog</a>
+            </div>
+
+            <!-- Collect the nav links, forms, and other content for toggling -->
+            <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+                <ul class="nav navbar-nav navbar-right">
+                        <li><a href="https://blog.jenisec.org/category/ji-qi-xue-xi.html">机器学习</a></li>
+                        <li><a href="https://blog.jenisec.org/category/an-quan.html">安全</a></li>
+                        <li><a href="https://blog.jenisec.org/category/xi-tong.html">系统</a></li>
+                        <li><a href="https://blog.jenisec.org/category/ri-chang.html">日常</a></li>
+
+                </ul>
+            </div>
+            <!-- /.navbar-collapse -->
+        </div>
+        <!-- /.container -->
+    </nav>
+
+    <!-- Page Header -->
+        <header class="intro-header" style="background-image: url('../theme/images/posts/winrar/cover.png')">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                    <div class="post-heading">
+                        <h1>WinRAR 代码执行漏洞</h1>
+                        <span class="meta">Posted by
+                                <a href="https://blog.jenisec.org/author/jeni.html">JenI</a>
+                             on 2019-02-23 00:00:00+08:00
+                        </span>
+                        
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1" style="background-color: #f8f8f8;position: relative;">
+    <!-- Post Content -->
+    <article style="background-color: #f8f8f8;position: relative;">
+        <p><strong><em>前言</em></strong></p>
+<p>WinRAR是一个文件压缩管理共享软件，由EugeneRoshal开发。首个公开版本RAR1.3发布于1993年。近日Check.Point团队爆出了一个关于WinRAR的代码执行漏洞，但严格意义上来讲，这实际上是一个目录穿越漏洞，攻击者利用漏洞可以构造恶意的压缩文件，待用户使用 WinRAR 进行解压时，则会触发漏洞，从而导致恶意文件被写入任意目录.</p>
+<p><strong><em>漏洞分析</em></strong></p>
+<p>此漏洞是由于 WinRAR 所使用的动态链接库 UNACEV2.dll 文件在处理 ACE 文件时，没有对文件名做充分的过滤，从而使得文件通过恶意的文件名进行了目录穿越操作。</p>
+<p>先来了解一下 ACE 归档文件的具体格式。</p>
+<p>我随便准备了个文件，并使用 WinAce 进行打包，打包时注意选择存储完整路径</p>
+<div align="center"><img class="img-responsive" src="https://jenisec.nos-eastchina1.126.net/winrar/WinRAR-Code-Execution-1.png" alt="WinRAR-Code-Execution-1" /></div>
+
+<p>然后使用 acefile.py 查看 test.ace 文件头部信息，acefile.py 文件可以在下面的链接下载：</p>
+<blockquote>
+<p><a href="https://github.com/droe/acefile">https://github.com/droe/acefile</a></p>
+</blockquote>
+<p>在终端执行下面的命令</p>
+<div class="highlight"><pre><span></span>python acefile.py --headers test.ace
+</pre></div>
+
+
+<div align="center"><img class="img-responsive" src="https://jenisec.nos-eastchina1.126.net/winrar/WinRAR-Code-Execution-2.png" alt="WinRAR-Code-Execution-2" /></div>
+
+<p>我在图中标出来三个部分</p>
+<ol>
+<li>
+<p>第一个部分是对文件的一个总的概览，都很好理解，其中 headers 里的字段，MAIN:1 表示 ace 归档文件主体，FILE:1 表示这个 ace 压缩包内包含一个文件</p>
+</li>
+<li>
+<p>第二个部分是 MAIN 的 header 信息。因为软件是未注册版本，因此在创建归档文件的过程中，为其添加了 advert 广告字段。</p>
+</li>
+<li>
+<p>第三个部分是压缩包内文件的 header 信息，这里比较关键，因为漏洞的位置就在这一部分的 filename 字段，此处需要着重关注一下 hdr_crc、hdr_size、、filename 三个字段，漏洞的实现需要对这三个部分的数据进行修改。hdr_crc 是一个校验值，如果 hdr_crc 和数据不匹配，解压缩的过程则会被中断，hdr_size 是文件头部信息的总长度，filename 是文件名，由于创建 ace 文件时选择的是 store full path，因此这里的 filename 是包含完整路径的。</p>
+</li>
+</ol>
+<p>再使用十六进制编辑器具体看看文件的情况，我这里使用了 C32asm</p>
+<div align="center"><img class="img-responsive" src="https://jenisec.nos-eastchina1.126.net/winrar/WinRAR-Code-Execution-3.png" alt="WinRAR-Code-Execution-3" /></div>
+
+<p>图片中我使用不同颜色的线标识出了十六进制与 acefile 脚本读取文件头部信息相对应的位置。红线为文件头部校验数据段 hdr_crc，在 C32asm 中十六进制数据采用了小端序，因此和 acefile 读取出的 hdr_crc 数据内容是相反的。黄线为文件头部字节大小，其包含了从下一字节开始到 filename 末尾字节的总长度，十六进制 00 4E，转换为十进制刚好为 78。粉红线为文件名，十六进制数据中文件名之前的两个字节存储了文件名的长度，图中使用绿色方框标出，十六进制大小 002F，转换为十进制 47，与粉红线标出的文件名长度吻合。</p>
+<p>到这里就基本了解了 ace 文件的头部信息，可以构造恶意的 ace 文件了。通过十六进制编辑器修改 filename 字段的值，然后根据 filename 字段长度修改前面的两个字节，再修改对应的 hdr_size，最后通过 acefile.py 计算出文件的校验值，修改 hdr_crc 对应位置数据即可成功创建恶意的 ace 文件。</p>
+<p><strong><em>漏洞复现</em></strong></p>
+<p>我使用的虚拟机环境为 64 位 Win7，开机启动文件夹的路径为</p>
+<div class="highlight"><pre><span></span>C:\Users\Administrator\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Startup
+</pre></div>
+
+
+<p>现在想要实现用户在解压 test.ace 文件时，test.txt 会被恶意的解压到 Startup 文件夹，则需要将 test.ace 文件 header 头中 filename 字段值内的路径修改为 Win7 的启动文件夹路径，具体操作如下</p>
+<p>为方便操作，先新建一个十六进制文件，然后将恶意的 filename 粘进去，需要注意的是，这里的盘符要写两次，同时这里我将 test.txt 修改为了 virus.txt，方便与原文件进行区分：</p>
+<div class="highlight"><pre><span></span>C:\C:\Users\Administrator\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Startup\virus.txt
+</pre></div>
+
+
+<div align="center"><img class="img-responsive" src="https://jenisec.nos-eastchina1.126.net/winrar/WinRAR-Code-Execution-4.png" alt="WinRAR-Code-Execution-4" /></div>
+
+<p>一共占用了 97 个字节，而 ace 文件内的 filename 字段占用了 47 个字节，因此需要为原本的 filename 增加 50 个字节的位置，选中 filename 字段的末尾，点击编辑，插入数据，大小为 50</p>
+<div align="center"><img class="img-responsive" src="https://jenisec.nos-eastchina1.126.net/winrar/WinRAR-Code-Execution-5.png" alt="WinRAR-Code-Execution-5" /></div>
+
+<p>然后选中完整的 filename，将恶意的 97 个字节数据粘贴进来</p>
+<div align="center"><img class="img-responsive" src="https://jenisec.nos-eastchina1.126.net/winrar/WinRAR-Code-Execution-6.png" alt="WinRAR-Code-Execution-6" /></div>
+
+<p>修改前两个字节 ，十进制 97，十六进制 61，小端序，61 00</p>
+<div align="center"><img class="img-responsive" src="https://jenisec.nos-eastchina1.126.net/winrar/WinRAR-Code-Execution-7.png" alt="WinRAR-Code-Execution-7" /></div>
+
+<p>至此 header 长度为 128 字节，十六进制 80，小端序 80 00</p>
+<div align="center"><img class="img-responsive" src="https://jenisec.nos-eastchina1.126.net/winrar/WinRAR-Code-Execution-8.png" alt="WinRAR-Code-Execution-8" /></div>
+
+<p>修改 hdr_size 为 80 00</p>
+<div align="center"><img class="img-responsive" src="https://jenisec.nos-eastchina1.126.net/winrar/WinRAR-Code-Execution-9.png" alt="WinRAR-Code-Execution-9" /></div>
+
+<p>保存文件，使用 acefile.py 查看文件头部信息，因为还没有更改 hdr_crc，脚本抛出错误</p>
+<div align="center"><img class="img-responsive" src="https://jenisec.nos-eastchina1.126.net/winrar/WinRAR-Code-Execution-10.png" alt="WinRAR-Code-Execution-10" /></div>
+
+<p>打开 acefile.py 文件，搜索报错关键字 "header CRC failed"，定位到 3061 行附近，条件语句中 ace_crc16(buf) 的值就是我们需要的 hdr_crc 值，这里修改下代码，在抛出错误之前将 ace_crc16(buf) 的值输出</p>
+<div align="center"><img class="img-responsive" src="https://jenisec.nos-eastchina1.126.net/winrar/WinRAR-Code-Execution-11.png" alt="WinRAR-Code-Execution-11" /></div>
+
+<p>运行脚本，脚本成功输出 hdr_crc 值，十进制 15289，对应十六进制 3BB9，小端序 B9 3B</p>
+<div align="center"><img class="img-responsive" src="https://jenisec.nos-eastchina1.126.net/winrar/WinRAR-Code-Execution-12.png" alt="WinRAR-Code-Execution-12" /></div>
+
+<p>修改 test.ace 中 hdr_crc 对应的数值，保存后再次运行脚本，脚本成功读取文件的头部信息，可以看到此时的 filename 字段已经修改为了我们的恶意文件名。</p>
+<div align="center"><img class="img-responsive" src="https://jenisec.nos-eastchina1.126.net/winrar/WinRAR-Code-Execution-13.png" alt="WinRAR-Code-Execution-13" /></div>
+
+<div align="center"><img class="img-responsive" src="https://jenisec.nos-eastchina1.126.net/winrar/WinRAR-Code-Execution-14.png" alt="WinRAR-Code-Execution-14" /></div>
+
+<p>此时解压这个文件，就会在 Win7 的启动文件夹内解压出 virus.txt</p>
+<div align="center"><img class="img-responsive" src="https://jenisec.nos-eastchina1.126.net/winrar/WinRAR-Code-Execution-15.gif" alt="WinRAR-Code-Execution-15" /></div>
+
+<p>针对此漏洞，有大佬编写了相关脚本，可以更方便的生成 EXP，Github 地址：</p>
+<blockquote>
+<p><a href="https://github.com/WyAtu/CVE-2018-20250">https://github.com/WyAtu/CVE-2018-20250</a></p>
+</blockquote>
+<p><strong><em>参考</em></strong></p>
+<blockquote>
+<p>https://research.checkpoint.com/extracting-code-execution-from-winrar/</p>
+</blockquote>
+        <hr />
+        <p>作者:&#160; &#160;JenI&#160; &#160;转载请注明出处，谢谢</p>
+    </article>
+
+    <hr>
+
+        <div class="comments">
+            <h2>Comments !</h2>
+            <div id="disqus_thread"></div>
+            <script type="text/javascript">
+                var disqus_shortname = 'jenihk';
+                var disqus_identifier = 'security/winrar-code-execution.html';
+                var disqus_url = 'https://blog.jenisec.org/security/winrar-code-execution.html';
+                (function() {
+                    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+                    dsq.src = '//jenihk.disqus.com/embed.js';
+                    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+                })();
+            </script>
+            <noscript>Please enable JavaScript to view the comments.</noscript>
+        </div>
+ <!--                   
+    <div id="disqus_thread"></div>
+    <script>
+
+/**
+*  RECOMMENDED CONFIGURATION VARIABLES: EDIT AND UNCOMMENT THE SECTION BELOW TO INSERT DYNAMIC VALUES FROM YOUR PLATFORM OR CMS.
+*  LEARN WHY DEFINING THESE VARIABLES IS IMPORTANT: https://disqus.com/admin/universalcode/#configuration-variables*/
+/*
+var disqus_config = function () {
+this.page.url = PAGE_URL;  // Replace PAGE_URL with your page's canonical URL variable
+this.page.identifier = PAGE_IDENTIFIER; // Replace PAGE_IDENTIFIER with your page's unique identifier variable
+};
+*/
+        (function() { // DON'T EDIT BELOW THIS LINE
+            var d = document, s = d.createElement('script');
+            s.src = '//jenihk.disqus.com/embed.js';
+            s.setAttribute('data-timestamp', +new Date());
+            (d.head || d.body).appendChild(s);
+        })();
+    </script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+-->
+            </div>
+        </div>
+    </div>
+
+    <hr>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                    <ul class="list-inline text-center">
+                        <li>
+                            <a href="http://weibo.com/1992014191/profile?rightmod=1&wvr=6&mod=personinfo&is_all=1">
+                                <span class="fa-stack fa-lg">
+                                    <i class="icon iconfont">&#xe657;</i>
+                                </span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="http://github.com/jenihk">
+                                <span class="fa-stack fa-lg">
+                                    <i class="icon iconfont">&#xe618;</i>
+                                </span>
+                            </a>
+                        </li>
+                    </ul>
+                    <p class="copyright text-muted">Blog powered by <a href="http://getpelican.com">Pelican</a>,
+                which takes great advantage of <a href="http://python.org">Python</a>.</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- jQuery -->
+    <script src="https://blog.jenisec.org/theme/js/jquery.js"></script>
+
+    <!-- Bootstrap Core JavaScript -->
+    <script src="https://blog.jenisec.org/theme/js/bootstrap.min.js"></script>
+
+    <!-- Custom Theme JavaScript -->
+    <script src="https://blog.jenisec.org/theme/js/clean-blog.min.js"></script>
+    
+    <!-- CanvasParticles -->
+    <script src="https://blog.jenisec.org/theme/js/canvas-particle.js"></script>
+
+    
+
+    <script type="text/javascript">
+        CanvasParticle();
+    </script>
+
+    <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-85780345-1']);
+    _gaq.push(['_trackPageview']);
+    (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+    </script>
+<script type="text/javascript">
+    var disqus_shortname = 'jenihk';
+    (function () {
+        var s = document.createElement('script'); s.async = true;
+        s.type = 'text/javascript';
+        s.src = '//' + disqus_shortname + '.disqus.com/count.js';
+        (document.getElementsByTagName('HEAD')[0] || document.getElementsByTagName('BODY')[0]).appendChild(s);
+    }());
+</script>
+</body>
+
+</html>
