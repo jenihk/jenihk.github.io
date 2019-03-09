@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="zh">
+
+<head>
+            <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="description" content="">
+        <meta name="author" content="">
+
+        <title>JenI's Blog</title>
+
+        <link rel="icon" href="https://blog.jenisec.org/theme/images/favicon.ico" type="image/x-icon">  
+        <link rel="shortcut icon" href="https://blog.jenisec.org/theme/images/favicon.ico" type="image/x-icon">  
+
+
+        <link href="https://blog.jenisec.org/theme/css/iconfont.css" rel="stylesheet">
+
+        <!-- Bootstrap Core CSS -->
+        <link href="https://blog.jenisec.org/theme/css/bootstrap.min.css" rel="stylesheet">
+
+        <!-- Custom CSS -->
+        <link href="https://blog.jenisec.org/theme/css/clean-blog.min.css" rel="stylesheet">
+
+        <!-- Code highlight color scheme -->
+            <link href="https://blog.jenisec.org/theme/css/code_blocks/monokai.css" rel="stylesheet">
+
+        <!-- Custom Fonts -->
+        <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.1.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+        <link href='https://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+        <link href='https://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/css'>
+
+        <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+        <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+        <!--[if lt IE 9]>
+            <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+            <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+        <![endif]-->
+
+
+
+
+
+
+			<meta property="og:locale" content="zh">
+		<meta property="og:site_name" content="JenI's Blog">
+
+	<meta property="og:type" content="article">
+	<meta property="article:author" content="">
+	<meta property="og:url" content="https://blog.jenisec.org/security/wordpress-5.0-rce.html">
+	<meta property="og:title" content="Wordpress 5.0 远程代码执行漏洞">
+	<meta property="og:description" content="">
+	<meta property="og:image" content="https://blog.jenisec.org/../theme/images/posts/wordpress/cover.png">
+	<meta property="article:published_time" content="2019-02-27 00:00:00+08:00">
+</head>
+
+<body style="background-color: #f8f8f8">
+
+    <!-- Navigation -->
+    <nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+        <div class="container-fluid">
+            <!-- Brand and toggle get grouped for better mobile display -->
+            <div class="navbar-header page-scroll">
+                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <a class="navbar-brand" href="https://blog.jenisec.org/">JenI's Blog</a>
+            </div>
+
+            <!-- Collect the nav links, forms, and other content for toggling -->
+            <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+                <ul class="nav navbar-nav navbar-right">
+                        <li><a href="https://blog.jenisec.org/category/ji-qi-xue-xi.html">机器学习</a></li>
+                        <li><a href="https://blog.jenisec.org/category/an-quan.html">安全</a></li>
+                        <li><a href="https://blog.jenisec.org/category/xi-tong.html">系统</a></li>
+                        <li><a href="https://blog.jenisec.org/category/ri-chang.html">日常</a></li>
+
+                </ul>
+            </div>
+            <!-- /.navbar-collapse -->
+        </div>
+        <!-- /.container -->
+    </nav>
+
+    <!-- Page Header -->
+        <header class="intro-header" style="background-image: url('../theme/images/posts/wordpress/cover.png')">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                    <div class="post-heading">
+                        <h1>Wordpress 5.0 远程代码执行漏洞</h1>
+                        <span class="meta">Posted by
+                                <a href="https://blog.jenisec.org/author/jeni.html">JenI</a>
+                             on 2019-02-27 00:00:00+08:00
+                        </span>
+                        
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1" style="background-color: #f8f8f8;position: relative;">
+    <!-- Post Content -->
+    <article style="background-color: #f8f8f8;position: relative;">
+        <p><strong><em>前言</em></strong></p>
+<p>WordPress是一种使用PHP语言开发的博客平台，用户可以在支持PHP和MySQL数据库的服务器上架设属于自己的网站。也可以把WordPress当作一个内容管理系统（CMS）来使用。WordPress功能强大、扩展性强，这主要得益于其插件众多，易于扩充功能，基本上一个完整网站该有的功能，通过其第三方插件都能实现所有功能。</p>
+<p>2月20号，RIPS 团队在官网公开了一篇 WordPress 5.0.0 Remote Code Execution，CVE 编号 CVE-2019-6977，文章中主要提到在 author 权限账号下，可以通过修改 Post Meta 变量覆盖、目录穿越写文件、模板包含 3 个漏洞构成一个 RCE 漏洞</p>
+<p><strong><em>漏洞分析</em></strong></p>
+<p>漏洞出现在 wp-admin/includes/post.php 文件内，wordpress 在处理用户更新媒体操作时会调用此文件内的 edit_post 函数：</p>
+<div align="center"><img class="img-responsive" src="https://jenisec.nos-eastchina1.126.net/WordPress/wordpress-5.0-rce-1.png" alt="wordpress-5.0-rce-1" /></div>
+
+<p>函数没有经过任何过滤就将传入的 POST 数据储存在 post_data 变量内，之后在 wp-includes/post.php 中遍历数据包中的 meta_input 数组，通过 update_post_meta 函数将数组内对应的值更新到数据库中</p>
+<div align="center"><img class="img-responsive" src="https://jenisec.nos-eastchina1.126.net/WordPress/wordpress-5.0-rce-2.png" alt="wordpress-5.0-rce-2" /></div>
+
+<p>由于 meta_input 数组内部分内容可控，且过程中没有对用户请求进行合理的检查，因此此处存在一个数据覆盖漏洞。正常情况下，用户通过 web 页面上传的图片会被上传到 wordpress 服务器的 wp-content/uploads/yyyy/mm 目录下，同时在数据库的 wp_postmeta 表内添加对应图片信息，其中 _wp_attached_file 字段保存了图片的相对路径，如 2019/02/test.jpg</p>
+<div align="center"><img class="img-responsive" src="https://jenisec.nos-eastchina1.126.net/WordPress/wordpress-5.0-rce-3.png" alt="wordpress-5.0-rce-3" /></div>
+
+<p>攻击者通过数据覆盖漏洞，可以篡改 _wp_attached_file 对应的值，将图片指向其他路径，如 2019/02/test.jpg?/../../../../themes/twentyseventeen/evil.jpg</p>
+<div align="center"><img class="img-responsive" src="https://jenisec.nos-eastchina1.126.net/WordPress/wordpress-5.0-rce-4.png" alt="wordpress-5.0-rce-4" /></div>
+
+<p>此时对于浏览器用户来说，远程获取的图片路径依然为 2019/02/test.jpg，因为浏览器在解析 http://127.0.0.1/wp-content/uploads/2019/02/test.jpg?/../../../../themes/twentyseventeen/evil.jpg 时会默认忽略 ? 之后的部分，将其当作是传值。但对于服务器自身来说，这张图片对应的路径实际已经被指向 wp-content/uploads/themes/twentyseventeen/ 目录，这里配合一个目录穿越漏洞，便可以实现向此目录写入可以图片。这个目录穿越漏洞出现在对图片进行裁剪的操作中，该操作会调用 wp-admin/includes/image.php 文件内的 wp_crop_image 函数：</p>
+<div align="center"><img class="img-responsive" src="https://jenisec.nos-eastchina1.126.net/WordPress/wordpress-5.0-rce-5.png" alt="wordpress-5.0-rce-5" /></div>
+
+<p>传入的 $src 变量指的便是图片所对应的位置信息，这里通过 file_exists 方法检查了文件是否存在，由于图片的位置信息已经通过前面介绍的数据覆盖漏洞修改掉了，因此函数判定图片不存在，从而进入 if 分支，调用 _load_image_to_edit_path 函数通过完整 url 从本地服务器加载图片，这是 wordpress 的一个特性，考虑到受插件影响，如果目标图片不能在其指定的目录找到，wordpress 则会将网站的访问地址和此图片的相对路径进行拼接后访问，模拟浏览器请求，从而以 url 的方式加载图片。获取到图片后，对裁剪参数进行配置，之后将文件名拼接在 cropped- 后面，组成完整的文件路径，调用 save 方法将文件写入到对应的路径内，也就是进行目录穿越后的 wp-content/uploads/themes/twentyseventeen/ 目录下，这个 save 函数会调用当前图片库的裁剪功能，有两种，imagick 和 gd，如果当前 php 环境支持 imagick，则默认使用 imagick，imagick 不会修改图片的 exif 信息，因此利用起来相对容易，而使用 gd 对图片进行裁剪时则需要制作相当精妙的图片才能完成攻击。图片裁剪代码位于 /wp-includes/class-wp-image-editor.php：</p>
+<div align="center"><img class="img-responsive" src="https://jenisec.nos-eastchina1.126.net/WordPress/wordpress-5.0-rce-6.png" alt="wordpress-5.0-rce-6" /></div>
+
+<p>裁剪后的文件在向指定文件夹写入时，如果目标目录存在异常则会导致写入失败，这里说的异常是指在图片所指向的目录中，是有 test.jpg? 这个文件夹的，在 linux 和 mac 环境中，目录是可以包含 ? 的，但是 windows 中是不允许的，这里可以使用 # 代替，这样构成的 url 中 # 后面的部分在浏览器中会被当做注释，依然是可以访问到图片的。现在的问题是，wordpress 中并没有显式调用 wp_crop_image 方法的位置。经过测试发现，可以通过修改请求中的 action 参数值来强制调用此方法，下面的值都是支持的：</p>
+<div align="center"><img class="img-responsive" src="https://jenisec.nos-eastchina1.126.net/WordPress/wordpress-5.0-rce-7.png" alt="wordpress-5.0-rce-7" /></div>
+
+<p>wp-admin/admin-ajax.php 在判断用户权限后，执行指定的 action 操作，wordpress 通过 call_user_func_array 调用了 wp_ajax_crop_image 方法，在这个方法中进行了多项判断，只有全部符合才能进入裁剪图片方法，对这个函数进行分析之后发现，请求数据包中除了 action 的操作名外，还需要包含 _ajax_nonce、id、cropDetails[dst_width]、cropDetails[dst_height] 等参数，这些全部满足条件后，根据参数值对图片进行裁剪，然后写入到原图片指向的目录下。包含恶意代码的图片通过目录穿越漏洞被写入到主题目录下之后，则可以利用控制模板参数来实现任意文件包含，从而执行 php 代码。正常情况下，图片还有一个 _wp_page_template 属性，同样位于 wp_postmeta 表内，默认情况下该参数值为 default，依然可以通过数据覆盖漏洞进行修改，但是 /wp-includes/post.php 文件内有相关代码对这个参数值进行了限制：</p>
+<div align="center"><img class="img-responsive" src="https://jenisec.nos-eastchina1.126.net/WordPress/wordpress-5.0-rce-8.png" alt="wordpress-5.0-rce-8" /></div>
+
+<p>如果设置了这个值，但是文件不存在，_wp_page_template 会被设置为 default，如果这个值本身存在，则不允许通过这种方式修改，因此这里需要上传一个新的媒体文件，然后更新文件信息，利用数据覆盖漏洞覆盖掉 _wp_page_template 原有的值：</p>
+<div align="center"><img class="img-responsive" src="https://jenisec.nos-eastchina1.126.net/WordPress/wordpress-5.0-rce-9.png" alt="wordpress-5.0-rce-9" /></div>
+
+<p>这时访问这个新上传的文件时，则会将主题目录下的恶意图片以主题文件方式加载，从而解析了图片内的恶意代码。造成了代码执行。</p>
+<p><strong><em>漏洞复现</em></strong></p>
+<p>首先上传一张制作好的图片，将恶意代码存储在图片的 exif 信息段内</p>
+<div align="center"><img class="img-responsive" src="https://jenisec.nos-eastchina1.126.net/WordPress/wordpress-5.0-rce-10.png" alt="wordpress-5.0-rce-10" /></div>
+
+<p>点击更新图片信息，同时拦截数据包</p>
+<div align="center"><img class="img-responsive" src="https://jenisec.nos-eastchina1.126.net/WordPress/wordpress-5.0-rce-11.png" alt="wordpress-5.0-rce-11" /></div>
+
+<p>在数据包 POST 数据内添加 meta_input[_wp_attached_file] 参数，并构造恶意的参数值</p>
+<div align="center"><img class="img-responsive" src="https://jenisec.nos-eastchina1.126.net/WordPress/wordpress-5.0-rce-12.png" alt="wordpress-5.0-rce-12" /></div>
+
+<p>转发数据包，之后编辑图片，对图片进行裁剪，裁剪后点击保存，再次拦截数据包</p>
+<div align="center"><img class="img-responsive" src="https://jenisec.nos-eastchina1.126.net/WordPress/wordpress-5.0-rce-13.png" alt="wordpress-5.0-rce-13" /></div>
+
+<p>修改数据包的 action 参数值为 crop-image，并添加必要的参数</p>
+<div align="center"><img class="img-responsive" src="https://jenisec.nos-eastchina1.126.net/WordPress/wordpress-5.0-rce-14.png" alt="wordpress-5.0-rce-14" /></div>
+
+<p>上传一个 test.txt 文件，然后更新 test.txt 的信息，拦截数据包</p>
+<div align="center"><img class="img-responsive" src="https://jenisec.nos-eastchina1.126.net/WordPress/wordpress-5.0-rce-15.png" alt="wordpress-5.0-rce-15" /></div>
+
+<p>为 POST 数据包增加 meta_input[_wp_page_template] 参数</p>
+<div align="center"><img class="img-responsive" src="https://jenisec.nos-eastchina1.126.net/WordPress/wordpress-5.0-rce-16.png" alt="wordpress-5.0-rce-16" /></div>
+
+<p>此时的指向 test.txt 的页面则包含了恶意的代码，访问即触发代码的执行</p>
+<div align="center"><img class="img-responsive" src="https://jenisec.nos-eastchina1.126.net/WordPress/wordpress-5.0-rce-17.png" alt="wordpress-5.0-rce-17" /></div>
+
+<p><strong><em>参考</em></strong></p>
+<blockquote>
+<p>https://blog.ripstech.com/2019/wordpress-image-remote-code-execution/
+https://paper.seebug.org/822/</p>
+</blockquote>
+        <hr />
+        <p>作者:&#160; &#160;JenI&#160; &#160;转载请注明出处，谢谢</p>
+    </article>
+
+    <hr>
+
+        <div class="comments">
+            <h2>Comments !</h2>
+            <div id="disqus_thread"></div>
+            <script type="text/javascript">
+                var disqus_shortname = 'jenihk';
+                var disqus_identifier = 'security/wordpress-5.0-rce.html';
+                var disqus_url = 'https://blog.jenisec.org/security/wordpress-5.0-rce.html';
+                (function() {
+                    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+                    dsq.src = '//jenihk.disqus.com/embed.js';
+                    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+                })();
+            </script>
+            <noscript>Please enable JavaScript to view the comments.</noscript>
+        </div>
+ <!--                   
+    <div id="disqus_thread"></div>
+    <script>
+
+/**
+*  RECOMMENDED CONFIGURATION VARIABLES: EDIT AND UNCOMMENT THE SECTION BELOW TO INSERT DYNAMIC VALUES FROM YOUR PLATFORM OR CMS.
+*  LEARN WHY DEFINING THESE VARIABLES IS IMPORTANT: https://disqus.com/admin/universalcode/#configuration-variables*/
+/*
+var disqus_config = function () {
+this.page.url = PAGE_URL;  // Replace PAGE_URL with your page's canonical URL variable
+this.page.identifier = PAGE_IDENTIFIER; // Replace PAGE_IDENTIFIER with your page's unique identifier variable
+};
+*/
+        (function() { // DON'T EDIT BELOW THIS LINE
+            var d = document, s = d.createElement('script');
+            s.src = '//jenihk.disqus.com/embed.js';
+            s.setAttribute('data-timestamp', +new Date());
+            (d.head || d.body).appendChild(s);
+        })();
+    </script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+-->
+            </div>
+        </div>
+    </div>
+
+    <hr>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                    <ul class="list-inline text-center">
+                        <li>
+                            <a href="http://weibo.com/1992014191/profile?rightmod=1&wvr=6&mod=personinfo&is_all=1">
+                                <span class="fa-stack fa-lg">
+                                    <i class="icon iconfont">&#xe657;</i>
+                                </span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="http://github.com/jenihk">
+                                <span class="fa-stack fa-lg">
+                                    <i class="icon iconfont">&#xe618;</i>
+                                </span>
+                            </a>
+                        </li>
+                    </ul>
+                    <p class="copyright text-muted">Blog powered by <a href="http://getpelican.com">Pelican</a>,
+                which takes great advantage of <a href="http://python.org">Python</a>.</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- jQuery -->
+    <script src="https://blog.jenisec.org/theme/js/jquery.js"></script>
+
+    <!-- Bootstrap Core JavaScript -->
+    <script src="https://blog.jenisec.org/theme/js/bootstrap.min.js"></script>
+
+    <!-- Custom Theme JavaScript -->
+    <script src="https://blog.jenisec.org/theme/js/clean-blog.min.js"></script>
+    
+    <!-- CanvasParticles -->
+    <script src="https://blog.jenisec.org/theme/js/canvas-particle.js"></script>
+
+    
+
+    <script type="text/javascript">
+        CanvasParticle();
+    </script>
+
+    <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-85780345-1']);
+    _gaq.push(['_trackPageview']);
+    (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+    </script>
+<script type="text/javascript">
+    var disqus_shortname = 'jenihk';
+    (function () {
+        var s = document.createElement('script'); s.async = true;
+        s.type = 'text/javascript';
+        s.src = '//' + disqus_shortname + '.disqus.com/count.js';
+        (document.getElementsByTagName('HEAD')[0] || document.getElementsByTagName('BODY')[0]).appendChild(s);
+    }());
+</script>
+</body>
+
+</html>
