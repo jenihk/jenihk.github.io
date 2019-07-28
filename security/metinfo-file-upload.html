@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="zh">
+
+<head>
+            <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="description" content="">
+        <meta name="author" content="">
+
+        <title>JenI's Blog</title>
+
+        <link rel="icon" href="https://blog.jenisec.org/theme/images/favicon.ico" type="image/x-icon">  
+        <link rel="shortcut icon" href="https://blog.jenisec.org/theme/images/favicon.ico" type="image/x-icon">  
+
+
+        <link href="https://blog.jenisec.org/theme/css/iconfont.css" rel="stylesheet">
+
+        <!-- Bootstrap Core CSS -->
+        <link href="https://blog.jenisec.org/theme/css/bootstrap.min.css" rel="stylesheet">
+
+        <!-- Custom CSS -->
+        <link href="https://blog.jenisec.org/theme/css/clean-blog.min.css" rel="stylesheet">
+
+        <!-- Code highlight color scheme -->
+            <link href="https://blog.jenisec.org/theme/css/code_blocks/monokai.css" rel="stylesheet">
+
+        <!-- Custom Fonts -->
+        <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.1.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+        <link href='https://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+        <link href='https://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/css'>
+
+        <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+        <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+        <!--[if lt IE 9]>
+            <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+            <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+        <![endif]-->
+
+
+
+
+
+
+			<meta property="og:locale" content="zh">
+		<meta property="og:site_name" content="JenI's Blog">
+
+	<meta property="og:type" content="article">
+	<meta property="article:author" content="">
+	<meta property="og:url" content="https://blog.jenisec.org/security/metinfo-file-upload.html">
+	<meta property="og:title" content="MetInfo 任意文件上传漏洞">
+	<meta property="og:description" content="">
+	<meta property="og:image" content="https://blog.jenisec.org/../theme/images/posts/metinfo/metinfo-cover.png">
+	<meta property="article:published_time" content="2019-07-05 00:00:00+08:00">
+</head>
+
+<body style="background-color: #f8f8f8">
+
+    <!-- Navigation -->
+    <nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+        <div class="container-fluid">
+            <!-- Brand and toggle get grouped for better mobile display -->
+            <div class="navbar-header page-scroll">
+                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <a class="navbar-brand" href="https://blog.jenisec.org/">JenI's Blog</a>
+            </div>
+
+            <!-- Collect the nav links, forms, and other content for toggling -->
+            <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+                <ul class="nav navbar-nav navbar-right">
+                        <li><a href="https://blog.jenisec.org/category/ji-qi-xue-xi.html">机器学习</a></li>
+                        <li><a href="https://blog.jenisec.org/category/an-quan.html">安全</a></li>
+                        <li><a href="https://blog.jenisec.org/category/xi-tong.html">系统</a></li>
+                        <li><a href="https://blog.jenisec.org/category/ri-chang.html">日常</a></li>
+
+                </ul>
+            </div>
+            <!-- /.navbar-collapse -->
+        </div>
+        <!-- /.container -->
+    </nav>
+
+    <!-- Page Header -->
+        <header class="intro-header" style="background-image: url('../theme/images/posts/metinfo/metinfo-cover.png')">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                    <div class="post-heading">
+                        <h1>MetInfo 任意文件上传漏洞</h1>
+                        <span class="meta">Posted by
+                                <a href="https://blog.jenisec.org/author/jeni.html">JenI</a>
+                             on 2019-07-05 00:00:00+08:00
+                        </span>
+                        
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1" style="background-color: #f8f8f8;position: relative;">
+    <!-- Post Content -->
+    <article style="background-color: #f8f8f8;position: relative;">
+        <p><strong><em>前言</em></strong></p>
+<p>MetInfo企业建站系统采用PHP+Mysql架构，是一款对SEO非常友好、功能全面、安全稳定、支持多终端展示并且使用起来极其简单的企业建站软件。用户可以在不需要任何编程的基础上，通过简单的设置和安装就能够在互联网搭建独立的企业网站，能够极大的降低企业建站成本。近日，Metinfo 被爆出在低版本的 PHP 环境下存在任意文件上传漏洞，</p>
+<p><strong><em>漏洞分析</em></strong></p>
+<p>漏洞出现在 Metinfo 的 uploadify 类中，这个上传类属于前台基类，因此无需登录即可调用。该类内定义了一个 doupfile 方法用于实现上传：</p>
+<div align="center"><img class="img-responsive" src="https://jenisec.nos-eastchina1.126.net/metinfo/metinfo-file-upload-1.png" alt="metinfo-file-upload-1" /></div>
+
+<p>Doupfile 内又调用了 set_upfile 和 set_upload 方法，它们分别用于设置上传模式和上传属性。这两个方法，前者的 savepath 属性默认值为 /webroot/upload/file/，后者则从 $M[‘form’] 中取到 savepath 值，作为自己的属性。因为 $M[‘form’] 数据用户可控，因此针对 savepath 值进行特殊构造就可以触发漏洞。</p>
+<div align="center"><img class="img-responsive" src="https://jenisec.nos-eastchina1.126.net/metinfo/metinfo-file-upload-2.png" alt="metinfo-file-upload-2" /></div>
+
+<div align="center"><img class="img-responsive" src="https://jenisec.nos-eastchina1.126.net/metinfo/metinfo-file-upload-3.png" alt="metinfo-file-upload-3" /></div>
+
+<p>在设置了上传属性之后，会调用 upfile 类的 upload 方法：</p>
+<div align="center"><img class="img-responsive" src="https://jenisec.nos-eastchina1.126.net/metinfo/metinfo-file-upload-4.png" alt="metinfo-file-upload-4" /></div>
+
+<p>uploud 方法将接收的 _FILES 保存到filear变量当中。然后对文件后缀名进行一次黑名单校验、一次白名单校验，白名单校验无法绕过，强制指定了部分文件格式：</p>
+<div align="center"><img class="img-responsive" src="https://jenisec.nos-eastchina1.126.net/metinfo/metinfo-file-upload-5.png" alt="metinfo-file-upload-5" /></div>
+
+<p>在文件后缀通过了白名单校验后，则开始设置文件名，如果 is_rename 参数为 false，那么上传的文件则不会被重命名。is_rename 参数也是用户可控的。设置文件名的函数中，对文件名进行了相应的过滤：</p>
+<div align="center"><img class="img-responsive" src="https://jenisec.nos-eastchina1.126.net/metinfo/metinfo-file-upload-6.png" alt="metinfo-file-upload-6" /></div>
+
+<p>文件名中如果包含多个“.”，除了最后一个外，其余会被替换为“_”，所以文件名处无法利用。而在对文件路径进行处理时， savepath 中如果包含“./”字符，则结束流程，但是在 windows 下，可以使用“..\”代替“../”，从而实现路径穿越。</p>
+<p>文件路径和文件名组成最终的绝对路径，之后进行判断，如果系统为 windows 的话，文件的绝对路径会交由 iconv 进行编码转换：</p>
+<div align="center"><img class="img-responsive" src="https://jenisec.nos-eastchina1.126.net/metinfo/metinfo-file-upload-7.png" alt="metinfo-file-upload-7" /></div>
+
+<p>低版本的 PHP 中，iconv 函数存在字符截断问题，如果文件的绝对路径中包含 %80 时，会在 %80 处进行截断，因此构造文件名为 a.php%80\..\1.jpg，则可以绕过黑白名单检测，并在 Metinfo 逐层创建目录时从 %80 处截断。</p>
+<p>还有一点需要说明，Metinfo 在最初读取用户数据时使用了 daddslashes 函数进行了过滤，因此 savepath 中的“..\”会在 load_form 时被替换：</p>
+<div align="center"><img class="img-responsive" src="https://jenisec.nos-eastchina1.126.net/metinfo/metinfo-file-upload-8.png" alt="metinfo-file-upload-8" /></div>
+
+<p>daddslashes 中，如果未设置 IN_ADMIN 常量的话，savepath 会经过 sqlinsert 处理：</p>
+<div align="center"><img class="img-responsive" src="https://jenisec.nos-eastchina1.126.net/metinfo/metinfo-file-upload-9.png" alt="metinfo-file-upload-9" /></div>
+
+<p>而 Metinfo 中，admin/index.php 文件中是设置了 IN_ADMIN 常量的，并且这个页面允许加载 uploadify 类，因此访问 admin/index.php 页面的同时，加载 uploadify 类并设置包含 %80 的 savepath，则可以穿越路径写入文件。</p>
+<div align="center"><img class="img-responsive" src="https://jenisec.nos-eastchina1.126.net/metinfo/metinfo-file-upload-10.png" alt="metinfo-file-upload-10" /></div>
+
+<p><strong><em>漏洞复现</em></strong></p>
+<p>搭建 Metinfo 漏洞测试环境：</p>
+<div align="center"><img class="img-responsive" src="https://jenisec.nos-eastchina1.126.net/metinfo/metinfo-file-upload-11.png" alt="metinfo-file-upload-11" /></div>
+
+<p>访问 admin/index.php 页面，同时拦截数据包，添加上传文件必要的参数后将数据包转发：</p>
+<div align="center"><img class="img-responsive" src="https://jenisec.nos-eastchina1.126.net/metinfo/metinfo-file-upload-12.png" alt="metinfo-file-upload-12" /></div>
+
+<p>成功上传了 a.php 文件：</p>
+<div align="center"><img class="img-responsive" src="https://jenisec.nos-eastchina1.126.net/metinfo/metinfo-file-upload-13.png" alt="metinfo-file-upload-13" /></div>
+
+<p>此时访问 a.php 即可执行文件内的 PHP 代码：</p>
+<div align="center"><img class="img-responsive" src="https://jenisec.nos-eastchina1.126.net/metinfo/metinfo-file-upload-14.png" alt="metinfo-file-upload-14" /></div>
+
+<p><strong><em>漏洞POC</em></strong></p>
+<div class="highlight"><pre><span></span><span class="nf">POST</span> <span class="nn">/admin/index.php?c=uploadify&amp;m=include&amp;a=doupimg&amp;lang=cn&amp;data_key=undefined&amp;savepath=a.php%80\..\1.jpg</span> <span class="kr">HTTP</span><span class="o">/</span><span class="m">1.1</span>
+<span class="na">Host</span><span class="o">:</span> <span class="l">192.168.244.128</span>
+<span class="na">Content-Type</span><span class="o">:</span> <span class="l">multipart/form-data; boundary=----WebKitFormBoundaryycZOB8OFe09WeWgl</span>
+<span class="na">Content-Length</span><span class="o">:</span> <span class="l">196</span>
+
+------WebKitFormBoundaryycZOB8OFe09WeWgl
+Content-Disposition: form-data; name=&quot;file&quot;; filename=&quot;a.jpg&quot;
+Content-Type: image/gif
+
+&lt;?php phpinfo();?&gt;
+------WebKitFormBoundaryycZOB8OFe09WeWgl--
+</pre></div>
+
+
+<p><strong><em>参考</em></strong></p>
+<blockquote>
+<p>http://www.yulegeyu.com/2019/06/18/Metinfo6-Arbitrary-File-Upload-Via-Iconv-Truncate/<br>
+https://www.cnblogs.com/milantgh/p/3602141.html</p>
+</blockquote>
+        <hr />
+        <p>作者:&#160; &#160;JenI&#160; &#160;转载请注明出处，谢谢</p>
+    </article>
+
+    <hr>
+
+        <div class="comments">
+            <h2>Comments !</h2>
+            <div id="disqus_thread"></div>
+            <script type="text/javascript">
+                var disqus_shortname = 'jenihk';
+                var disqus_identifier = 'security/metinfo-file-upload.html';
+                var disqus_url = 'https://blog.jenisec.org/security/metinfo-file-upload.html';
+                (function() {
+                    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+                    dsq.src = '//jenihk.disqus.com/embed.js';
+                    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+                })();
+            </script>
+            <noscript>Please enable JavaScript to view the comments.</noscript>
+        </div>
+ <!--                   
+    <div id="disqus_thread"></div>
+    <script>
+
+/**
+*  RECOMMENDED CONFIGURATION VARIABLES: EDIT AND UNCOMMENT THE SECTION BELOW TO INSERT DYNAMIC VALUES FROM YOUR PLATFORM OR CMS.
+*  LEARN WHY DEFINING THESE VARIABLES IS IMPORTANT: https://disqus.com/admin/universalcode/#configuration-variables*/
+/*
+var disqus_config = function () {
+this.page.url = PAGE_URL;  // Replace PAGE_URL with your page's canonical URL variable
+this.page.identifier = PAGE_IDENTIFIER; // Replace PAGE_IDENTIFIER with your page's unique identifier variable
+};
+*/
+        (function() { // DON'T EDIT BELOW THIS LINE
+            var d = document, s = d.createElement('script');
+            s.src = '//jenihk.disqus.com/embed.js';
+            s.setAttribute('data-timestamp', +new Date());
+            (d.head || d.body).appendChild(s);
+        })();
+    </script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+-->
+            </div>
+        </div>
+    </div>
+
+    <hr>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                    <ul class="list-inline text-center">
+                        <li>
+                            <a href="http://weibo.com/1992014191/profile?rightmod=1&wvr=6&mod=personinfo&is_all=1">
+                                <span class="fa-stack fa-lg">
+                                    <i class="icon iconfont">&#xe657;</i>
+                                </span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="http://github.com/jenihk">
+                                <span class="fa-stack fa-lg">
+                                    <i class="icon iconfont">&#xe618;</i>
+                                </span>
+                            </a>
+                        </li>
+                    </ul>
+                    <p class="copyright text-muted">Blog powered by <a href="http://getpelican.com">Pelican</a>,
+                which takes great advantage of <a href="http://python.org">Python</a>.</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- jQuery -->
+    <script src="https://blog.jenisec.org/theme/js/jquery.js"></script>
+
+    <!-- Bootstrap Core JavaScript -->
+    <script src="https://blog.jenisec.org/theme/js/bootstrap.min.js"></script>
+
+    <!-- Custom Theme JavaScript -->
+    <script src="https://blog.jenisec.org/theme/js/clean-blog.min.js"></script>
+    
+    <!-- CanvasParticles -->
+    <script src="https://blog.jenisec.org/theme/js/canvas-particle.js"></script>
+
+    
+
+    <script type="text/javascript">
+        CanvasParticle();
+    </script>
+
+    <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-85780345-1']);
+    _gaq.push(['_trackPageview']);
+    (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+    </script>
+<script type="text/javascript">
+    var disqus_shortname = 'jenihk';
+    (function () {
+        var s = document.createElement('script'); s.async = true;
+        s.type = 'text/javascript';
+        s.src = '//' + disqus_shortname + '.disqus.com/count.js';
+        (document.getElementsByTagName('HEAD')[0] || document.getElementsByTagName('BODY')[0]).appendChild(s);
+    }());
+</script>
+</body>
+
+</html>
