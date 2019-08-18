@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="zh">
+
+<head>
+            <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="description" content="">
+        <meta name="author" content="">
+
+        <title>JenI's Blog</title>
+
+        <link rel="icon" href="https://blog.jenisec.org/theme/images/favicon.ico" type="image/x-icon">  
+        <link rel="shortcut icon" href="https://blog.jenisec.org/theme/images/favicon.ico" type="image/x-icon">  
+
+
+        <link href="https://blog.jenisec.org/theme/css/iconfont.css" rel="stylesheet">
+
+        <!-- Bootstrap Core CSS -->
+        <link href="https://blog.jenisec.org/theme/css/bootstrap.min.css" rel="stylesheet">
+
+        <!-- Custom CSS -->
+        <link href="https://blog.jenisec.org/theme/css/clean-blog.min.css" rel="stylesheet">
+
+        <!-- Code highlight color scheme -->
+            <link href="https://blog.jenisec.org/theme/css/code_blocks/monokai.css" rel="stylesheet">
+
+        <!-- Custom Fonts -->
+        <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.1.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+        <link href='https://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+        <link href='https://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/css'>
+
+        <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+        <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+        <!--[if lt IE 9]>
+            <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+            <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+        <![endif]-->
+
+
+
+
+
+
+			<meta property="og:locale" content="zh">
+		<meta property="og:site_name" content="JenI's Blog">
+
+	<meta property="og:type" content="article">
+	<meta property="article:author" content="">
+	<meta property="og:url" content="https://blog.jenisec.org/diary/UnblockNeteaseMusic.html">
+	<meta property="og:title" content="解锁网易云音乐灰色歌曲">
+	<meta property="og:description" content="">
+	<meta property="og:image" content="https://blog.jenisec.org/../theme/images/posts/NeteaseMusic/cover.png">
+	<meta property="article:published_time" content="2019-08-16 00:00:00+08:00">
+</head>
+
+<body style="background-color: #f8f8f8">
+
+    <!-- Navigation -->
+    <nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+        <div class="container-fluid">
+            <!-- Brand and toggle get grouped for better mobile display -->
+            <div class="navbar-header page-scroll">
+                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <a class="navbar-brand" href="https://blog.jenisec.org/">JenI's Blog</a>
+            </div>
+
+            <!-- Collect the nav links, forms, and other content for toggling -->
+            <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+                <ul class="nav navbar-nav navbar-right">
+                        <li><a href="https://blog.jenisec.org/category/ji-qi-xue-xi.html">机器学习</a></li>
+                        <li><a href="https://blog.jenisec.org/category/an-quan.html">安全</a></li>
+                        <li><a href="https://blog.jenisec.org/category/xi-tong.html">系统</a></li>
+                        <li><a href="https://blog.jenisec.org/category/ri-chang.html">日常</a></li>
+
+                </ul>
+            </div>
+            <!-- /.navbar-collapse -->
+        </div>
+        <!-- /.container -->
+    </nav>
+
+    <!-- Page Header -->
+        <header class="intro-header" style="background-image: url('../theme/images/posts/NeteaseMusic/cover.png')">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                    <div class="post-heading">
+                        <h1>解锁网易云音乐灰色歌曲</h1>
+                        <span class="meta">Posted by
+                                <a href="https://blog.jenisec.org/author/jeni.html">JenI</a>
+                             on 2019-08-16 00:00:00+08:00
+                        </span>
+                        
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1" style="background-color: #f8f8f8;position: relative;">
+    <!-- Post Content -->
+    <article style="background-color: #f8f8f8;position: relative;">
+        <p><strong><em>前言</em></strong></p>
+<p>国内音乐版权的分散问题一直是音乐爱好者们听歌的痛点，网易云音乐、虾米音乐、腾讯音乐等众多音乐平台，每家手里都握着一部分的歌手版权，但又每家都不全，所以想要听全自己喜欢的歌，电脑手机都要下载N个软件，着实让人头疼。</p>
+<p>之前也见有人写过整合这些音源的软件，比如电脑端使用的 Listen 1，手机端的倒带，我也都下载使用过，就我自己的体验而言，音源整合在了一起确实有效解决了版权分散问题，但是软件的功能对比大厂的软件来说，还是显得糙了点，好多功能还有待完善。不过要求不高的同学也可以试试，单就听歌来说，这些聚合软件还是比较方便的。</p>
+<p>说正经事。最近逛酷安看到了一个关于网易云音乐版权的帖子，评论区有人提到了一个解锁网易云灰色(无版权)歌曲的开源项目，在 Github 搜了一下，项目名叫 UnblockNeteaseMusic，它是通过中间人攻击的方式，把网易云音乐中没有版权的歌曲链接替换成其他音乐平台的链接，从而以代理的形式解锁灰色歌曲。项目有下面几个特性：</p>
+<ul>
+<li>使用 网易云旧链/QQ/虾米/百度/酷狗/酷我/咕咪/JOOX 音源替换变灰歌曲链接 (默认仅启用前四)</li>
+<li>为请求增加 X-Real-IP 参数解锁海外限制，支持指定网易云服务器 IP，支持设置上游 HTTP(S) 代理</li>
+<li>完整的流量代理功能 (HTTP / HTTPS)，可直接作为系统代理 (同时支持 PAC)</li>
+</ul>
+<p>作者应该是考虑到国内服务器高价低配的情况，特意增加了解锁海外限制的特性，但是我是不太建议使用海外 VPS 的，因为我国对爬墙头这事封禁的还是挺严格的，我和朋友之前的好几个 SS 代理都被封了 IP，后来换成了 SSR，情况才有所好转，所以基于 HTTP/HTTPS 的海外代理我是不建议的，没两天 IP 被墙了那就有点得不偿失了。国内服务器的话可以考虑走学生身份购买，因为我学生身份认证还没过期，所以就直接买了阿里云的轻量级服务器。年龄不在 12-25 岁之间的同学可以向这个年龄区间的亲戚朋友借用一下身份信息。当然，如果你只在电脑上用客户端听歌的话那就完全不用这么麻烦了，直接在自己电脑上把项目跑起来，网易云代理一改就可以直接使用了。</p>
+<p><strong><em>本地使用</em></strong></p>
+<p>Windows 通过浏览器下载 nodejs，安装时应该是默认添加了环境变量的。Linux 通过自己的包管理或者自行编译安装 nodejs。</p>
+<p>安装完成后在各自的终端里输入：</p>
+<div class="highlight"><pre><span></span>npx @nondanee/unblockneteasemusic
+</pre></div>
+
+
+<p>然后把网易云音乐的代理改为 unblockneteasemusic 代理的地址：</p>
+<div align="center"><img class="img-responsive" src="https://jenisec.nos-eastchina1.126.net/NeteaseMusic/UnblockNeteaseMusic-1.png" alt="UnblockNeteaseMusic-1.png" /></div>
+
+<p>点击确定后网易云会重启，之后就可以使用了。</p>
+<p><strong><em>公网使用</em></strong></p>
+<p>就像上边说的，公网使用首先需要有一个公网的服务器，我买了北京地区的阿里云的轻量级服务器，系统使用了默认的 CentOS 7.3，以下为搭建流程：</p>
+<p>安装 epel 源：</p>
+<div class="highlight"><pre><span></span>yum install epel-release
+</pre></div>
+
+
+<p>安装 nodejs：</p>
+<div class="highlight"><pre><span></span>yum install nodejs
+</pre></div>
+
+
+<p>验证是否正确安装 nodejs：</p>
+<div class="highlight"><pre><span></span>node -v
+</pre></div>
+
+
+<p>安装 Git:</p>
+<div class="highlight"><pre><span></span>yum install git
+</pre></div>
+
+
+<p>克隆 UnblockNeteaseMusic 仓库：</p>
+<div class="highlight"><pre><span></span>git clone https://github.com/nondanee/UnblockNeteaseMusic.git
+</pre></div>
+
+
+<p>运行 UnblockNeteaseMusic:</p>
+<div class="highlight"><pre><span></span>cd UnblockNeteaseMusic
+node app.js
+</pre></div>
+
+
+<p>到这里把客户端 HTTP 代理设置成 服务器IP:8080 就可以使用了，但是这种启动方式容易被滥用，任何人拿到你的 IP 和端口，都可以没有限制的使用你的服务器做代理，所以作者提供了一个 -s 严格模式，也就是仅放行网易云音乐所属域名的请求，不过这样也是有弊端的，这种启动方式仅支持 PAC 或 Hosts，配置起来相对麻烦，而且我几乎下载了所有支持 HTTP 代理的 APP，发现安卓平台下竟然没有一个好用一点的 HTTP 代理软件，高版本安卓上 Postern 代理规则不生效，Drony 配置起来比较复杂，要针对每一个网络都做一次配置，对于手机这种网络经常切换的平台实在是不太方便。最后我是在翻看项目已经 close 的 Issue 时候发现，有人提到过可以将 HTTP 流量转换成 Socks5 流量，从而解决安卓上没有好用的代理软件的问题，这个可以通过开源项目 goproxy 实现，goproxy 提供了 SPS 协议转换功能，刚好用来在 http/https 和 Socks5 协议之间互相转换。</p>
+<div align="center"><img class="img-responsive" src="https://jenisec.nos-eastchina1.126.net/NeteaseMusic/UnblockNeteaseMusic-2.png" alt="UnblockNeteaseMusic-2.png" /></div>
+
+<div align="center"><img class="img-responsive" src="https://jenisec.nos-eastchina1.126.net/NeteaseMusic/UnblockNeteaseMusic-3.png" alt="UnblockNeteaseMusic-3.png" /></div>
+
+<p>将上面运行的 UnblockNeteaseMusic 项目停止。安装 goproxy：</p>
+<div class="highlight"><pre><span></span>Ctrl+C
+curl -L https://raw.githubusercontent.com/snail007/goproxy/master/install_auto.sh | bash
+</pre></div>
+
+
+<p>安装 Screen 工具，用来在后台运行程序，避免关闭终端的同时程序停止</p>
+<div class="highlight"><pre><span></span>yum install screen
+</pre></div>
+
+
+<p>新建一个 screen</p>
+<div class="highlight"><pre><span></span>screen -S music
+</pre></div>
+
+
+<p>在 screen 下运行代理</p>
+<div class="highlight"><pre><span></span>node app.js &amp;
+# 如果使用自签证证书的话使用下面的命令
+node app.js -p 8080:443 &amp;
+</pre></div>
+
+
+<p>使用 goproxy 将 http/https 流量转为 socks5 流量，并添加 --disable-http 禁用 http 协议</p>
+<div class="highlight"><pre><span></span>proxy sps -S http -T tcp -P 127.0.0.1:8080 -t tcp -p :端口号 -h 加密方式 -j 密码 --disable-http
+# 如果使用自签证证书的话使用下面的命令，UnblockNeteaseMusic 项目的仓库里提供了一个证书，信不过作者的话可以使用 openssl 制作自己的证书
+proxy sps -S http -T tls -P 127.0.0.1:443 -t tcp -p :端口号 -C server.crt -K server.key -h 加密方式 -j 密码 --disable-http
+</pre></div>
+
+
+<p>程序运行成功后，使用 Ctrl+A+D 退出 screen。</p>
+<p>配置防火墙，如果买的服务器管理面板支持设置的话可以直接在面板上设置，如果不支持，那就使用系统自带的防火墙，将你设置的端口流量放行。之后再各个平台设置 Socks5 代理就可以了。</p>
+<p><strong><em>效果图</em></strong></p>
+<div align="center"><img class="img-responsive" src="https://jenisec.nos-eastchina1.126.net/NeteaseMusic/UnblockNeteaseMusic-4.png" alt="UnblockNeteaseMusic-4.png" /></div>
+
+<div align="center"><img class="img-responsive" src="https://jenisec.nos-eastchina1.126.net/NeteaseMusic/UnblockNeteaseMusic-5.png" alt="UnblockNeteaseMusic-5.png" /></div>
+
+<p><strong><em>最后</em></strong></p>
+<p>尊重版权、为音乐付费是对的，毕竟音乐人也要吃饭，但是大厂们如果单纯是为了利益而争夺版权的话，那实在有违把用户放在首位的原则，最终苦的还是我们消费者。</p>
+<p>希望有那么一天，可以不用通过技术手段，从一个软件里听到所有歌曲，那真是再好不过了。</p>
+<p><strong><em>参考</em></strong></p>
+<blockquote>
+<p><a href="https://github.com/nondanee/UnblockNeteaseMusic">https://github.com/nondanee/UnblockNeteaseMusic</a><br>
+<a href="https://www.lajiblog.com/index.php/archives/4/">https://www.lajiblog.com/index.php/archives/4/</a><br>
+<a href="https://github.com/snail007/goproxy">https://github.com/snail007/goproxy</a></p>
+</blockquote>
+        <hr />
+        <p>作者:&#160; &#160;JenI&#160; &#160;转载请注明出处，谢谢</p>
+    </article>
+
+    <hr>
+
+        <div class="comments">
+            <h2>Comments !</h2>
+            <div id="disqus_thread"></div>
+            <script type="text/javascript">
+                var disqus_shortname = 'jenihk';
+                var disqus_identifier = 'diary/UnblockNeteaseMusic.html';
+                var disqus_url = 'https://blog.jenisec.org/diary/UnblockNeteaseMusic.html';
+                (function() {
+                    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+                    dsq.src = '//jenihk.disqus.com/embed.js';
+                    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+                })();
+            </script>
+            <noscript>Please enable JavaScript to view the comments.</noscript>
+        </div>
+ <!--                   
+    <div id="disqus_thread"></div>
+    <script>
+
+/**
+*  RECOMMENDED CONFIGURATION VARIABLES: EDIT AND UNCOMMENT THE SECTION BELOW TO INSERT DYNAMIC VALUES FROM YOUR PLATFORM OR CMS.
+*  LEARN WHY DEFINING THESE VARIABLES IS IMPORTANT: https://disqus.com/admin/universalcode/#configuration-variables*/
+/*
+var disqus_config = function () {
+this.page.url = PAGE_URL;  // Replace PAGE_URL with your page's canonical URL variable
+this.page.identifier = PAGE_IDENTIFIER; // Replace PAGE_IDENTIFIER with your page's unique identifier variable
+};
+*/
+        (function() { // DON'T EDIT BELOW THIS LINE
+            var d = document, s = d.createElement('script');
+            s.src = '//jenihk.disqus.com/embed.js';
+            s.setAttribute('data-timestamp', +new Date());
+            (d.head || d.body).appendChild(s);
+        })();
+    </script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+-->
+            </div>
+        </div>
+    </div>
+
+    <hr>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                    <ul class="list-inline text-center">
+                        <li>
+                            <a href="http://weibo.com/1992014191/profile?rightmod=1&wvr=6&mod=personinfo&is_all=1">
+                                <span class="fa-stack fa-lg">
+                                    <i class="icon iconfont">&#xe657;</i>
+                                </span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="http://github.com/jenihk">
+                                <span class="fa-stack fa-lg">
+                                    <i class="icon iconfont">&#xe618;</i>
+                                </span>
+                            </a>
+                        </li>
+                    </ul>
+                    <p class="copyright text-muted">Blog powered by <a href="http://getpelican.com">Pelican</a>,
+                which takes great advantage of <a href="http://python.org">Python</a>.</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- jQuery -->
+    <script src="https://blog.jenisec.org/theme/js/jquery.js"></script>
+
+    <!-- Bootstrap Core JavaScript -->
+    <script src="https://blog.jenisec.org/theme/js/bootstrap.min.js"></script>
+
+    <!-- Custom Theme JavaScript -->
+    <script src="https://blog.jenisec.org/theme/js/clean-blog.min.js"></script>
+    
+    <!-- CanvasParticles -->
+    <script src="https://blog.jenisec.org/theme/js/canvas-particle.js"></script>
+
+    
+
+    <script type="text/javascript">
+        CanvasParticle();
+    </script>
+
+    <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-85780345-1']);
+    _gaq.push(['_trackPageview']);
+    (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+    </script>
+<script type="text/javascript">
+    var disqus_shortname = 'jenihk';
+    (function () {
+        var s = document.createElement('script'); s.async = true;
+        s.type = 'text/javascript';
+        s.src = '//' + disqus_shortname + '.disqus.com/count.js';
+        (document.getElementsByTagName('HEAD')[0] || document.getElementsByTagName('BODY')[0]).appendChild(s);
+    }());
+</script>
+</body>
+
+</html>
