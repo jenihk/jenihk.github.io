@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="zh">
+
+<head>
+            <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="description" content="">
+        <meta name="author" content="">
+
+        <title>JenI's Blog</title>
+
+        <link rel="icon" href="https://blog.jenisec.org/theme/images/favicon.ico" type="image/x-icon">  
+        <link rel="shortcut icon" href="https://blog.jenisec.org/theme/images/favicon.ico" type="image/x-icon">  
+
+
+        <link href="https://blog.jenisec.org/theme/css/iconfont.css" rel="stylesheet">
+
+        <!-- Bootstrap Core CSS -->
+        <link href="https://blog.jenisec.org/theme/css/bootstrap.min.css" rel="stylesheet">
+
+        <!-- Custom CSS -->
+        <link href="https://blog.jenisec.org/theme/css/clean-blog.min.css" rel="stylesheet">
+
+        <!-- Code highlight color scheme -->
+            <link href="https://blog.jenisec.org/theme/css/code_blocks/monokai.css" rel="stylesheet">
+
+        <!-- Custom Fonts -->
+        <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.1.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+        <link href='https://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+        <link href='https://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/css'>
+
+        <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+        <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+        <!--[if lt IE 9]>
+            <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+            <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+        <![endif]-->
+
+
+
+
+
+
+			<meta property="og:locale" content="zh">
+		<meta property="og:site_name" content="JenI's Blog">
+
+	<meta property="og:type" content="article">
+	<meta property="article:author" content="">
+	<meta property="og:url" content="https://blog.jenisec.org/reverse/win32-disassembly.html">
+	<meta property="og:title" content="逆向工程 - Win32 反汇编基础">
+	<meta property="og:description" content="">
+	<meta property="og:image" content="https://blog.jenisec.org/../theme/images/posts/reverse-engineering/cover.png">
+	<meta property="article:published_time" content="2019-09-17 00:00:00+08:00">
+</head>
+
+<body style="background-color: #f8f8f8">
+
+    <!-- Navigation -->
+    <nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+        <div class="container-fluid">
+            <!-- Brand and toggle get grouped for better mobile display -->
+            <div class="navbar-header page-scroll">
+                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <a class="navbar-brand" href="https://blog.jenisec.org/">JenI's Blog</a>
+            </div>
+
+            <!-- Collect the nav links, forms, and other content for toggling -->
+            <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+                <ul class="nav navbar-nav navbar-right">
+                        <li><a href="https://blog.jenisec.org/category/ji-qi-xue-xi.html">机器学习</a></li>
+                        <li><a href="https://blog.jenisec.org/category/ni-xiang-gong-cheng.html">逆向工程</a></li>
+                        <li><a href="https://blog.jenisec.org/category/an-quan.html">安全</a></li>
+                        <li><a href="https://blog.jenisec.org/category/xi-tong.html">系统</a></li>
+                        <li><a href="https://blog.jenisec.org/category/ri-chang.html">日常</a></li>
+
+                </ul>
+            </div>
+            <!-- /.navbar-collapse -->
+        </div>
+        <!-- /.container -->
+    </nav>
+
+    <!-- Page Header -->
+        <header class="intro-header" style="background-image: url('../theme/images/posts/reverse-engineering/cover.png')">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                    <div class="post-heading">
+                        <h1>逆向工程 - Win32 反汇编基础</h1>
+                        <span class="meta">Posted by
+                                <a href="https://blog.jenisec.org/author/jeni.html">JenI</a>
+                             on 2019-09-17 00:00:00+08:00
+                        </span>
+                        
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1" style="background-color: #f8f8f8;position: relative;">
+    <!-- Post Content -->
+    <article style="background-color: #f8f8f8;position: relative;">
+        <p><strong><em>前言</em></strong></p>
+<p>逆向工程，英文是reverse_engineering，是一种根据已有的东西推导出具体实现方法的技术。在计算机领域，逆向工程常用于挖掘漏洞、分析病毒、破解软件、制作游戏辅助等。而汇编语言作为所有高级语言的基础，对于逆向工程来说更是必不可少的一部分，因此，学习 CPU 工作原理和汇编语言通常是掌握逆向工程技术的第一步。下面是我整理的一些关于 Win32 反汇编的基础知识。</p>
+<p><strong><em>Win32 反汇编基础</em></strong></p>
+<p><font color="#EE7942">一、十六进制</font></p>
+<p>十进制是我们平时最常用的进制，用数字 0-9 表示每一个元素，而十六进制，它是在十进制的基础上，增加了 A,B,C,D,E,F 六个元素，用以代表十进制中的 10,11,12,13,14,15。十六进制，顾名思义，逢十六进一。下面是几个简单的例子：</p>
+<ul>
+<li>9 + 1 = A (十进制的 10)</li>
+<li>F + 1 = 10 (十进制的 16)</li>
+<li>A + B = 15 (十进制的 21)</li>
+<li>FF + 1 = 100 (十进制的 256)</li>
+</ul>
+<p>为了区别不同进制的同一数字，十六进制一般会在数字前加 0x，如 0x123，或在末尾加 H，如 123H</p>
+<p>十六进制的负数通常使用补码的方式表示，所谓补码即它本身的值按位取反，最后再加一，例如 -3 的十六进制表示方式为 0x00000003 取反 0xFFFFFFFC 再加一，最终等于 0xFFFFFFFD</p>
+<p><font color="#EE7942">二、内存单元长度修饰</font></p>
+<ol>
+<li>
+<p>BIT(位): 在计算机中，由于只有逻辑 0 和逻辑 1 的存在，所以所有的操作、数据等最终都会表示为一串二进制的字码。其中，每个逻辑 0 或者 1 便是一个位，它是计算机中最基本的单位</p>
+</li>
+<li>
+<p>BYTE(字节)(C 语言中的 unsigned char 类型): 8 个位表示为一个字节，所以一个字节的范围二进制为 00000000-11111111，十进制表示为 0-255。而汇编中通常表示为 16 进制，范围 0-0xFF</p>
+</li>
+<li>
+<p>WORD(字)(C 语言中的 unsigned short 类型): 一个字由两个字节组成，共有 16 位。十进制范围 0-65535，十六进制范围 0-0xFFFF</p>
+</li>
+<li>
+<p>DWORD(双字)(C 语言中的 unsigned int 类型): 一个双字包含两个字，即 4 个字节，共有 32 位。十进制范围 0-4294967295(4G)，十六进制范围 0-0xFFFFFFFF</p>
+</li>
+</ol>
+<p><font color="#EE7942">三、寄存器</font></p>
+<p>寄存器是 CPU 内重要的组成部分，用于暂存指令、数据和地址。Intel x86 CPU 中，有如下寄存器</p>
+<p><font color="#6495ED">1. 通用寄存器(32 位，8 个)</font></p>
+<ul>
+<li>EAX: 累加器</li>
+<li>EBX: 基址寄存器</li>
+<li>ECX: 计数器</li>
+<li>EDX: 数据寄存器</li>
+<li>ESI: 源变址寄存器</li>
+<li>EDI: 目的变址寄存器</li>
+<li>EBP: 扩展基址指针寄存器</li>
+<li>ESP: 栈指针寄存器</li>
+</ul>
+<p>这些通用寄存器由 IA-16 的 16 位扩展而来，因此使用 "E"+原16位寄存器名 的方式表示，如 AX =&gt; EAX。为了实现对低 16 位的兼容，各寄存器又可以分为高(H:High)、低(L:Low)几个独立寄存器，如 EAX 可表示为：</p>
+<div align="center"><img class="img-responsive" src="https://jenisec.nos-eastchina1.126.net/reverse-engineering/WDwIo.png" alt="WDwIo" /></div>
+
+<p>如图所示，EAX 低 16 位可用 AX 表示，AX 的高 8 位表示为 AH，低 8 位表示为 AL，这些寄存器都可以被独立使用</p>
+<p><font color="#6495ED">2. 段寄存器(16 位，6 个)</font></p>
+<ul>
+<li>CS(code segment): 代码段寄存器，用于存放应用程序代码所在段的段基址</li>
+<li>DS(data segment): 数据段寄存器，用于存放数据段的段基址</li>
+<li>ES(extra segment): 附加段寄存器，用于存放程序使用的附加数据段的基地址</li>
+<li>SS(stack segment): 栈段寄存器，用于存放栈段的段基址</li>
+</ul>
+<p><font color="#6495ED">3. 程序状态与控制寄存器(32 位，1 个)</font></p>
+<p>EFLAGS: 标志寄存器，EFLAGS 共 32 位，每一位都有意义，其值为 0(False) 或 1(True)。<br>
+<div align="center"><img class="img-responsive" src="https://jenisec.nos-eastchina1.126.net/reverse-engineering/EFLAGS.png" alt="EFLAGS" /></div><br>
+这些标志位的值大部分由系统指定，而可能受到指令或计算影响的标志位则会在调试工具中被展示，例如 OD 中就对下列标志位进行了直观的展示，其中 ZF、OF、CF，这三个标志位在逆向过程中最为重要，因为其可能影响了程序运行过程中的执行逻辑。</p>
+<ul>
+<li>CF(进位标志位): 当执行一个加法或减法运算时，最高位产生进位或借位时，CF 值将被置为 1，否则为 0</li>
+<li>ZF(零标志位): 若当前运算结果为 0，则 ZF 为 1，否则为 0</li>
+<li>SF(符号标志位): 该标志位与运算结果的最高位相同。即运算结果为负，则 SF 为 1，否则 SF 为 0</li>
+<li>
+<p>OF(溢出标志位): 若运算结果超出机器能够表示的范围则会溢出，此时 OF 为 1，否则为 0。<br>
+判断溢出的方法: 进行二进制运算时，最高位的进位与次高位的进位值进行异或运算，若运算结果为 1，则表示溢出，OF=1，否则 OF=0<br>
+（1）.同号相加和异号相减才可能发生溢出；<br>
+（2）.同号相加结果的符号与参与运算的符号不同就溢出；<br>
+（3）.异号相减结果的符号位与被减数的符号位不同就产生溢出；</p>
+</li>
+<li>
+<p>PF(奇偶标志位): 当运算结果的最低 16 位中含 1 的个数为偶数则 PF=1，否则 PF=0</p>
+</li>
+<li>AF(辅助进位标志): 一个加法或减法运算结果的低 4 位向高 4 位有进位或借位时 AF=1，否则 AF=0</li>
+<li>TF(跟踪标志位): 该标志位为方便程序调试而设计，若 TF=1，CPU 处于单步工作方式，即在每条指令执行结束后，产生中断</li>
+<li>IF(中断标志位): 该标志位用来控制 CPU 是否响应可屏蔽中断，若 IF=1，则运行中断，否则禁止中断</li>
+<li>DF(方向标志位): 该标志位用来控制字符串处理指令的处理方向，若 DF=1，则字符串处理过程中自动递减，否则自动递增</li>
+</ul>
+<p><font color="#6495ED">4. 指令指针寄存器(32 位，1 个)</font></p>
+<ul>
+<li>EIP： 指令指针寄存器: EIP 内保存着CPU要执行的下一条指令地址。程序运行时，CPU 会读取 EIP 中的指令地址，将指令传送到指令缓冲区后，EIP 寄存器的值会自动增加，增加大小为读取指令的字节大小</li>
+</ul>
+<p><font color="#6495ED">5. 浮点寄存器(80 位，8 个)</font></p>
+<ul>
+<li>ST0-ST7: 浮点寄存器是两用寄存器，当使用 ST0-ST7 表示时，这八个寄存器又称浮点运算单元(Float Point Unit, FPU)，专门用来做浮点数运算。当使用 MM0-MM7 表示时，用来处理多媒体数据，如语音、图像、视频等。</li>
+</ul>
+<div align="center"><img class="img-responsive" src="https://jenisec.nos-eastchina1.126.net/reverse-engineering/float.png" alt="float" /></div>
+
+<p><font color="#EE7942">四、字节序</font></p>
+<p>字节序表示多字节数据在计算机内存中存储或网络传输时各字节的存储顺序，主要分为小端序和大端序两类。</p>
+<div align="center"><img class="img-responsive" src="https://jenisec.nos-eastchina1.126.net/reverse-engineering/endian.png" alt="endian" /></div>
+
+<p>如图所示，如果采用大端序存储数据，内存地址的低位存储数据的高位，内存地址的高位存储数据的低位，即高位低地址，低位高地址。而采用小端序存储数据的话，内存地址的低位存储数据的低位，内存地址的高位存储数据的高位，即高位高地址，低位低地址。需要注意的是，字节型的数据其长度本身为一个字节，因此在存储这样的数据时，采用大端序和小端序的字节顺序都是一样的。char[] 类型的字符数组在内存中是连续的，所以存入此字符数组的的数据，顺序也是一样的，如下图所示：</p>
+<div align="center"><img class="img-responsive" src="https://jenisec.nos-eastchina1.126.net/reverse-engineering/endian-2.png" alt="endian-2" /></div>
+
+<p><font color="#EE7942">五、栈</font></p>
+<p>栈通常用于存储局部变量、传递函数参数、保存函数返回地址等，它按照后进先出的原则存储数据</p>
+<div align="center"><img class="img-responsive" src="https://jenisec.nos-eastchina1.126.net/reverse-engineering/stack.png" alt="x.png" /></div>
+
+<p>在一个进程中，初始的栈顶指针(ESP)指向栈的栈底位置。执行 PUSH 指令将数据压入栈时，栈顶指针就会上移到栈顶位置。执行 POP 指令将数据弹出栈时，栈顶位置下降，栈顶指针也就随之下移。也就是说，栈顶指针始终指向一个数据栈的栈顶位置。而对于一个栈而言，栈底位置属于内存空间中的高地址，因此在向栈中压入数据时，栈顶指针向上(低地址)移动，ESP 减小，从栈中弹出数据时，栈顶指针向下(高地址)移动，ESP 增加。</p>
+<p><font color="#EE7942">六、常用汇编指令</font></p>
+<ul>
+<li>
+<p><font color="#6495ED">MOV 传送指令:</font> 用于将源数赋值给目的数<br>
+ 语法: MOV 目的数, 源数<br>
+ 变形 1: MOVS/MOVSB/MOVSW/MOVSD EDI, ESI (将 ESI 指向的内容传送到 EDI 中，其中 B、W、D 分别指 BYTE、WORD、DWORD，用于修饰所传送的数据长度)<br>
+ 变形 2: MOVSX (符号扩展传送，将单字或者单字节扩展为双字或者双字节传送，原符号不变)<br>
+ 变形 3: MOVZX (零扩展传送，扩展单字节或单字为双字节或双字并且用 0 填充剩余部分)<br>
+ MOVSX 和 MOVZX 语法格式与 MOV 相同，但是这两个指令要求源数的操作空间必须小于操作数 A，比如: MOVSX/MOVZX EAX, AX。另外一点需要注意的是，MOV 指令为原值传送，传送后数值不会发生改变，而 MOVSX 和 MOVZX 都有可能会改变原值。</p>
+</li>
+<li>
+<p><font color="#6495ED">ADD 加法指令:</font> 将一个数值加在一个寄存器上或者一个内存地址上，结果影响 ZF、OF、CF 标志位<br>
+ 语法: ADD 目的数，源数<br>
+ 使用高级语言表示为 目的数 = 目的数 + 源数</p>
+</li>
+<li>
+<p><font color="#6495ED">SUB 减法指令:</font> 将一个寄存器或者一个内存地址的数值减去一个数值，结果影响 ZF、OF、CF 标志位<br>
+ 语法: SUB 目的数，源数<br>
+ 使用高级语言表示为 目的数 = 目的数 - 源数</p>
+</li>
+<li>
+<p><font color="#6495ED">IMUL 有符号乘法: </font> 结果可能影响 OF、CF<br>
+ 语法 1: IMUL 数值 - 数值乘以 AL、AX 或 EAX 寄存器(取决于数值大小)中的值，乘积分别存储到 AX、AX/DX 或 EAX/EDX 寄存器<br>
+ 语法 2: IMUL 目标寄存器, 数值 - 目标寄存器中的值乘以数值，乘积存储到目标存储器<br>
+ 语法 3: IMUL 目标寄存器, 数值, 数值 - 两个数值相乘，乘积存储到目标存储器</p>
+</li>
+<li>
+<p><font color="#6495ED">MUL 无符号乘法: </font> MUL 指令同 IMUL 指令相同，不过 MUL 指令可以乘无符号数<br>
+ 语法 1: IMUL 数值 - 数值乘以 AL、AX 或 EAX 寄存器(取决于数值大小)中的值，乘积分别存储到 AX、AX/DX 或 EAX/EDX 寄存器<br>
+ 语法 2: IMUL 目标寄存器, 数值 - 目标寄存器中的值乘以数值，乘积存储到目标存储器<br>
+ 语法 3: IMUL 目标寄存器, 数值, 数值 - 两个数值相乘，乘积存储到目标存储器</p>
+</li>
+<li>
+<p><font color="#6495ED">IDIV 有符号除法: </font> 用来将 EAX 除以除数(有符号除法)，被除数通常是 EAX，结果也储存在 EAX 中，而被除数对除数取的模最终存在除数中。<br>
+ 语法: IDIV 除数</p>
+</li>
+<li>
+<p><font color="#6495ED">DIV 无符号除法: </font> DIV 指令同 IDIV 指令相同，不过 DIV 是无符号的除法<br>
+ 语法: DIV 除数</p>
+</li>
+<li>
+<p><font color="#6495ED">PUSH 入栈指令:</font> 用于将数据压入栈<br>
+ 语法: PUSH 操作数(操作数可以是寄存器，存储器，或者立即数)<br>
+ 等价于顺序执行下面的两条命令  </p>
+<blockquote>
+<p>SUB ESP, 4<br>
+MOV [ESP], EBP</p>
+</blockquote>
+</li>
+<li>
+<p><font color="#6495ED">POP 出栈指令: </font><br>
+ 语法: POP 操作数(操作数可以是寄存器，存储器，或者立即数)<br>
+ 等价于顺序执行下面的两条命令  </p>
+<blockquote>
+<p>MOV EBP, [ESP]<br>
+ADD ESP, 4</p>
+</blockquote>
+</li>
+<li>
+<p><font color="#6495ED">AND、OR、SETE、SETNE、XOR</font><br>
+ <font color="#6495ED">OR 或运算 :</font><br>
+ 逻辑或(C 中的 ||): 全假为假，有真则为真。(截断原理: 将更大可能性为真的条件放在或的前面，则可以在验证完第一个条件后直接结束判断，因为只要前面的条件为真，后面的条件不管是否为真，最终结果都为真)。OR 指令会清空 OF、CF 标志位，设置 ZF 标志位<br>
+ 按位或(C 中的 |): 每一个 bit 位做或运算，如 00110011 和 01100110 做按位或，结果为 01110111<br>
+ <font color="#6495ED"> 与运算 :</font><br>
+ 逻辑与(C 中的 &amp;&amp;): 全真为真，有假则为假。也遵循截断原理(将更大可能性为假的条件放在前面)<br>
+ 按位与(C 中的 &amp;): 每一个 bit 位做与运算，如 00110011 和 01100110 做按位与，结果为 00100010<br>
+ <font color="#6495ED">非运算 :</font><br>
+ 逻辑取反(C 中的 !): 假变真，真变假，通过 ZF 标志位的值来确定<br>
+ SETE/SETNE : 取 ZF 标志位的值保存/取 ZF 标志位取反的值保存<br>
+ 按位取反(C 中的 ~): 每一个 bit 位取反，如 00110011 取反后，结果为 11001100，指令为 NOT<br>
+ <font color="#6495ED">XOR 异或运算 :</font><br>
+ 按位异或，相当于 C 中的 ^，相同为 0，不同为 1。比如 1101 ^ 0110 = 1011<br>
+ 异或常用于将寄存器清零，如 XOR EAX, EAX</p>
+</li>
+<li>
+<p><font color="#6495ED">浮点运算:</font> 浮点寄存器和栈类似，使用浮点运算指令向寄存器存入数据时，数据首先被存入 ST0，当再次执行存入指令时，原 ST0 中的值被存入 ST1，新的值存入 ST0。数值被取出时也按照 ST0-ST7 的顺序，所以说和栈的先进后出原则相似<br>
+ FLD : 相当于 PUSH 指令，将一个浮点数存入 ST0<br>
+ FSTP : 相当于 POP 指令，将 ST0 中的浮点数取出<br>
+ FADD : 相当于 ADD 指令，浮点数的加法指令，但语法格式略有区别，因为运行浮点数指令时数值会自动从浮点寄存器中取出，因此浮点运算指令后只加内存地址就可以了，下面的指令也是这样<br>
+ FSUB : 相当于 SUB 指令，浮点数的减法指令<br>
+ FMUL : 相当于 SUB 指令，浮点数的乘法指令<br>
+ FDIV : 相当于 SUB 指令，浮点数的除法指令<br>
+ FILD : 整数转浮点指令，将一个整数转为浮点数后存入 ST0<br>
+ CVTTSD2SI : 浮点数转整数指令，运用截断处理将 ST0 中的单精度浮点数转换成 r32 中一个有符号的双字整数(Intel CPU 针对 C++ 程序有一个 AND 指令的优化对齐操作，通过对齐 8 的边界上的指针从而加速数据处理速度，牺牲空间，节约时间)</p>
+</li>
+<li>
+<p><font color="#6495ED">CALL 函数调用:</font> 将当前 CPU 要执行的下一条指令地址(即 IP)压入栈，然后跳转到 CALL 指令指定的子程序处执行。<br>
+ 语法: CALL 操作数(操作数可以是寄存器，偏移地址，或者立即数)<br>
+ CALL 指令分为两种情况，一种是段内转移，另一种是段间转移。一个段内转移的 CALL 指令等价于顺序执行下面的两条指令  </p>
+<blockquote>
+<p>PUSH EIP<br>
+JMP 目的地址</p>
+</blockquote>
+</li>
+</ul>
+<p><div style="padding-inline-start: 40px">而段间转移的 CALL 指令等价于顺序执行下面的三条指令</div></p>
+<ul>
+<li>
+<blockquote>
+<p>PUSH CS<br>
+PUSH EIP<br>
+JMP 目的地址</p>
+</blockquote>
+</li>
+</ul>
+<div style="padding-inline-start: 40px">CS 和 EIP 两个寄存器决定了 CPU 执行指令的流程，因此在跳转到子程序之前，会将当前 CS 和 EIP 的值压入栈，接着执行 JMP 操作，此时的 CS 和 EIP 所指向的位置就是子程序的所在位置，待子程序执行完毕后，会调用 RET 指令，将栈中保存的 EIP 和 CS 值弹出，重新赋值给 EIP 和 CS 寄存器，这样程序执行的流程就重新回到了 CALL 指令的下一条指令位置。</div>
+
+<div style="padding-inline-start: 40px">CALL 指令也会对 EBP 和 ESP 进行操作，每个 CALL 指令会分配一个独立的栈段空间，供局部变量使用。而在分配这个栈段之前，如果需要向 CALL 指令调用的子函数传递参数的话，会先执行 PUSH 操作将参数依次压入栈，等到 CALL 指令执行完毕后，通常会使用 “ADD ESP, 参数所占用空间大小” 命令将 ESP 值还原。</div>
+
+<div style="padding-inline-start: 40px">CALL 指令还涉及寄存器保护的概念，子程序执行时，会先把即将使用到的寄存器内的值 PUSH 入栈中保存，待子程序内的指令结束后，将栈中的值逆序弹出(后进先出)，保存回原来的寄存器。</div>
+
+<ul>
+<li>
+<p><font color="#6495ED">RET 返回指令:</font> 从子程序中退出到调用它的 CALL 指令处，此时栈中保存的 EIP 和 CS 值弹出，重新赋值给 EIP 和 CS 寄存器</p>
+</li>
+<li>
+<p><font color="#6495ED">CMP 比较指令:</font> 用于比较两个值的大小，实际上是对两个值进行了减法操作，结果影响 ZF、OF、CF 标志位，但是并不会对计算结果进行储存<br>
+ 语法: CMP 操作数1, 操作数2<br>
+ CMP 指令主要用于配合条件转移指令使用，如 JZ/JE 等命令</p>
+</li>
+<li>
+<p><font color="#6495ED">TEST</font><br>
+ TEST 指令通常用于判断寄存器是否为 0，它和 AND 有相同的功能，但是不储存结果，仅改变 ZF 标志位的值，寄存器为 0 则将 ZF 标志位置为 1，寄存器不为 0 则将 ZF 标志位置为 0</p>
+</li>
+<li>
+<p><font color="#6495ED">JUMPS 条件转移指令:</font> 根据指令的不同，对指定标志位进行判断，满足条件则跳转(其中 E(equal)/Z(zero)等价，属于同一指令的两种助记符，均判断 ZF 标志位是否为 1)<br>
+ 语法: 指令 地址  </p>
+<blockquote>
+<p>JMP 地址:           无条件跳转，直接跳转到指定地址处，相当于 C 中的 GOTO 命令<br>
+ JE/JZ 地址:         ZF = 1 时，跳转到指定地址处<br>
+ JNE/JNZ 地址:       ZF = 0 时，跳转到指定地址处<br>
+ JL/JNGE 地址:       SF != OF 时，小于/不大于等于则跳转到指定地址处(有符号)<br>
+ JLE/JNG 地址:       ZF = 1 and SF != OF 时，小于等于/不大于则跳转到指定地址处(有符号)<br>
+ JG/JNLE 地址:       ZF = 0 and SF = OF 时，大于/不小于等于则跳转到指定地址处(有符号)<br>
+ JA/JNBE 地址:       CF = 0 and ZF = 0 时，高于/不低于等于则跳转到指定地址处(无符号)<br>
+ JNB/JAE/JNC 地址:   CF = 0 时，不低于/高于或等于/CF未被标记(无进位)则跳转到指定地址处(无符号)<br>
+ JB/JNAE/JC 地址:    CF = 1 时，低于/不高于等于/CF被标记(有进位)则跳转到指定地址处(无符号)<br>
+ JBE/JNA 地址:       CF = 1 or ZF = 1，低于或等于/不高于则跳转到指定地址处(无符号)  </p>
+</blockquote>
+</li>
+<li>
+<p><font color="#6495ED">INC、DEC</font><br>
+ 语法: INC/DEC 操作数<br>
+ 相当于 ADD/SUB 指令的 +1/-1 操作，等价于 C 中的 i++、++i / i--、--i。虽然和加减一操作的结果相同，但是 INC/DEC 相较于 ADD/SUB 指令来说，速度更快，占用空间更小。自增自减命令结果会影响 AF、CF、PF、SF、ZF 标志位，但是不影响 CF 进位标志位</p>
+</li>
+<li>
+<p><font color="#6495ED">LEA 有效地址传送指令</font><br>
+ 语法: LEA 目的数、源数<br>
+ LEA 用于取偏移地址，例如 LEA AX,[1000H]，作用是将源数 [1000H] 的偏移地址 1000H 送至 AX。理解时，可直接将[ ]去掉，等同于 MOV AX,1000H</p>
+</li>
+<li>
+<p><font color="#6495ED">NOP 空指令</font><br>
+ NOP 指令表示不做任何事，常用于逆向过程中改变程序执行逻辑，将某些指令移除</p>
+</li>
+<li>
+<p><font color="#6495ED">循环控制指令: </font>使用 ECX 寄存器作为计数器，来控制程序的循环，每次循环 ECX 减 1，如果 ECX != 0，则跳转回标号处执行<br>
+ 语法: LOOP 标号</p>
+</li>
+<li>
+<p><font color="#6495ED">位移指令</font><br>
+ SHR 逻辑右移指令 : 右移一位相当于整除 2，用 0 来补位<br>
+ SHL 逻辑左移指令 : 左移一位相当于乘以 2，用 0 来补位(可能会有溢出)<br>
+ SAR 算术右移指令 : 右移时保留操作数的符号，即用符号位来补足<br>
+ SAL 算术左移指令 : 功能和 SHL 完全相同<br>
+ ROL 循环左移指令<br>
+ ROR 循环右移指令</p>
+</li>
+<li>
+<p><font color="#6495ED">串比较相关指令</font><br>
+ SCASB/SCASW/SCASD 串比较指令 : 将 AL 或 AX 中的内容与目标串最比较，编译后显示为 SCAS BYTE PTR ES:[EDI]，指令效果相当于 CMP BYTE PTR [EDI], AL<br>
+ SCASB 指令对标志位的影响相当于 SUB 指令，同时还会修改寄存器 EDI 的值，如果 DF 标志位为 0，则 INC EDI，如果标志位为 1，则 DEC EDI<br>
+ REPNE/REPNZ 连续执行指令 : 当 ECX!=0 并且 ZF=0 时，重复执行后边的指令，每执行一次 ECX 减 1<br>
+ 结合使用: REPNZ SCASB 编译后表示为 REPNE SCAS BYTE PTR ES:[EID]，当 ECX!=0 且对应串元素不相同(ZF=0)时，继续重复执行串比较指令。一般用于计算字符串长度、定位特定字符串索引位置，或在内存中定位一串特征码<br>
+ CMPSB/CMPSW/CMPSD : 对标志位的影响相当于 SUB 指令，同时还会修改寄存器 EDI 和 ESI 的值。<br>
+ 如果 DF 为 0，则 EDI、ESI 按指定大小递增(BYTE WORD DWORD)，如果 DF 为 1，则 EDI、ESI 按指定大小递减(BYTE WORD DWORD)<br>
+ REPE/REPZ 连续执行指令 : 当 ECX!=0 并且 ZF=0 时，重复执行后边的指令，每执行一次 ECX 减 1<br>
+ 结合使用: REPE/REPZ CMPSB 经常用于比较串是否相等</p>
+</li>
+<li>
+<p><font color="#6495ED">STOSB/STOSW/STOSD 串存储指令:</font> 用于将串存储到指定内存地址中，相当于下面的命令  </p>
+<blockquote>
+<p>MOV BYTE PTR [EDI], AL<br>
+ MOV WORD PTR [EDI], AX<br>
+ MOV DWORD PTR [EDI], EAX  </p>
+</blockquote>
+</li>
+</ul>
+<div style="padding-inline-start: 40px">语法 : STOSB/STOSW/STOSD</div>
+
+<div style="padding-inline-start: 40px">结合使用: REP STOSB/STOSW/STOSD 。用 AL/AX/EAX 的值填充 BYTE/WORD/DWORD PTR [EDI]，每次 ECX 的值减 1，EDI 的值加 1/2/4</div>
+
+<ul>
+<li><font color="#6495ED">串加载指令: </font> 用于将指定内存地址中的串加载到指定寄存器，相当于下面的命令  <blockquote>
+<p>MOV AL, BYTE PTR [ESI]<br>
+ MOV AX, WORD PTR [ESI]<br>
+ MOV EAX, DWORD PTR [ESI]</p>
+</blockquote>
+</li>
+</ul>
+<div style="padding-inline-start: 40px">语法 : LODSB/LODSW/LODSD</div>
+
+<div style="padding-inline-start: 40px">结合使用: REP LODSB/LODSW/LODSD 。用 BYTE/WORD/DWORD PTR [ESI] 的值填充 AL/AX/EAX ，每次 ECX 的值减 1，ESI 的值加 1/2/4</div>
+
+<ul>
+<li><font color="#6495ED">条件置位指令</font><br>
+ SETZ/SETE: (== 比较时)取 ZF 标志位的值保存<br>
+ SETNZ/SETNE: (!= 比较时)取 ZF 标志位取反后的值保存<br>
+ SETG: (&gt; 比较时)，当 ZF = 0 &amp;&amp; SF = 0 &amp;&amp; OF = 1 时，AL = 1<br>
+ SETL: (&lt; 比较时)，当 SF = 1 || OF = 1 时，AL = 1<br>
+ SETGE :(&gt;= 比较时)，语法 SETGE 操作数，操作数可以是一个字节的存储单元，也可以是一个字节宽度的寄存器。作用是当 &gt;= 条件成立时，设定操作数值为 1，否则为 0，一般与 CMP 指令组合使用。效果等同于 JGE 指令，SF=OF 时，操作数的值则为 1<br>
+ SETLE :(&lt;= 比较时)，语法 SETGE 操作数，操作数可以是一个字节的存储单元，也可以是一个字节宽度的寄存器。作用是当 &lt;= 条件成立时，设定操作数值为 1，否则为 0，一般与 CMP 指令组合使用。效果等同于 JLE 指令，ZF=1 || SF!=OF 时，操作数的值则为 1</li>
+</ul>
+<p><font color="#EE7942">七、调用约定</font></p>
+<ol>
+<li>cdecl 调用约定</li>
+</ol>
+<p>__cdecl 是 C Declaration 的缩写，规定调用 CALL 指令前，参数从右到左依次入栈。这些参数由调用者清除，因此称为手动清栈(并不是指需要在高级语言中编写清栈代码，清栈工作由编译器自动添加到程序中)</p>
+<ol>
+<li>stdcall 调用约定(API 函数调用约定)</li>
+</ol>
+<p>__stdcall 是 Standard Call 的缩写，是 C++ 的标准调用方式，所有参数同样从右到左依次入栈，如果是调用类成员的话，最后一个入栈的是 this 指针。这些参数由被调用的函数在返回后清除，使用的指令是 retn xxx，xxx 表示参数占用的字节数，CPU 在执行 RET 操作后自动弹出这 xxx 字节的栈空间，因此称为自动清栈</p>
+<ol>
+<li>fastcall 调用约定</li>
+</ol>
+<p>__fastcall 是编译器指定的快速调用方式，它通常规定将前两个(或若干个)参数由寄存器传递，其余参数还是通过堆栈传递，这样做是因为寄存器的传输速度远大于内存的传输速度。如果传递的参数不多，没有用到栈空间的话，也就不会有堆栈平衡的过程。不同编译器编译的程序规定的寄存器不同，返回方式和 stdcall 相同</p>
+<p><strong><em>参考</em></strong></p>
+<blockquote>
+<p>《汇编语言》(第三版) - 王爽<br>
+<a href="https://www.freebuf.com/news/others/86147.html">https://www.freebuf.com/news/others/86147.html</a><br>
+<a href="https://www.bilibili.com/video/av48021550?t=6518">https://www.bilibili.com/video/av48021550?t=6518</a></p>
+</blockquote>
+        <hr />
+        <p>作者:&#160; &#160;JenI&#160; &#160;转载请注明出处，谢谢</p>
+    </article>
+
+    <hr>
+
+        <div class="comments">
+            <h2>Comments !</h2>
+            <div id="disqus_thread"></div>
+            <script type="text/javascript">
+                var disqus_shortname = 'jenihk';
+                var disqus_identifier = 'reverse/win32-disassembly.html';
+                var disqus_url = 'https://blog.jenisec.org/reverse/win32-disassembly.html';
+                (function() {
+                    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+                    dsq.src = '//jenihk.disqus.com/embed.js';
+                    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+                })();
+            </script>
+            <noscript>Please enable JavaScript to view the comments.</noscript>
+        </div>
+ <!--                   
+    <div id="disqus_thread"></div>
+    <script>
+
+/**
+*  RECOMMENDED CONFIGURATION VARIABLES: EDIT AND UNCOMMENT THE SECTION BELOW TO INSERT DYNAMIC VALUES FROM YOUR PLATFORM OR CMS.
+*  LEARN WHY DEFINING THESE VARIABLES IS IMPORTANT: https://disqus.com/admin/universalcode/#configuration-variables*/
+/*
+var disqus_config = function () {
+this.page.url = PAGE_URL;  // Replace PAGE_URL with your page's canonical URL variable
+this.page.identifier = PAGE_IDENTIFIER; // Replace PAGE_IDENTIFIER with your page's unique identifier variable
+};
+*/
+        (function() { // DON'T EDIT BELOW THIS LINE
+            var d = document, s = d.createElement('script');
+            s.src = '//jenihk.disqus.com/embed.js';
+            s.setAttribute('data-timestamp', +new Date());
+            (d.head || d.body).appendChild(s);
+        })();
+    </script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+-->
+            </div>
+        </div>
+    </div>
+
+    <hr>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                    <ul class="list-inline text-center">
+                        <li>
+                            <a href="http://weibo.com/1992014191/profile?rightmod=1&wvr=6&mod=personinfo&is_all=1">
+                                <span class="fa-stack fa-lg">
+                                    <i class="icon iconfont">&#xe657;</i>
+                                </span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="http://github.com/jenihk">
+                                <span class="fa-stack fa-lg">
+                                    <i class="icon iconfont">&#xe618;</i>
+                                </span>
+                            </a>
+                        </li>
+                    </ul>
+                    <p class="copyright text-muted">Blog powered by <a href="http://getpelican.com">Pelican</a>,
+                which takes great advantage of <a href="http://python.org">Python</a>.</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- jQuery -->
+    <script src="https://blog.jenisec.org/theme/js/jquery.js"></script>
+
+    <!-- Bootstrap Core JavaScript -->
+    <script src="https://blog.jenisec.org/theme/js/bootstrap.min.js"></script>
+
+    <!-- Custom Theme JavaScript -->
+    <script src="https://blog.jenisec.org/theme/js/clean-blog.min.js"></script>
+    
+    <!-- CanvasParticles -->
+    <script src="https://blog.jenisec.org/theme/js/canvas-particle.js"></script>
+
+    
+
+    <script type="text/javascript">
+        CanvasParticle();
+    </script>
+
+    <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-85780345-1']);
+    _gaq.push(['_trackPageview']);
+    (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+    </script>
+<script type="text/javascript">
+    var disqus_shortname = 'jenihk';
+    (function () {
+        var s = document.createElement('script'); s.async = true;
+        s.type = 'text/javascript';
+        s.src = '//' + disqus_shortname + '.disqus.com/count.js';
+        (document.getElementsByTagName('HEAD')[0] || document.getElementsByTagName('BODY')[0]).appendChild(s);
+    }());
+</script>
+</body>
+
+</html>
