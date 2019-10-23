@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="zh">
+
+<head>
+            <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="description" content="">
+        <meta name="author" content="">
+
+        <title>JenI's Blog</title>
+
+        <link rel="icon" href="https://blog.jenisec.org/theme/images/favicon.ico" type="image/x-icon">  
+        <link rel="shortcut icon" href="https://blog.jenisec.org/theme/images/favicon.ico" type="image/x-icon">  
+
+
+        <link href="https://blog.jenisec.org/theme/css/iconfont.css" rel="stylesheet">
+
+        <!-- Bootstrap Core CSS -->
+        <link href="https://blog.jenisec.org/theme/css/bootstrap.min.css" rel="stylesheet">
+
+        <!-- Custom CSS -->
+        <link href="https://blog.jenisec.org/theme/css/clean-blog.min.css" rel="stylesheet">
+
+        <!-- Code highlight color scheme -->
+            <link href="https://blog.jenisec.org/theme/css/code_blocks/monokai.css" rel="stylesheet">
+
+        <!-- Custom Fonts -->
+        <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.1.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+        <link href='https://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+        <link href='https://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/css'>
+
+        <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+        <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+        <!--[if lt IE 9]>
+            <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+            <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+        <![endif]-->
+
+
+
+
+
+
+			<meta property="og:locale" content="zh">
+		<meta property="og:site_name" content="JenI's Blog">
+
+	<meta property="og:type" content="article">
+	<meta property="article:author" content="">
+	<meta property="og:url" content="https://blog.jenisec.org/security/Jira-ssrf.html">
+	<meta property="og:title" content="Jira 未授权 SSRF 漏洞分析">
+	<meta property="og:description" content="">
+	<meta property="og:image" content="https://blog.jenisec.org/../theme/images/posts/Jira/cover.png">
+	<meta property="article:published_time" content="2019-09-27 00:00:00+08:00">
+</head>
+
+<body style="background-color: #f8f8f8">
+
+    <!-- Navigation -->
+    <nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+        <div class="container-fluid">
+            <!-- Brand and toggle get grouped for better mobile display -->
+            <div class="navbar-header page-scroll">
+                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <a class="navbar-brand" href="https://blog.jenisec.org/">JenI's Blog</a>
+            </div>
+
+            <!-- Collect the nav links, forms, and other content for toggling -->
+            <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+                <ul class="nav navbar-nav navbar-right">
+                        <li><a href="https://blog.jenisec.org/category/ji-qi-xue-xi.html">机器学习</a></li>
+                        <li><a href="https://blog.jenisec.org/category/ni-xiang-gong-cheng.html">逆向工程</a></li>
+                        <li><a href="https://blog.jenisec.org/category/an-quan.html">安全</a></li>
+                        <li><a href="https://blog.jenisec.org/category/xi-tong.html">系统</a></li>
+                        <li><a href="https://blog.jenisec.org/category/ri-chang.html">日常</a></li>
+
+                </ul>
+            </div>
+            <!-- /.navbar-collapse -->
+        </div>
+        <!-- /.container -->
+    </nav>
+
+    <!-- Page Header -->
+        <header class="intro-header" style="background-image: url('../theme/images/posts/Jira/cover.png')">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                    <div class="post-heading">
+                        <h1>Jira 未授权 SSRF 漏洞分析</h1>
+                        <span class="meta">Posted by
+                                <a href="https://blog.jenisec.org/author/jeni.html">JenI</a>
+                             on 2019-09-27 00:00:00+08:00
+                        </span>
+                        
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1" style="background-color: #f8f8f8;position: relative;">
+    <!-- Post Content -->
+    <article style="background-color: #f8f8f8;position: relative;">
+        <p><strong><em>前言</em></strong></p>
+<p>Jira是Atlassian公司出品的项目与事务跟踪工具，被广泛应用于缺陷跟踪、客户服务、需求收集、流程审批、任务跟踪、项目跟踪和敏捷管理等工作领域。</p>
+<p>近日，Jira 官方网站上公布了一个代号为 JRASERVER-69793 的 issue，CVE 编号 CVE-2019-8451，描述指出，Jira 的 /plugins/servlet/gadgets/makeRequest 资源存在 SSRF 漏洞，原因在于 JiraWhitelist 这个类的逻辑缺陷，攻击者通过此漏洞在未授权的情况下访问 Jira服务器所处的内网资源。</p>
+<p><strong><em>漏洞分析</em></strong></p>
+<p>根据描述，漏洞位于 /plugins/servlet/gadgets/makeRequest 页面，直接访问后返回 404</p>
+<div align="center"><img class="img-responsive" src="https://jenisec.nos-eastchina1.126.net/Jira/404.png" alt="404" /></div>
+
+<p>应该是该接口在访问上做了某些限制，查看 web.xml 后发现，所有 /plugins/servlet/* 链接都交由 ServletModuleContainerServlet 类处理了</p>
+<div align="center"><img class="img-responsive" src="https://jenisec.nos-eastchina1.126.net/Jira/web-xml.png" alt="web-xml" /></div>
+
+<p>找到 ServletModuleContainerServlet，反编译后发现它继承了父类的逻辑</p>
+<div align="center"><img class="img-responsive" src="https://jenisec.nos-eastchina1.126.net/Jira/SMCS.png" alt="SMCS" /></div>
+
+<p>其父类在 lib/atlassian-plugins-servlet-x.x.x.jar 中，其中 service 看起来应该是处理 http 请求的方法了。在函数首下断</p>
+<div align="center"><img class="img-responsive" src="https://jenisec.nos-eastchina1.126.net/Jira/service.png" alt="service" /></div>
+
+<p>请求 makeRequest 接口，成功断在了断点处，this.getServletModuleManager() 不为空，因此进入 else 代码块，单步调试。在 servlet 赋值处调用了 getPathInfo 方法获取了请求中的接口地址</p>
+<div align="center"><img class="img-responsive" src="https://jenisec.nos-eastchina1.126.net/Jira/pathinfo.png" alt="pathinfo" /></div>
+
+<p>返回结果作为参数传递给 getServlet 方法，该方法通过接口地址获取到了对应 Servlet 的描述信息，传递给 getServlet 方法去获取最终的 Servlet</p>
+<div align="center"><img class="img-responsive" src="https://jenisec.nos-eastchina1.126.net/Jira/descriptor.png" alt="descriptor" /></div>
+
+<p>描述信息中的 Servlet class 指向 com.atlassian.gadgets.shindig.servlet.XsrfMakeRequestServlet，反编译 XsrfMakeRequestServlet 类，查看其代码逻辑</p>
+<div align="center"><img class="img-responsive" src="https://jenisec.nos-eastchina1.126.net/Jira/XSRF.png" alt="XSRF" /></div>
+
+<p>可以看出，doGet 方法检查了请求头中是否存在 X-Atlassian-Token: no-check 项，不存在则返回 404 错误。这也就解释了为什么直接请求 makeRequest 接口会提示找到了死链接。</p>
+<p>在请求头中添加 X-Atlassian-Token: no-check 后再次请求，页面返回 400 错误，提示缺少 url 参数</p>
+<div align="center"><img class="img-responsive" src="https://jenisec.nos-eastchina1.126.net/Jira/400.png" alt="400" /></div>
+
+<p>添加 url 参数，设置一个地址，请求后返回 403 错误，提示请求中的链接不被允许。</p>
+<div align="center"><img class="img-responsive" src="https://jenisec.nos-eastchina1.126.net/Jira/403.png" alt="403" /></div>
+
+<p>其实这里找到 JiraWhitelist 类下断就可以直接看出问题出在了哪，但还是追一下代码，梳理一下代码逻辑吧(实际操作时我是从 JiraWhitelist 逆着推的，这里正向写是为了方便理解)。</p>
+<p>绕过 XSRF 验证之后，成功进入 else 分支，此时调用父类的 doGet 方法。</p>
+<div align="center"><img class="img-responsive" src="https://jenisec.nos-eastchina1.126.net/Jira/super_doget.png" alt="super_doget" /></div>
+
+<p>跟入 fetch，这个方法是用来生成响应的。传入的 request 通过 buildHttpRequest 构造完整的 HTTP 请求，之后传入 contentFetcherFactory.fetch 方法获取响应。继续跟入，寻找处理 request 的方法</p>
+<div align="center"><img class="img-responsive" src="https://jenisec.nos-eastchina1.126.net/Jira/contentFetcherFactory.png" alt="contentFetcherFactory" /></div>
+
+<p><br></p>
+<div align="center"><img class="img-responsive" src="https://jenisec.nos-eastchina1.126.net/Jira/contentFetcherFactory_fetch.png" alt="contentFetcherFactory_fetch" /></div>
+
+<p><br></p>
+<div align="center"><img class="img-responsive" src="https://jenisec.nos-eastchina1.126.net/Jira/super_fetch.png" alt="super_fetch" /></div>
+
+<p><br></p>
+<div align="center"><img class="img-responsive" src="https://jenisec.nos-eastchina1.126.net/Jira/execute.png" alt="execute" /></div>
+
+<p>这里对 response 进行了赋值，说明请求流程在 execute 方法中</p>
+<div align="center"><img class="img-responsive" src="https://jenisec.nos-eastchina1.126.net/Jira/ShindigApacheClientAdapter.png" alt="ShindigApacheClientAdapter" /></div>
+
+<p><br></p>
+<div align="center"><img class="img-responsive" src="https://jenisec.nos-eastchina1.126.net/Jira/mapResponse.png" alt="mapResponse" /></div>
+
+<p><br></p>
+<div align="center"><img class="img-responsive" src="https://jenisec.nos-eastchina1.126.net/Jira/HR_execute.png" alt="HR_execute" /></div>
+
+<p>这个 validateRequestTargetAgainstWhitelist 就是用来验证链接是否在白名单中的方法</p>
+<div align="center"><img class="img-responsive" src="https://jenisec.nos-eastchina1.126.net/Jira/validateRequestTargetAgainstWhitelist.png" alt="validateRequestTargetAgainstWhitelist" /></div>
+
+<p>跟进 whiltelist.allows 方法</p>
+<div align="center"><img class="img-responsive" src="https://jenisec.nos-eastchina1.126.net/Jira/allows.png" alt="allows" /></div>
+
+<p><br></p>
+<div align="center"><img class="img-responsive" src="https://jenisec.nos-eastchina1.126.net/Jira/fin_allows.png" alt="fin_allows" /></div>
+
+<p>uriString 的值是从请求中获取的，canonicalBaseUrl 的值是通过 getCanonicalBaseUrl() 方法获取到的 Jira 服务的请求链接。allows 函数在 return 位置做了或关系的断言，uriString.startsWith(canonicalBaseUrl) || this.whitelistService.isAllowed(uri)，其中 startsWith 方法用于获取 url 中的 host。也就是说，只要满足 urlString 以 canonicalBaseUrl 开头或者 uri 在白名单中，allows 方法就会返回真，服务器则会正常请求这个 url。因此这里对第一个条件进行恶意构造，将请求中的 url 参数值以 Jira 服务的 host 作为开头，然后使用 @ 将请求指向其他地址，即可完成 SSRF 攻击。</p>
+<div align="center"><img class="img-responsive" src="https://jenisec.nos-eastchina1.126.net/Jira/success.png" alt="success" /></div>
+
+<p><strong><em>参考</em></strong></p>
+<blockquote>
+<p><a href="https://jira.atlassian.com/projects/JRASERVER/issues/JRASERVER-69793?filter=allissues">https://jira.atlassian.com/projects/JRASERVER/issues/JRASERVER-69793?filter=allissues</a><br>
+<a href="https://www.seebug.org/vuldb/ssvid-98074">https://www.seebug.org/vuldb/ssvid-98074</a></p>
+</blockquote>
+        <hr />
+        <p>作者:&#160; &#160;JenI&#160; &#160;转载请注明出处，谢谢</p>
+    </article>
+
+    <hr>
+
+        <div class="comments">
+            <h2>Comments !</h2>
+            <div id="disqus_thread"></div>
+            <script type="text/javascript">
+                var disqus_shortname = 'jenihk';
+                var disqus_identifier = 'security/Jira-ssrf.html';
+                var disqus_url = 'https://blog.jenisec.org/security/Jira-ssrf.html';
+                (function() {
+                    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+                    dsq.src = '//jenihk.disqus.com/embed.js';
+                    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+                })();
+            </script>
+            <noscript>Please enable JavaScript to view the comments.</noscript>
+        </div>
+ <!--                   
+    <div id="disqus_thread"></div>
+    <script>
+
+/**
+*  RECOMMENDED CONFIGURATION VARIABLES: EDIT AND UNCOMMENT THE SECTION BELOW TO INSERT DYNAMIC VALUES FROM YOUR PLATFORM OR CMS.
+*  LEARN WHY DEFINING THESE VARIABLES IS IMPORTANT: https://disqus.com/admin/universalcode/#configuration-variables*/
+/*
+var disqus_config = function () {
+this.page.url = PAGE_URL;  // Replace PAGE_URL with your page's canonical URL variable
+this.page.identifier = PAGE_IDENTIFIER; // Replace PAGE_IDENTIFIER with your page's unique identifier variable
+};
+*/
+        (function() { // DON'T EDIT BELOW THIS LINE
+            var d = document, s = d.createElement('script');
+            s.src = '//jenihk.disqus.com/embed.js';
+            s.setAttribute('data-timestamp', +new Date());
+            (d.head || d.body).appendChild(s);
+        })();
+    </script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+-->
+            </div>
+        </div>
+    </div>
+
+    <hr>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                    <ul class="list-inline text-center">
+                        <li>
+                            <a href="http://weibo.com/1992014191/profile?rightmod=1&wvr=6&mod=personinfo&is_all=1">
+                                <span class="fa-stack fa-lg">
+                                    <i class="icon iconfont">&#xe657;</i>
+                                </span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="http://github.com/jenihk">
+                                <span class="fa-stack fa-lg">
+                                    <i class="icon iconfont">&#xe618;</i>
+                                </span>
+                            </a>
+                        </li>
+                    </ul>
+                    <p class="copyright text-muted">Blog powered by <a href="http://getpelican.com">Pelican</a>,
+                which takes great advantage of <a href="http://python.org">Python</a>.</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- jQuery -->
+    <script src="https://blog.jenisec.org/theme/js/jquery.js"></script>
+
+    <!-- Bootstrap Core JavaScript -->
+    <script src="https://blog.jenisec.org/theme/js/bootstrap.min.js"></script>
+
+    <!-- Custom Theme JavaScript -->
+    <script src="https://blog.jenisec.org/theme/js/clean-blog.min.js"></script>
+    
+    <!-- CanvasParticles -->
+    <script src="https://blog.jenisec.org/theme/js/canvas-particle.js"></script>
+
+    
+
+    <script type="text/javascript">
+        CanvasParticle();
+    </script>
+
+    <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-85780345-1']);
+    _gaq.push(['_trackPageview']);
+    (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+    </script>
+<script type="text/javascript">
+    var disqus_shortname = 'jenihk';
+    (function () {
+        var s = document.createElement('script'); s.async = true;
+        s.type = 'text/javascript';
+        s.src = '//' + disqus_shortname + '.disqus.com/count.js';
+        (document.getElementsByTagName('HEAD')[0] || document.getElementsByTagName('BODY')[0]).appendChild(s);
+    }());
+</script>
+</body>
+
+</html>

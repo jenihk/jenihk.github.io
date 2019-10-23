@@ -5,30 +5,37 @@ xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 
 <url>
 <loc>https://blog.jenisec.org/</loc>
-<lastmod>2019-10-20T00:46:55-00:00</lastmod>
+<lastmod>2019-10-23T22:41:40-00:00</lastmod>
 <changefreq>daily</changefreq>
 <priority>0.5</priority>
 </url>
 
 <url>
 <loc>https://blog.jenisec.org/archives.html</loc>
-<lastmod>2019-10-20T00:46:55-00:00</lastmod>
+<lastmod>2019-10-23T22:41:40-00:00</lastmod>
 <changefreq>daily</changefreq>
 <priority>0.5</priority>
 </url>
 
 <url>
 <loc>https://blog.jenisec.org/tags.html</loc>
-<lastmod>2019-10-20T00:46:55-00:00</lastmod>
+<lastmod>2019-10-23T22:41:40-00:00</lastmod>
 <changefreq>daily</changefreq>
 <priority>0.5</priority>
 </url>
 
 <url>
 <loc>https://blog.jenisec.org/categories.html</loc>
-<lastmod>2019-10-20T00:46:55-00:00</lastmod>
+<lastmod>2019-10-23T22:41:40-00:00</lastmod>
 <changefreq>daily</changefreq>
 <priority>0.5</priority>
+</url>
+
+<url>
+<loc>https://blog.jenisec.org/security/Jira-ssrf.html</loc>
+<lastmod>2019-09-27T00:00:00+08:00</lastmod>
+<changefreq>monthly</changefreq>
+<priority>0.7</priority>
 </url>
 
 <url>
@@ -369,7 +376,7 @@ xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 
 <url>
 <loc>https://blog.jenisec.org/category/an-quan.html</loc>
-<lastmod>2019-07-05T00:00:00+08:06</lastmod>
+<lastmod>2019-09-27T00:00:00+08:06</lastmod>
 <changefreq>daily</changefreq>
 <priority>0.5</priority>
 </url>
@@ -530,7 +537,7 @@ xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 
 <url>
 <loc>https://blog.jenisec.org/author/jeni.html</loc>
-<lastmod>2019-09-17T00:00:00+08:06</lastmod>
+<lastmod>2019-09-27T00:00:00+08:06</lastmod>
 <changefreq>daily</changefreq>
 <priority>0.5</priority>
 </url>
