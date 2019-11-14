@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="zh">
+
+<head>
+            <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="description" content="">
+        <meta name="author" content="">
+
+        <title>JenI's Blog</title>
+
+        <link rel="icon" href="https://blog.jenisec.org/theme/images/favicon.ico" type="image/x-icon">  
+        <link rel="shortcut icon" href="https://blog.jenisec.org/theme/images/favicon.ico" type="image/x-icon">  
+
+
+        <link href="https://blog.jenisec.org/theme/css/iconfont.css" rel="stylesheet">
+
+        <!-- Bootstrap Core CSS -->
+        <link href="https://blog.jenisec.org/theme/css/bootstrap.min.css" rel="stylesheet">
+
+        <!-- Custom CSS -->
+        <link href="https://blog.jenisec.org/theme/css/clean-blog.min.css" rel="stylesheet">
+
+        <!-- Code highlight color scheme -->
+            <link href="https://blog.jenisec.org/theme/css/code_blocks/monokai.css" rel="stylesheet">
+
+        <!-- Custom Fonts -->
+        <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.1.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+        <link href='https://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+        <link href='https://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/css'>
+
+        <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+        <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+        <!--[if lt IE 9]>
+            <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+            <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+        <![endif]-->
+
+
+
+
+
+
+			<meta property="og:locale" content="zh">
+		<meta property="og:site_name" content="JenI's Blog">
+
+	<meta property="og:type" content="article">
+	<meta property="article:author" content="">
+	<meta property="og:url" content="https://blog.jenisec.org/security/routeros-chain-to-root.html">
+	<meta property="og:title" content="RouterOS Get Root Busybox shell">
+	<meta property="og:description" content="从 DNS 污染到 GetShell">
+	<meta property="og:image" content="https://blog.jenisec.org/../theme/images/posts/routeros/cover.png">
+	<meta property="article:published_time" content="2019-11-12 00:00:00+08:00">
+</head>
+
+<body style="background-color: #f8f8f8">
+
+    <!-- Navigation -->
+    <nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+        <div class="container-fluid">
+            <!-- Brand and toggle get grouped for better mobile display -->
+            <div class="navbar-header page-scroll">
+                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <a class="navbar-brand" href="https://blog.jenisec.org/">JenI's Blog</a>
+            </div>
+
+            <!-- Collect the nav links, forms, and other content for toggling -->
+            <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+                <ul class="nav navbar-nav navbar-right">
+                        <li><a href="https://blog.jenisec.org/category/ji-qi-xue-xi.html">机器学习</a></li>
+                        <li><a href="https://blog.jenisec.org/category/ni-xiang-gong-cheng.html">逆向工程</a></li>
+                        <li><a href="https://blog.jenisec.org/category/an-quan.html">安全</a></li>
+                        <li><a href="https://blog.jenisec.org/category/xi-tong.html">系统</a></li>
+                        <li><a href="https://blog.jenisec.org/category/ri-chang.html">日常</a></li>
+
+                </ul>
+            </div>
+            <!-- /.navbar-collapse -->
+        </div>
+        <!-- /.container -->
+    </nav>
+
+    <!-- Page Header -->
+        <header class="intro-header" style="background-image: url('../theme/images/posts/routeros/cover.png')">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                    <div class="post-heading">
+                        <h1>RouterOS Get Root Busybox shell</h1>
+                            <h3 class="subheading">从 DNS 污染到 GetShell</h3>
+                        <span class="meta">Posted by
+                                <a href="https://blog.jenisec.org/author/jeni.html">JenI</a>
+                             on 2019-11-12 00:00:00+08:00
+                        </span>
+                        
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1" style="background-color: #f8f8f8;position: relative;">
+    <!-- Post Content -->
+    <article style="background-color: #f8f8f8;position: relative;">
+        <p><strong><em>前言</em></strong></p>
+<p>最近，Tenable指出了MikroTik路由器的一系列漏洞，CVE编号从2019-3976到2019-3979。这四个漏洞组成的利用链可以巧妙的获得RouterOS的Root Busybox Shell</p>
+<p><strong><em>漏洞分析</em></strong></p>
+<p>我使用了 6.45.6_x86 版本的 RouterOS 作为靶机，IP 为 192.168.231.200，修改密码为 routerpass</p>
+<div align="center"><img class="img-responsive" src="https://jenisec.nos-eastchina1.126.net/RouterOS/routeros-chain-to-root-1.png" alt="routeros-chain-to-root-1" /></div>
+
+<p>RouterOS 使用二进制文件 resolve 向 DNS 服务器发出解析请求，然后将响应结果中的所有 A 记录添加到其 DNS 缓存中，这就是 CVE-2019-3979 所指出的问题。路由器在进行 DNS 查询时，即使响应结果中存在和查询域名无关的记录，也依然会添加到缓存表中，而且这里的 DNS 服务器是可以在命令中手动指定的，这就给 DNS 污染提供了必要条件。</p>
+<div align="center"><img class="img-responsive" src="https://jenisec.nos-eastchina1.126.net/RouterOS/routeros-chain-to-root-2.png" alt="routeros-chain-to-root-2" /></div>
+
+<p>那么如何在未授权的情况下触发路由器的 DNS 查询呢？默认情况下，RouterOS 开放了 8291 端口用于和 Winbox 通信。Winbox 下的操作可以表示为 json 格式的消息，这个 json 格式的消息会被转换为二进制数据通过 TCP 传输到 RouterOS 的 8291 端口。RouterOS 在收到消息后，解析器解析 json 消息，将指令发送给 json 消息中给定编号所对应的二进制文件。由于是闭源协议，因此想要了解整个消息解析的过程，需要对路由器系统内的二进制文件进行逆向分析，为避免占用过多篇幅，这里就不详细介绍了，有兴趣的话可以直接阅读 Tenable 给出的说明文档，文末有链接。</p>
+<p>Tenable 也提供了 x3_parse 工具，编译后执行可以从 .x3 文件中解析出编号和系统内二进制文件的对应关系</p>
+<div align="center"><img class="img-responsive" src="https://jenisec.nos-eastchina1.126.net/RouterOS/routeros-chain-to-root-3.png" alt="routeros-chain-to-root-3" /></div>
+
+<p>可以看到，resolver 文件的编号为 14，因此在 json 消息中给定 14 就可以调用 RouterOS 中的 resolve 命令。完整 json 消息的构造需要深刻理解 Winbox 和 RouterOS 的通信过程，自己实现相对复杂，所以直接使用 Tenable 提供的 winbox_dns_request 工具向 RouterOS 发送恶意 json 数据。</p>
+<p>发送之前需要先准备好一个自动响应恶意 DNS 解析记录的 DNS 服务器，这里使用了 pklaus 编写的简易 <a href="https://gist.github.com/pklaus/b5a7876d4d2cf7271873">ddnsserver</a>，修改 dns_response 函数，使其在响应查询时始终返回几条恶意的记录，这几条记录将 RouterOS 用于下载新版本系统的域名解析到我们自己的攻击机 IP 上</p>
+<div align="center"><img class="img-responsive" src="https://jenisec.nos-eastchina1.126.net/RouterOS/routeros-chain-to-root-4.png" alt="routeros-chain-to-root-4" /></div>
+
+<p>修改完成后在 IP 为攻击机上运行，udp 协议，53 端口</p>
+<div align="center"><img class="img-responsive" src="https://jenisec.nos-eastchina1.126.net/RouterOS/routeros-chain-to-root-5.png" alt="routeros-chain-to-root-5" /></div>
+
+<p>使用 winbox_dns_request 工具向 RouterOS 发送恶意 json 数据</p>
+<div align="center"><img class="img-responsive" src="https://jenisec.nos-eastchina1.126.net/RouterOS/routeros-chain-to-root-6.png" alt="routeros-chain-to-root-6" /></div>
+
+<p>winbox_dns_request 默认只会触发 RouterOS 对 example.com 域名的查询，但由于指定了 DNS 服务器为我们自建的恶意服务器，所以响应中包含了额外的几条记录，此时查看 RouterOS 的 DNS 缓存记录，则可以看到路由器系统升级的域名地址已经被投毒为我们的攻击机地址了</p>
+<div align="center"><img class="img-responsive" src="https://jenisec.nos-eastchina1.126.net/RouterOS/routeros-chain-to-root-7.png" alt="routeros-chain-to-root-7" /></div>
+
+<p>接着是 CVE-2019-3977 的内容。RouterOS 对升级包的验证不足，通过修改系统升级包版本号和时间戳，可以诱骗路由器下载低版本路由器系统，从而实现路由器系统的降级。根据官方的 Changelog 的说法，降级到 6.43 之前的版本均会导致密码清空</p>
+<div align="center"><img class="img-responsive" src="https://jenisec.nos-eastchina1.126.net/RouterOS/routeros-chain-to-root-8.png" alt="routeros-chain-to-root-8" /></div>
+
+<p>而在 bug_hunting_in_routeros_derbycon_2018.pdf 中介绍了 6.41.4 版本中存在的后门，所以这里可以尝试诱骗路由器将系统降级为 6.41.4</p>
+<div align="center"><img class="img-responsive" src="https://jenisec.nos-eastchina1.126.net/RouterOS/routeros-chain-to-root-9.png" alt="routeros-chain-to-root-9" /></div>
+
+<p>使用 Wireshark 抓包可知，RouterOS 在检测版本更新时，会发出两个 HTTP 请求，第一个请求用于获取 RouterOS 的最新版本</p>
+<div class="highlight"><pre><span></span>http://upgrade.mikrotik.com/routeros/LATEST.6
+</pre></div>
+
+
+<div align="center"><img class="img-responsive" src="https://jenisec.nos-eastchina1.126.net/RouterOS/routeros-chain-to-root-10.png" alt="routeros-chain-to-root-10" /></div>
+
+<p>查询结果显示，目前最新版本为 6.45.7，时间戳为 1571906675。查询到最新版本号后，RouterOS 发出第二个请求</p>
+<div class="highlight"><pre><span></span>http://upgrade.mikrotik.com/routeros/6.45.7/CHANGELOG
+</pre></div>
+
+
+<p>这个请求用于查询最新版的 CHANGELOG，然后显示在界面上</p>
+<div align="center"><img class="img-responsive" src="https://jenisec.nos-eastchina1.126.net/RouterOS/routeros-chain-to-root-11.png" alt="routeros-chain-to-root-11" /></div>
+
+<p>现在由于我们毒化了路由器上的 DNS 缓存，所以此时路由器检测更新的话，根据 DNS 记录，请求会发送给我们的攻击机，所以我们需要构造一个和官方更新服务器同样结构的 Web 页面，用于供路由器下载 "系统升级包"</p>
+<div align="center"><img class="img-responsive" src="https://jenisec.nos-eastchina1.126.net/RouterOS/routeros-chain-to-root-12.png" alt="routeros-chain-to-root-12" /></div>
+
+<p>在 DNS 缓存被毒化的情况下，路由器检测更新则会请求我们自己搭建的 Web 服务器</p>
+<div align="center"><img class="img-responsive" src="https://jenisec.nos-eastchina1.126.net/RouterOS/routeros-chain-to-root-13.png" alt="routeros-chain-to-root-13" /></div>
+
+<p>点击下载则会不停向服务器请求 /routeros/6.45.7/system-6.45.7.npk</p>
+<div align="center"><img class="img-responsive" src="https://jenisec.nos-eastchina1.126.net/RouterOS/routeros-chain-to-root-14.png" alt="routeros-chain-to-root-14" /></div>
+
+<p>为了实现路由器的降级，我们需要将 6.41.4 版本的 system-6.41.4.npk 改名为 system-6.45.7.npk 后放入 6.45.7 文件夹下。system-6.41.4.npk 可以在官网 all_packages-x86-6.41.4.zip 内找到</p>
+<div align="center"><img class="img-responsive" src="https://jenisec.nos-eastchina1.126.net/RouterOS/routeros-chain-to-root-15.png" alt="routeros-chain-to-root-15" /></div>
+
+<p>将文件改名后放入 6.45.7 文件夹内，路由器获取到 system 文件后更新重启，重启后系统变为 6.41.4，此时之前的 routerpass 密码失效，需使用空密码登录</p>
+<div align="center"><img class="img-responsive" src="https://jenisec.nos-eastchina1.126.net/RouterOS/routeros-chain-to-root-16.png" alt="routeros-chain-to-root-16" /></div>
+
+<p>成功以空密码登录路由器后，可以利用 Tenable 提供的 6.41.4 的后门利用工具 cleaner_wrasse 启用后门。之后使用 telnet 连接，便成功获取到了 Root Busybox Shell</p>
+<div align="center"><img class="img-responsive" src="https://jenisec.nos-eastchina1.126.net/RouterOS/routeros-chain-to-root-17.png" alt="routeros-chain-to-root-17" /></div>
+
+<p><strong><em>参考</em></strong></p>
+<blockquote>
+<p><a href="https://medium.com/tenable-techblog/routeros-chain-to-root-f4e0b07c0b21">https://medium.com/tenable-techblog/routeros-chain-to-root-f4e0b07c0b21</a><br>
+<a href="https://github.com/tenable/routeros/blob/master/slides/bug_hunting_in_routeros_derbycon_2018.pdf">https://github.com/tenable/routeros/blob/master/slides/bug_hunting_in_routeros_derbycon_2018.pdf</a></p>
+</blockquote>
+        <hr />
+        <p>作者:&#160; &#160;JenI&#160; &#160;转载请注明出处，谢谢</p>
+    </article>
+
+    <hr>
+
+        <div class="comments">
+            <h2>Comments !</h2>
+            <div id="disqus_thread"></div>
+            <script type="text/javascript">
+                var disqus_shortname = 'jenihk';
+                var disqus_identifier = 'security/routeros-chain-to-root.html';
+                var disqus_url = 'https://blog.jenisec.org/security/routeros-chain-to-root.html';
+                (function() {
+                    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+                    dsq.src = '//jenihk.disqus.com/embed.js';
+                    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+                })();
+            </script>
+            <noscript>Please enable JavaScript to view the comments.</noscript>
+        </div>
+ <!--                   
+    <div id="disqus_thread"></div>
+    <script>
+
+/**
+*  RECOMMENDED CONFIGURATION VARIABLES: EDIT AND UNCOMMENT THE SECTION BELOW TO INSERT DYNAMIC VALUES FROM YOUR PLATFORM OR CMS.
+*  LEARN WHY DEFINING THESE VARIABLES IS IMPORTANT: https://disqus.com/admin/universalcode/#configuration-variables*/
+/*
+var disqus_config = function () {
+this.page.url = PAGE_URL;  // Replace PAGE_URL with your page's canonical URL variable
+this.page.identifier = PAGE_IDENTIFIER; // Replace PAGE_IDENTIFIER with your page's unique identifier variable
+};
+*/
+        (function() { // DON'T EDIT BELOW THIS LINE
+            var d = document, s = d.createElement('script');
+            s.src = '//jenihk.disqus.com/embed.js';
+            s.setAttribute('data-timestamp', +new Date());
+            (d.head || d.body).appendChild(s);
+        })();
+    </script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+-->
+            </div>
+        </div>
+    </div>
+
+    <hr>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                    <ul class="list-inline text-center">
+                        <li>
+                            <a href="http://weibo.com/1992014191/profile?rightmod=1&wvr=6&mod=personinfo&is_all=1">
+                                <span class="fa-stack fa-lg">
+                                    <i class="icon iconfont">&#xe657;</i>
+                                </span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="http://github.com/jenihk">
+                                <span class="fa-stack fa-lg">
+                                    <i class="icon iconfont">&#xe618;</i>
+                                </span>
+                            </a>
+                        </li>
+                    </ul>
+                    <p class="copyright text-muted">Blog powered by <a href="http://getpelican.com">Pelican</a>,
+                which takes great advantage of <a href="http://python.org">Python</a>.</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- jQuery -->
+    <script src="https://blog.jenisec.org/theme/js/jquery.js"></script>
+
+    <!-- Bootstrap Core JavaScript -->
+    <script src="https://blog.jenisec.org/theme/js/bootstrap.min.js"></script>
+
+    <!-- Custom Theme JavaScript -->
+    <script src="https://blog.jenisec.org/theme/js/clean-blog.min.js"></script>
+    
+    <!-- CanvasParticles -->
+    <script src="https://blog.jenisec.org/theme/js/canvas-particle.js"></script>
+
+    
+
+    <script type="text/javascript">
+        CanvasParticle();
+    </script>
+
+    <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-85780345-1']);
+    _gaq.push(['_trackPageview']);
+    (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+    </script>
+<script type="text/javascript">
+    var disqus_shortname = 'jenihk';
+    (function () {
+        var s = document.createElement('script'); s.async = true;
+        s.type = 'text/javascript';
+        s.src = '//' + disqus_shortname + '.disqus.com/count.js';
+        (document.getElementsByTagName('HEAD')[0] || document.getElementsByTagName('BODY')[0]).appendChild(s);
+    }());
+</script>
+</body>
+
+</html>
