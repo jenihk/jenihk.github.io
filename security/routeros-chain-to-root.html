@@ -128,7 +128,7 @@
 <p>发送之前需要先准备好一个自动响应恶意 DNS 解析记录的 DNS 服务器，这里使用了 pklaus 编写的简易 <a href="https://gist.github.com/pklaus/b5a7876d4d2cf7271873">ddnsserver</a>，修改 dns_response 函数，使其在响应查询时始终返回几条恶意的记录，这几条记录将 RouterOS 用于下载新版本系统的域名解析到我们自己的攻击机 IP 上</p>
 <div align="center"><img class="img-responsive" src="https://jenisec.nos-eastchina1.126.net/RouterOS/routeros-chain-to-root-4.png" alt="routeros-chain-to-root-4" /></div>
 
-<p>修改完成后在 IP 为攻击机上运行，udp 协议，53 端口</p>
+<p>修改完成后在攻击机上运行，udp 协议，53 端口</p>
 <div align="center"><img class="img-responsive" src="https://jenisec.nos-eastchina1.126.net/RouterOS/routeros-chain-to-root-5.png" alt="routeros-chain-to-root-5" /></div>
 
 <p>使用 winbox_dns_request 工具向 RouterOS 发送恶意 json 数据</p>
