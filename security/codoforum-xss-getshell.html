@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="zh">
+
+<head>
+            <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="description" content="">
+        <meta name="author" content="">
+
+        <title>JenI's Blog</title>
+
+        <link rel="icon" href="https://blog.jenisec.org/theme/images/favicon.ico" type="image/x-icon">  
+        <link rel="shortcut icon" href="https://blog.jenisec.org/theme/images/favicon.ico" type="image/x-icon">  
+
+
+        <link href="https://blog.jenisec.org/theme/css/iconfont.css" rel="stylesheet">
+
+        <!-- Bootstrap Core CSS -->
+        <link href="https://blog.jenisec.org/theme/css/bootstrap.min.css" rel="stylesheet">
+
+        <!-- Custom CSS -->
+        <link href="https://blog.jenisec.org/theme/css/clean-blog.min.css" rel="stylesheet">
+
+        <!-- Code highlight color scheme -->
+            <link href="https://blog.jenisec.org/theme/css/code_blocks/monokai.css" rel="stylesheet">
+
+        <!-- Custom Fonts -->
+        <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.1.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+        <link href='https://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+        <link href='https://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/css'>
+
+        <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+        <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+        <!--[if lt IE 9]>
+            <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+            <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+        <![endif]-->
+
+
+
+
+
+
+			<meta property="og:locale" content="zh">
+		<meta property="og:site_name" content="JenI's Blog">
+
+	<meta property="og:type" content="article">
+	<meta property="article:author" content="">
+	<meta property="og:url" content="https://blog.jenisec.org/security/codoforum-xss-getshell.html">
+	<meta property="og:title" content="Codoforum 存储型 XSS 到 Getshell">
+	<meta property="og:description" content="">
+	<meta property="og:image" content="https://blog.jenisec.org/../theme/images/posts/codoforum/cover.png">
+	<meta property="article:published_time" content="2020-01-23 00:00:00+08:00">
+</head>
+
+<body style="background-color: #f8f8f8">
+
+    <!-- Navigation -->
+    <nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+        <div class="container-fluid">
+            <!-- Brand and toggle get grouped for better mobile display -->
+            <div class="navbar-header page-scroll">
+                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <a class="navbar-brand" href="https://blog.jenisec.org/">JenI's Blog</a>
+            </div>
+
+            <!-- Collect the nav links, forms, and other content for toggling -->
+            <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+                <ul class="nav navbar-nav navbar-right">
+                        <li><a href="https://blog.jenisec.org/category/ji-qi-xue-xi.html">机器学习</a></li>
+                        <li><a href="https://blog.jenisec.org/category/ni-xiang-gong-cheng.html">逆向工程</a></li>
+                        <li><a href="https://blog.jenisec.org/category/an-quan.html">安全</a></li>
+                        <li><a href="https://blog.jenisec.org/category/xi-tong.html">系统</a></li>
+                        <li><a href="https://blog.jenisec.org/category/ri-chang.html">日常</a></li>
+
+                </ul>
+            </div>
+            <!-- /.navbar-collapse -->
+        </div>
+        <!-- /.container -->
+    </nav>
+
+    <!-- Page Header -->
+        <header class="intro-header" style="background-image: url('../theme/images/posts/codoforum/cover.png')">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                    <div class="post-heading">
+                        <h1>Codoforum 存储型 XSS 到 Getshell</h1>
+                        <span class="meta">Posted by
+                                <a href="https://blog.jenisec.org/author/jeni.html">JenI</a>
+                             on 2020-01-23 00:00:00+08:00
+                        </span>
+                        
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1" style="background-color: #f8f8f8;position: relative;">
+    <!-- Post Content -->
+    <article style="background-color: #f8f8f8;position: relative;">
+        <p><strong><em>前言</em></strong></p>
+<p>Codoforum是一套基于PHP和MySQL的轻论坛软件，MVC架构，其UI简洁、干净，且采用自适应设计，因此广受好评。近日，Codoforum修复了一个存储型跨站脚本漏洞，漏洞编号CVE-2020-5842，影响版本4.8.3。攻击者在注册页面通过构造恶意的用户名，即可成功将js语句插入数据库，之后由管理员在后台用户管理页面触发。后经过测试分析，发现后台图片上传点没有经过合理的判断，可以上传 PHP 文件，攻击者利用 XSS 获取到管理员 Cookie 后，以管理员身份登录后台，进而通过上传点 Getshell。</p>
+<p><strong><em>存储型 XSS</em></strong></p>
+<p>sys/Controller/user.php 文件用于处理前台用户的登录和注册操作，当新用户进行注册时，请求交由 register 方法处理：</p>
+<div align="center"><img class="img-responsive" src="https://jenisec.nos-eastchina1.126.net/Codoforum/codoforum-xss-getshell-1.png" alt="codoforum-xss-getshell-1.png" /></div>
+
+<p>可以看到，register 内部在处理用户输入的数据时，对用户名只做了简单的替换操作，将双引号替换为了 \&quot;，之后就调用 register_user 进行用户注册：</p>
+<div align="center"><img class="img-responsive" src="https://jenisec.nos-eastchina1.126.net/Codoforum/codoforum-xss-getshell-2.png" alt="codoforum-xss-getshell-2.png" /></div>
+
+<p>register_user 也没有进行过滤，直接将用户提交的注册信息写入了数据库，以 <code>"&gt;&lt;svg/onload=alert(1)&gt;</code> 为例，数据库中插入的信息为：</p>
+<div align="center"><img class="img-responsive" src="https://jenisec.nos-eastchina1.126.net/Codoforum/codoforum-xss-getshell-3.png" alt="codoforum-xss-getshell-3.png" /></div>
+
+<p>再来看看输出部分。除了这个用户的个人页面，后台的用户管理页面也会触发 XSS：</p>
+<div align="center"><img class="img-responsive" src="https://jenisec.nos-eastchina1.126.net/Codoforum/codoforum-xss-getshell-4.png" alt="codoforum-xss-getshell-4.png" /></div>
+
+<p>后台用户管理页面的数据由 /admin/modules/users/manage.php 从数据库中取出，然后传递给模板文件 /admin/layout/templates/users/manage.tpl：</p>
+<div align="center"><img class="img-responsive" src="https://jenisec.nos-eastchina1.126.net/Codoforum/codoforum-xss-getshell-5.png" alt="codoforum-xss-getshell-5.png" /></div>
+
+<p>模板文件中，同样没有对数据库中取出的数据进行任何处理就直接输出到了页面上，从而导致了 XSS：</p>
+<div align="center"><img class="img-responsive" src="https://jenisec.nos-eastchina1.126.net/Codoforum/codoforum-xss-getshell-6.png" alt="codoforum-xss-getshell-6.png" /></div>
+
+<p>针对这个漏洞，Codoforum 在新版本中做了两处针对性修复，首先用户注册时提交的用户名部分，使用了 strip_tags 方法去除掉了 html 标签：</p>
+<div align="center"><img class="img-responsive" src="https://jenisec.nos-eastchina1.126.net/Codoforum/codoforum-xss-getshell-7.png" alt="codoforum-xss-getshell-7.png" /></div>
+
+<p>页面输出部分，模板处使用 escape 对数据库取出内容做了实体化处理：</p>
+<div align="center"><img class="img-responsive" src="https://jenisec.nos-eastchina1.126.net/Codoforum/codoforum-xss-getshell-8.png" alt="codoforum-xss-getshell-8.png" /></div>
+
+<p><strong><em>文件上传</em></strong></p>
+<p>Codoforum 后台页面可以对前台用户上传的文件类型进行设置，这限制了前台用户只能上传图片格式的文件：</p>
+<div align="center"><img class="img-responsive" src="https://jenisec.nos-eastchina1.126.net/Codoforum/codoforum-xss-getshell-9.png" alt="codoforum-xss-getshell-9.png" /></div>
+
+<p>通过 XSS 获取到管理员的 Cookie 后，可以在这里加入 php，这样前台用户就可以通过个人信息编辑页面上传 shell 了。但是实际上并不需要这么麻烦，Codoforum 的后台管理页面限制很少，只要是以管理员的身份登录，基本就可以执行任何操作了。</p>
+<div align="center"><img class="img-responsive" src="https://jenisec.nos-eastchina1.126.net/Codoforum/codoforum-xss-getshell-10.png" alt="codoforum-xss-getshell-10.png" /></div>
+
+<p>这是后台全局配置页面上传论坛 logo 的处理逻辑，可以看到，文件没有做任何的处理就直接上传到了 /sites/default/assets/img/attachments/ 目录下。Codoforum 的开发团队可能认为，登录了后台的既然是管理员，那所做的所有操作都应该是可信的，所以后台管理页面的安全性并不高。我测试了最新的 4.8.7 版本 Codoforum，后台页面仍然存在多处存储型 XSS，有些也会影响到前台用户，有兴趣的朋友可以测试着玩一玩。</p>
+<p><strong><em>漏洞利用</em></strong></p>
+<p>首先在注册时构造恶意的用户名，使其加载 XSS 平台 js 文件：</p>
+<div align="center"><img class="img-responsive" src="https://jenisec.nos-eastchina1.126.net/Codoforum/codoforum-xss-getshell-11.png" alt="codoforum-xss-getshell-11.png" /></div>
+
+<p>之后只要管理员在后台访问了用户管理页面，我们就拿到了管理员的 Cookie：</p>
+<div align="center"><img class="img-responsive" src="https://jenisec.nos-eastchina1.126.net/Codoforum/codoforum-xss-getshell-12.png" alt="codoforum-xss-getshell-12.png" /></div>
+
+<p><br></p>
+<div align="center"><img class="img-responsive" src="https://jenisec.nos-eastchina1.126.net/Codoforum/codoforum-xss-getshell-13.png" alt="codoforum-xss-getshell-13.png" /></div>
+
+<p>将 Cookie 设置为 XSS 平台接收到的管理员 Cookie：</p>
+<div align="center"><img class="img-responsive" src="https://jenisec.nos-eastchina1.126.net/Codoforum/codoforum-xss-getshell-14.png" alt="codoforum-xss-getshell-14.png" /></div>
+
+<p>刷新页面，成功登录后台：</p>
+<div align="center"><img class="img-responsive" src="https://jenisec.nos-eastchina1.126.net/Codoforum/codoforum-xss-getshell-15.png" alt="codoforum-xss-getshell-15.png" /></div>
+
+<p>在全局设置处上传 shell 文件：</p>
+<div align="center"><img class="img-responsive" src="https://jenisec.nos-eastchina1.126.net/Codoforum/codoforum-xss-getshell-16.png" alt="codoforum-xss-getshell-16.png" /></div>
+
+<p>shell 地址为 <code>http://xx.xx.xx/sites/default/assets/img/attachments</code> 加上上传的文件名。使用远程管理工具连接：</p>
+<div align="center"><img class="img-responsive" src="https://jenisec.nos-eastchina1.126.net/Codoforum/codoforum-xss-getshell-17.png" alt="codoforum-xss-getshell-17.png" /></div>
+
+<p><strong><em>参考</em></strong></p>
+<p><a href="https://www.exploit-db.com/exploits/47876">https://www.exploit-db.com/exploits/47876</a></p>
+        <hr />
+        <p>作者:&#160; &#160;JenI&#160; &#160;转载请注明出处，谢谢</p>
+    </article>
+
+    <hr>
+
+        <div class="comments">
+            <h2>Comments !</h2>
+            <div id="disqus_thread"></div>
+            <script type="text/javascript">
+                var disqus_shortname = 'jenihk';
+                var disqus_identifier = 'security/codoforum-xss-getshell.html';
+                var disqus_url = 'https://blog.jenisec.org/security/codoforum-xss-getshell.html';
+                (function() {
+                    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+                    dsq.src = '//jenihk.disqus.com/embed.js';
+                    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+                })();
+            </script>
+            <noscript>Please enable JavaScript to view the comments.</noscript>
+        </div>
+ <!--                   
+    <div id="disqus_thread"></div>
+    <script>
+
+/**
+*  RECOMMENDED CONFIGURATION VARIABLES: EDIT AND UNCOMMENT THE SECTION BELOW TO INSERT DYNAMIC VALUES FROM YOUR PLATFORM OR CMS.
+*  LEARN WHY DEFINING THESE VARIABLES IS IMPORTANT: https://disqus.com/admin/universalcode/#configuration-variables*/
+/*
+var disqus_config = function () {
+this.page.url = PAGE_URL;  // Replace PAGE_URL with your page's canonical URL variable
+this.page.identifier = PAGE_IDENTIFIER; // Replace PAGE_IDENTIFIER with your page's unique identifier variable
+};
+*/
+        (function() { // DON'T EDIT BELOW THIS LINE
+            var d = document, s = d.createElement('script');
+            s.src = '//jenihk.disqus.com/embed.js';
+            s.setAttribute('data-timestamp', +new Date());
+            (d.head || d.body).appendChild(s);
+        })();
+    </script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+-->
+            </div>
+        </div>
+    </div>
+
+    <hr>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                    <ul class="list-inline text-center">
+                        <li>
+                            <a href="http://weibo.com/1992014191/profile?rightmod=1&wvr=6&mod=personinfo&is_all=1">
+                                <span class="fa-stack fa-lg">
+                                    <i class="icon iconfont">&#xe657;</i>
+                                </span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="http://github.com/jenihk">
+                                <span class="fa-stack fa-lg">
+                                    <i class="icon iconfont">&#xe618;</i>
+                                </span>
+                            </a>
+                        </li>
+                    </ul>
+                    <p class="copyright text-muted">Blog powered by <a href="http://getpelican.com">Pelican</a>,
+                which takes great advantage of <a href="http://python.org">Python</a>.</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- jQuery -->
+    <script src="https://blog.jenisec.org/theme/js/jquery.js"></script>
+
+    <!-- Bootstrap Core JavaScript -->
+    <script src="https://blog.jenisec.org/theme/js/bootstrap.min.js"></script>
+
+    <!-- Custom Theme JavaScript -->
+    <script src="https://blog.jenisec.org/theme/js/clean-blog.min.js"></script>
+    
+    <!-- CanvasParticles -->
+    <script src="https://blog.jenisec.org/theme/js/canvas-particle.js"></script>
+
+    
+
+    <script type="text/javascript">
+        CanvasParticle();
+    </script>
+
+    <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-85780345-1']);
+    _gaq.push(['_trackPageview']);
+    (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+    </script>
+<script type="text/javascript">
+    var disqus_shortname = 'jenihk';
+    (function () {
+        var s = document.createElement('script'); s.async = true;
+        s.type = 'text/javascript';
+        s.src = '//' + disqus_shortname + '.disqus.com/count.js';
+        (document.getElementsByTagName('HEAD')[0] || document.getElementsByTagName('BODY')[0]).appendChild(s);
+    }());
+</script>
+</body>
+
+</html>
