@@ -1,0 +1,97 @@
+Sub SplitAndFilterCopy()
+    Dim ws1 As Worksheet, ws2 As Worksheet, ws3 As Worksheet, ws4 As Worksheet
+    Dim filterString As String
+    Dim filterValues() As String, PBCList_split() As String
+    Dim Criteria As String
+    Dim i As Long, j As Long
+    Dim lastRowSheet2 As Long, lastRowSheet3 As Long, lastRowSheet4 As Long
+    Dim copyRange As Range, destRange As Range
+    Dim PBCList As Variant
+    
+    ' 设置工作簿
+    Set ws1 = ThisWorkbook.Sheets("Audit Items Screening")
+    Set ws2 = ThisWorkbook.Sheets("Checkpoint library")
+    Set ws3 = ThisWorkbook.Sheets("Checkpoints")
+    Set ws4 = ThisWorkbook.Sheets("PBC List")
+    
+    ' ###########################################
+    ' 第一部分 - Checkpoints 生成
+    ' ###########################################
+    
+    ' 取 E39 值
+    filterString = ws1.Range("E39").Value
+    
+    ' 以逗号为分隔符切分
+    filterValues = Split(filterString, ",")
+    
+    ' 清除 sheet3 数据
+    ws3.Cells.ClearContents
+ 
+    ' 复制 sheet2 第一行到第三行
+    ws2.Rows(1).Copy ws3.Rows(1)
+    
+    ' 取 sheet2 和 sheet3 最后一行行数
+    lastRowSheet2 = ws2.Cells(ws2.Rows.Count, "F").End(xlUp).Row
+    lastRowSheet3 = ws3.Cells(ws3.Rows.Count, "A").End(xlUp).Row
+
+    ' 设置目标范围
+    Set destRange = ws3.Range("A" & lastRowSheet3 + 1)
+
+    ' 循环数组中的每个值
+    For i = LBound(filterValues) To UBound(filterValues)
+        ' 设置筛选条件
+        Criteria = "=*" & Trim(filterValues(i)) & "*"
+        ' 执行筛选
+        With ws2.UsedRange.CurrentRegion
+            .AutoFilter Field:=6, Criteria1:=Criteria
+            Set copyRange = ws2.Range("A2:F" & ws2.Cells(ws2.Rows.Count, "A").End(xlUp).Row)
+            copyRange.Copy Destination:=destRange
+        End With
+        ' 更新目标范围的起始行
+        lastRowSheet3 = ws3.Cells(ws3.Rows.Count, "A").End(xlUp).Row
+        Set destRange = ws3.Range("A" & lastRowSheet3 + 1)
+    Next i
+    
+    ' sheet3 数据去重
+    ws3.Range("A1:F" & ws3.Cells(ws3.Rows.Count, "A").End(xlUp).Row).RemoveDuplicates Columns:=Array(1, 2, 3, 4, 5, 6)
+    
+    ' sheet1 checkpoint 数量更新
+    ws1.Range("D39").Value = ws3.Cells(ws3.Rows.Count, "A").End(xlUp).Row - 1
+
+    ' ###########################################
+    ' 第二部分 - PBC List 生成
+    ' ###########################################
+
+    
+    PBCList = ws3.Range("E2:E" & ws3.Cells(ws3.Rows.Count, "E").End(xlUp).Row).Value
+
+    ws4.Range("A2:D" & ws4.Cells(ws4.Rows.Count, "B").End(xlUp).Row).EntireRow.ClearContents
+    
+    lastRowSheet4 = 2
+    
+    For i = LBound(PBCList) To UBound(PBCList)
+        If InStr(1, PBCList(i, 1), Chr(10)) > 0 Then
+            PBCList_split = Split(PBCList(i, 1), Chr(10))
+            For j = LBound(PBCList_split) To UBound(PBCList_split)
+                If IsEmpty(PBCList_split(j)) Then
+                Else
+                    ws4.Range("B" & lastRowSheet4).Value = PBCList_split(j)
+                    lastRowSheet4 = lastRowSheet4 + 1
+                End If
+            Next j
+        Else
+            If IsEmpty(PBCList(i, 1)) Then
+            Else
+                ws4.Range("B" & lastRowSheet4).Value = PBCList(i, 1)
+                lastRowSheet4 = lastRowSheet4 + 1
+            End If
+        End If
+    Next i
+    ws4.Range("B2:B" & ws4.Cells(ws4.Rows.Count, "B").End(xlUp).Row).RemoveDuplicates Columns:=1
+    
+    lastRowSheet4 = ws4.Cells(ws4.Rows.Count, "B").End(xlUp).Row
+    For i = 2 To lastRowSheet4
+        ws4.Range("A" & i).Value = i - 1
+    Next i
+
+End Sub
